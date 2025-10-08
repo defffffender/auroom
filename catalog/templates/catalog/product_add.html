@@ -5,27 +5,234 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/image-editor.css' %}">
 {% endblock %}
 
 {% block header_title %}➕ Добавить новый товар{% endblock %}
 
 {% block content %}
 <div class="form-box">
-    <h2>Информация о товаре</h2>
-    <form method="post" enctype="multipart/form-data">
+    <h2>Добавление товара</h2>
+    
+    <form method="post" enctype="multipart/form-data" data-editor-form>
         {% csrf_token %}
-        {{ form.as_p }}
         
-        <h3>📸 Фотографии товара</h3>
-        {{ formset.management_form }}
-        {% for form in formset %}
-            <div class="image-form">
-                {{ form.as_p }}
+        <!-- Основная информация -->
+        <h3>Основная информация</h3>
+        {{ form.category.label_tag }} {{ form.category }}
+        {{ form.material.label_tag }} {{ form.material }}
+        {{ form.name.label_tag }} {{ form.name }}
+        {{ form.article.label_tag }} {{ form.article }}
+        {{ form.description.label_tag }} {{ form.description }}
+        
+        <!-- Характеристики -->
+        <h3>Характеристики</h3>
+        {{ form.weight.label_tag }} {{ form.weight }}
+        {{ form.size.label_tag }} {{ form.size }}
+        {{ form.has_stones.label_tag }} {{ form.has_stones }}
+        {{ form.stone_description.label_tag }} {{ form.stone_description }}
+        
+        <!-- Выбор типа изделия -->
+        <h3>📏 Тип изделия</h3>
+        <div class="form-group">
+            {{ form.reference_photo_type.label_tag }}
+            {{ form.reference_photo_type }}
+            <p class="help-text">Выберите тип для автоматического расчёта размеров</p>
+        </div>
+        
+        <!-- Редактор изображений (показывается только если выбран тип) -->
+        <div id="editorSection" class="hidden">
+            <h3>📐 Подгонка изделия под эталон</h3>
+            
+            <div class="image-editor-container" 
+                 id="imageEditorContainer"
+                 data-reference-image=""
+                 data-reference-width="50"
+                 data-reference-height="60">
+                
+                <!-- Инструкция -->
+                <div class="editor-instructions">
+                    <h4>Как подогнать изделие:</h4>
+                    <ul>
+                        <li>Загрузите фото вашего изделия</li>
+                        <li>Перетаскивайте и масштабируйте его мышкой</li>
+                        <li>Подгоните под эталон для точных размеров</li>
+                        <li>Размеры рассчитаются автоматически</li>
+                    </ul>
+                </div>
+                
+                <!-- Информация об эталоне -->
+                <div class="reference-info" id="referenceInfo" style="display:none;">
+                    <strong>Эталон:</strong> <span id="referenceTypeText"></span><br>
+                    <strong>Размеры эталона:</strong> <span id="referenceSizeText"></span>
+                </div>
+                
+                <!-- Контролы -->
+                <div class="editor-controls">
+                    <!-- Загрузка изделия -->
+                    <div class="file-upload">
+                        <input type="file" id="productImageInput" accept="image/*">
+                        <label for="productImageInput" class="file-upload-btn">
+                            📤 Загрузить фото изделия
+                        </label>
+                    </div>
+                    
+                    <!-- Прозрачность эталона -->
+                    <div class="control-group">
+                        <label for="referenceOpacity">Прозрачность эталона:</label>
+                        <input type="range" 
+                               id="referenceOpacity" 
+                               class="opacity-slider"
+                               min="0" 
+                               max="1" 
+                               step="0.1" 
+                               value="0.5">
+                    </div>
+                    
+                    <!-- Zoom контролы -->
+                    <div class="zoom-controls">
+                        <button type="button" class="zoom-btn" id="zoomOut" disabled>−</button>
+                        <span class="zoom-level">100%</span>
+                        <button type="button" class="zoom-btn" id="zoomIn" disabled>+</button>
+                    </div>
+                    
+                    <!-- Сброс -->
+                    <button type="button" class="control-btn control-btn-secondary" id="resetPosition" disabled>
+                        🔄 Сбросить позицию
+                    </button>
+                </div>
+                
+                <!-- Canvas контейнер -->
+                <div class="canvas-container-wrapper">
+                    <!-- Canvas будет создан через JavaScript -->
+                    <div class="loading-overlay">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+                
+                <!-- Рассчитанные размеры -->
+                <div class="dimensions-display">
+                    <h4>📊 Рассчитанные размеры изделия</h4>
+                    <div class="dimension-row">
+                        <span class="dimension-label">Ширина:</span>
+                        <span class="dimension-value calculated" id="calculatedWidth">— мм</span>
+                    </div>
+                    <div class="dimension-row">
+                        <span class="dimension-label">Высота:</span>
+                        <span class="dimension-value calculated" id="calculatedHeight">— мм</span>
+                    </div>
+                </div>
             </div>
-        {% endfor %}
+        </div>
+        
+        <!-- Скрытые поля для размеров -->
+        <input type="hidden" id="id_width_mm" name="width_mm">
+        <input type="hidden" id="id_height_mm" name="height_mm">
+        <input type="hidden" id="id_diameter_mm" name="diameter_mm">
+        <input type="hidden" id="id_editor_data" name="editor_data">
+        
+        <!-- Цена и склад -->
+        <h3>Цена и склад</h3>
+        {{ form.price.label_tag }} {{ form.price }}
+        {{ form.stock_quantity.label_tag }} {{ form.stock_quantity }}
+        
+        <!-- Статус -->
+        <h3>Статус</h3>
+        {{ form.is_active.label_tag }} {{ form.is_active }}
+        {{ form.show_ruler }} {{ form.show_ruler.label_tag }}
         
         <button type="submit" class="btn">💾 Добавить товар</button>
     </form>
+    
     <a href="{% url 'catalog:factory_dashboard' %}" class="back-link">← Назад в кабинет</a>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Fabric.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+<!-- Редактор изображений -->
+<script src="{% static 'js/image-editor.js' %}"></script>
+
+<script>
+// Показ/скрытие редактора при выборе типа
+document.addEventListener('DOMContentLoaded', function() {
+    const referenceTypeSelect = document.querySelector('[name="reference_photo_type"]');
+    const editorSection = document.getElementById('editorSection');
+    const referenceInfo = document.getElementById('referenceInfo');
+    
+    // Эталонные изображения и их размеры
+    const referenceData = {
+        'ear': {
+            name: '👂 Ухо',
+            image: '{% static "images/references/ear.png" %}',
+            width: 50,
+            height: 60,
+            description: 'Эталонное ухо (50×60 мм)'
+        },
+        'finger': {
+            name: '💍 Палец',
+            image: '{% static "images/references/finger.png" %}',
+            width: 17,
+            height: 50,
+            description: 'Эталонный палец (диаметр 17 мм, длина 50 мм)'
+        },
+        'wrist': {
+            name: '⌚ Запястье',
+            image: '{% static "images/references/wrist.png" %}',
+            width: 160,
+            height: 60,
+            description: 'Эталонное запястье (обхват 160 мм)'
+        },
+        'neck': {
+            name: '📿 Шея',
+            image: '{% static "images/references/neck.png" %}',
+            width: 360,
+            height: 100,
+            description: 'Эталонная шея (обхват 360 мм)'
+        }
+    };
+    
+    if (referenceTypeSelect) {
+        referenceTypeSelect.addEventListener('change', function() {
+            const selectedType = this.value;
+            
+            if (selectedType && selectedType !== 'none' && referenceData[selectedType]) {
+                // Показываем редактор
+                editorSection.classList.remove('hidden');
+                referenceInfo.style.display = 'block';
+                
+                // Обновляем информацию об эталоне
+                const ref = referenceData[selectedType];
+                document.getElementById('referenceTypeText').textContent = ref.name;
+                document.getElementById('referenceSizeText').textContent = ref.description;
+                
+                // Обновляем данные редактора
+                const container = document.getElementById('imageEditorContainer');
+                container.dataset.referenceImage = ref.image;
+                container.dataset.referenceWidth = ref.width;
+                container.dataset.referenceHeight = ref.height;
+                
+                // Пересоздаём редактор с новым эталоном
+                if (window.jewelryEditor) {
+                    // Удаляем старый canvas
+                    const oldCanvas = document.getElementById('fabricCanvas');
+                    if (oldCanvas) oldCanvas.remove();
+                }
+                
+                // Создаём новый редактор
+                window.jewelryEditor = new JewelryImageEditor('imageEditorContainer', {
+                    referenceImage: ref.image,
+                    referenceWidth: ref.width,
+                    referenceHeight: ref.height
+                });
+            } else {
+                // Скрываем редактор
+                editorSection.classList.add('hidden');
+                referenceInfo.style.display = 'none';
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

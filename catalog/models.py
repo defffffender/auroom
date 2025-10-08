@@ -2,6 +2,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
+import json
 
 
 class Factory(models.Model):
@@ -63,8 +64,69 @@ class Material(models.Model):
         return f"{self.get_material_type_display()} {self.purity}"
 
 
+class ReferenceImage(models.Model):
+    """Эталонные изображения для подгонки товаров"""
+    REFERENCE_TYPES = [
+        ('ear', '👂 Ухо'),
+        ('finger', '💍 Палец'),
+        ('wrist', '⌚ Запястье'),
+        ('neck', '📿 Шея'),
+    ]
+    
+    reference_type = models.CharField(
+        max_length=20,
+        choices=REFERENCE_TYPES,
+        unique=True,
+        verbose_name="Тип эталона"
+    )
+    image = models.ImageField(
+        upload_to='reference_images/',
+        verbose_name="Эталонное изображение"
+    )
+    width_mm = models.DecimalField(
+        max_digits=6,
+        decimal_places=1,
+        verbose_name="Ширина эталона (мм)",
+        help_text="Реальная ширина эталонного изображения"
+    )
+    height_mm = models.DecimalField(
+        max_digits=6,
+        decimal_places=1,
+        verbose_name="Высота эталона (мм)",
+        help_text="Реальная высота эталонного изображения"
+    )
+    description = models.TextField(
+        blank=True,
+        verbose_name="Описание",
+        help_text="Описание эталона для производителей"
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="Активен"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        verbose_name = "Эталонное изображение"
+        verbose_name_plural = "Эталонные изображения"
+        ordering = ['reference_type']
+    
+    def __str__(self):
+        return f"{self.get_reference_type_display()} ({self.width_mm}×{self.height_mm} мм)"
+
+
 class Product(models.Model):
     """Модель ювелирного изделия"""
+    
+    # Типы изделий для эталонных фото
+    REFERENCE_TYPES = [
+        ('ear', '👂 Серьги'),
+        ('finger', '💍 Кольцо'),
+        ('wrist', '⌚ Браслет'),
+        ('neck', '📿 Колье/Подвеска'),
+        ('none', 'Без эталона'),
+    ]
+    
     factory = models.ForeignKey(Factory, on_delete=models.CASCADE, related_name='products', verbose_name="Завод")
     category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name='products', verbose_name="Категория")
     material = models.ForeignKey(Material, on_delete=models.PROTECT, related_name='products', verbose_name="Материал")
@@ -90,6 +152,56 @@ class Product(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
     
     views_count = models.IntegerField(default=0, verbose_name="Количество просмотров")
+    
+    # ПОЛЯ ДЛЯ РАЗМЕРОВ (рассчитываются автоматически)
+    reference_photo_type = models.CharField(
+        max_length=20,
+        choices=REFERENCE_TYPES,
+        default='none',
+        verbose_name="Тип изделия",
+        help_text="Выберите тип для подгонки под эталон"
+    )
+    
+    # Автоматически рассчитанные размеры
+    width_mm = models.DecimalField(
+        max_digits=6, 
+        decimal_places=2, 
+        blank=True, 
+        null=True,
+        verbose_name="Ширина (мм)",
+        help_text="Рассчитывается автоматически при подгонке"
+    )
+    
+    height_mm = models.DecimalField(
+        max_digits=6, 
+        decimal_places=2, 
+        blank=True, 
+        null=True,
+        verbose_name="Высота (мм)",
+        help_text="Рассчитывается автоматически при подгонке"
+    )
+    
+    diameter_mm = models.DecimalField(
+        max_digits=6, 
+        decimal_places=2, 
+        blank=True, 
+        null=True,
+        verbose_name="Диаметр (мм)",
+        help_text="Для колец - рассчитывается автоматически"
+    )
+    
+    # Данные позиционирования из редактора
+    editor_data = models.TextField(
+        blank=True,
+        verbose_name="Данные редактора",
+        help_text="JSON с координатами и масштабом"
+    )
+    
+    show_ruler = models.BooleanField(
+        default=True,
+        verbose_name="Показывать линейку",
+        help_text="Отображать интерактивную линейку на странице товара"
+    )
 
     class Meta:
         verbose_name = "Товар"
@@ -107,6 +219,36 @@ class Product(models.Model):
     @property
     def in_stock(self):
         return self.stock_quantity > 0
+    
+    @property
+    def has_dimensions(self):
+        """Проверка, указаны ли размеры изделия"""
+        return any([self.width_mm, self.height_mm, self.diameter_mm])
+    
+    @property
+    def dimensions_text(self):
+        """Текстовое представление размеров"""
+        dims = []
+        if self.width_mm:
+            dims.append(f"Ш: {self.width_mm} мм")
+        if self.height_mm:
+            dims.append(f"В: {self.height_mm} мм")
+        if self.diameter_mm:
+            dims.append(f"Ø: {self.diameter_mm} мм")
+        return " × ".join(dims) if dims else "Размеры не указаны"
+    
+    def get_editor_data(self):
+        """Получить данные редактора как словарь"""
+        if self.editor_data:
+            try:
+                return json.loads(self.editor_data)
+            except:
+                return {}
+        return {}
+    
+    def set_editor_data(self, data):
+        """Сохранить данные редактора"""
+        self.editor_data = json.dumps(data)
 
 
 class ProductImage(models.Model):
@@ -114,6 +256,12 @@ class ProductImage(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='images', verbose_name="Товар")
     image = models.ImageField(upload_to='products/', verbose_name="Изображение")
     is_main = models.BooleanField(default=False, verbose_name="Главное фото")
+    # ДОБАВИЛИ ЭТО ПОЛЕ:
+    is_reference = models.BooleanField(
+        default=False, 
+        verbose_name="Эталонное фото",
+        help_text="Фото с подогнанным изделием (используется редактором)"
+    )
     order = models.IntegerField(default=0, verbose_name="Порядок")
     uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата загрузки")
 

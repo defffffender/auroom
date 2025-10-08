@@ -27,7 +27,6 @@ class FactoryRegistrationForm(UserCreationForm):
         user.email = self.cleaned_data['email']
         if commit:
             user.save()
-            # Создаём профиль завода
             Factory.objects.create(
                 user=user,
                 name=self.cleaned_data['factory_name'],
@@ -64,7 +63,8 @@ class ProductForm(forms.ModelForm):
         fields = [
             'category', 'material', 'name', 'article', 'description',
             'weight', 'size', 'price', 'stock_quantity',
-            'has_stones', 'stone_description', 'is_active'
+            'has_stones', 'stone_description', 'is_active',
+            'reference_photo_type', 'width_mm', 'height_mm', 'diameter_mm', 'show_ruler'
         ]
         labels = {
             'category': 'Категория',
@@ -74,11 +74,16 @@ class ProductForm(forms.ModelForm):
             'description': 'Описание',
             'weight': 'Вес (г)',
             'size': 'Размер',
-            'price': 'Цена (₽)',
+            'price': 'Цена ($)',
             'stock_quantity': 'Количество на складе',
             'has_stones': 'Со вставками',
             'stone_description': 'Описание вставок',
             'is_active': 'Активен (показывать в каталоге)',
+            'reference_photo_type': 'Тип изделия (для линейки)',
+            'width_mm': 'Ширина (мм)',
+            'height_mm': 'Высота (мм)',
+            'diameter_mm': 'Диаметр (мм)',
+            'show_ruler': 'Показывать интерактивную линейку',
         }
         widgets = {
             'description': forms.Textarea(attrs={'rows': 4}),
@@ -90,10 +95,11 @@ class ProductImageForm(forms.ModelForm):
     """Форма добавления фотографий товара"""
     class Meta:
         model = ProductImage
-        fields = ['image', 'is_main', 'order']
+        fields = ['image', 'is_main', 'is_reference', 'order']
         labels = {
             'image': 'Изображение',
             'is_main': 'Главное фото',
+            'is_reference': '📏 Эталонное фото',
             'order': 'Порядок отображения',
         }
 

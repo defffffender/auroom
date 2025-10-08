@@ -5,6 +5,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/product.css' %}">
+<link rel="stylesheet" href="{% static 'css/ruler.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -20,7 +21,34 @@
     <!-- Галерея -->
     <div class="gallery">
         {% if product.images.all %}
-            <img src="{{ product.images.all.0.image.url }}" alt="{{ product.name }}" class="main-image" id="mainImage">
+            {% if product.show_ruler and product.has_dimensions %}
+                <!-- Контейнер для линейки -->
+                <div id="jewelryRulerContainer" class="ruler-container"
+                     data-width-mm="{{ product.width_mm }}"
+                     data-height-mm="{{ product.height_mm }}"
+                     data-diameter-mm="{{ product.diameter_mm }}"
+                     data-reference-type="{{ product.reference_photo_type }}">
+                    
+                    {% if product.reference_photo_type != 'none' %}
+                        <div class="reference-badge">
+                            📏 Эталонное фото для точных размеров
+                        </div>
+                    {% endif %}
+                    
+                    <div class="ruler-image-wrapper">
+                        <img src="{{ product.images.all.0.image.url }}" 
+                             alt="{{ product.name }}" 
+                             class="ruler-image" 
+                             id="mainImage">
+                    </div>
+                </div>
+            {% else %}
+                <!-- Обычная галерея без линейки -->
+                <img src="{{ product.images.all.0.image.url }}" 
+                     alt="{{ product.name }}" 
+                     class="main-image" 
+                     id="mainImage">
+            {% endif %}
             
             {% if product.images.all|length > 1 %}
             <div class="thumbnails">
@@ -28,7 +56,8 @@
                     <img src="{{ image.image.url }}" 
                          alt="{{ product.name }}" 
                          class="thumbnail {% if forloop.first %}active{% endif %}" 
-                         onclick="changeImage('{{ image.image.url }}', this)">
+                         onclick="changeImage('{{ image.image.url }}', this)"
+                         {% if image.is_reference %}title="📏 Эталонное фото"{% endif %}>
                 {% endfor %}
             </div>
             {% endif %}
@@ -100,6 +129,15 @@
                 <span class="spec-value">{{ product.size }}</span>
             </div>
             {% endif %}
+            
+            <!-- Точные размеры -->
+            {% if product.has_dimensions %}
+            <div class="spec-row">
+                <span class="spec-label">📐 Размеры</span>
+                <span class="spec-value">{{ product.dimensions_text }}</span>
+            </div>
+            {% endif %}
+            
             {% if product.has_stones %}
             <div class="spec-row">
                 <span class="spec-label">Вставки</span>
@@ -160,4 +198,8 @@
     </div>
 </div>
 {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/ruler.js' %}"></script>
 {% endblock %}
