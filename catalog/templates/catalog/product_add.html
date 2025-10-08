@@ -109,7 +109,17 @@
         <span class="zoom-level">100%</span>
         <button type="button" class="zoom-btn" id="zoomIn" disabled>+</button>
     </div>
-    
+    <div class="crop-tools" id="cropTools" style="display:none;">
+        <button type="button" class="control-btn" id="startCropBtn" disabled>
+            ✂️ Выделить область изделия
+        </button>
+        <button type="button" class="control-btn control-btn-success" id="applyCropBtn" style="display:none;">
+            ✓ Применить выделение
+        </button>
+        <button type="button" class="control-btn control-btn-secondary" id="cancelCropBtn" style="display:none;">
+            ✗ Отменить
+        </button>
+    </div>
     <!-- Сброс -->
     <button type="button" class="control-btn control-btn-secondary" id="resetPosition" disabled>
         🔄 Сбросить позицию
