@@ -14,7 +14,7 @@ urlpatterns = [
     # Аутентификация
     path('register/', views.customer_register, name='customer_register'),
     path('login/', auth_views.LoginView.as_view(template_name='catalog/login.html'), name='login'),
-    path('logout/', auth_views.LogoutView.as_view(next_page='catalog:home'), name='logout'),
+    path('logout/', views.logout_view, name='logout'),
     
     # Избранное
     path('favorites/', views.favorites_list, name='favorites_list'),

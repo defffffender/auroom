@@ -8,7 +8,7 @@ from django.shortcuts import redirect
 from django.contrib import messages
 from .forms import FactoryRegistrationForm, FactoryProfileForm, ProductForm, ProductImageForm, CustomerRegistrationForm
 from django.forms import modelformset_factory
-
+from django.contrib.auth import logout
 
 def home(request):
     """Главная страница с каталогом товаров"""
@@ -369,3 +369,9 @@ def favorites_list(request):
     }
     
     return render(request, 'catalog/favorites_list.html', context)
+
+def logout_view(request):
+    """Выход из системы"""
+    logout(request)
+    messages.success(request, 'Вы успешно вышли из системы')
+    return redirect('catalog:home')

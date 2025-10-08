@@ -207,29 +207,48 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('referenceTypeText').textContent = ref.name;
                 document.getElementById('referenceSizeText').textContent = ref.description;
                 
-                // Обновляем данные редактора
-                const container = document.getElementById('imageEditorContainer');
-                container.dataset.referenceImage = ref.image;
-                container.dataset.referenceWidth = ref.width;
-                container.dataset.referenceHeight = ref.height;
-                
-                // Пересоздаём редактор с новым эталоном
+                // ВАЖНО: Полностью удаляем старый редактор
                 if (window.jewelryEditor) {
-                    // Удаляем старый canvas
-                    const oldCanvas = document.getElementById('fabricCanvas');
-                    if (oldCanvas) oldCanvas.remove();
+                    // Удаляем canvas
+                    if (window.jewelryEditor.canvas) {
+                        window.jewelryEditor.canvas.dispose();
+                    }
+                    
+                    // Удаляем DOM элемент canvas
+                    const oldCanvasContainer = document.querySelector('.canvas-container');
+                    if (oldCanvasContainer) {
+                        oldCanvasContainer.remove();
+                    }
+                    
+                    // Очищаем ссылку
+                    window.jewelryEditor = null;
                 }
                 
-                // Создаём новый редактор
-                window.jewelryEditor = new JewelryImageEditor('imageEditorContainer', {
-                    referenceImage: ref.image,
-                    referenceWidth: ref.width,
-                    referenceHeight: ref.height
-                });
+                // Создаём новый редактор с чистого листа
+                setTimeout(() => {
+                    window.jewelryEditor = new JewelryImageEditor('imageEditorContainer', {
+                        referenceImage: ref.image,
+                        referenceWidth: ref.width,
+                        referenceHeight: ref.height
+                    });
+                }, 100); // Небольшая задержка для корректного удаления
+                
             } else {
                 // Скрываем редактор
                 editorSection.classList.add('hidden');
                 referenceInfo.style.display = 'none';
+                
+                // Удаляем редактор если скрыли
+                if (window.jewelryEditor) {
+                    if (window.jewelryEditor.canvas) {
+                        window.jewelryEditor.canvas.dispose();
+                    }
+                    const oldCanvasContainer = document.querySelector('.canvas-container');
+                    if (oldCanvasContainer) {
+                        oldCanvasContainer.remove();
+                    }
+                    window.jewelryEditor = null;
+                }
             }
         });
     }
