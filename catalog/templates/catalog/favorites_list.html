@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Избранное</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header-content h1 {
+            font-size: 1.5rem;
+        }
+        
+        .header-nav {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .header-nav a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            background: rgba(255,255,255,0.2);
+            border-radius: 8px;
+            transition: background 0.3s;
+        }
+        
+        .header-nav a:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 20px;
+        }
+        
+        .page-title {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            color: #333;
+        }
+        
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+        
+        .product-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        
+        .product-image {
+            width: 100%;
+            height: 280px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+        
+        .remove-favorite {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255,255,255,0.95);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        
+        .remove-favorite:hover {
+            background: #f44336;
+            color: white;
+            transform: scale(1.1);
+        }
+        
+        .product-info {
+            padding: 1.5rem;
+        }
+        
+        .product-category {
+            color: #667eea;
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .product-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 0.5rem 0;
+            color: #333;
+        }
+        
+        .product-article {
+            color: #999;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .product-material {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 1rem;
+        }
+        
+        .product-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #f0f0f0;
+        }
+        
+        .product-price {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        .product-link {
+            display: inline-block;
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: background 0.3s;
+        }
+        
+        .product-link:hover {
+            background: #5568d3;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .empty-state h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #999;
+        }
+        
+        .empty-state a {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: background 0.3s;
+        }
+        
+        .empty-state a:hover {
+            background: #5568d3;
+        }
+        
+        .added-date {
+            color: #999;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1>❤️ Избранное</h1>
+            <div class="header-nav">
+                <a href="{% url 'catalog:home' %}">🏠 Главная</a>
+                {% if user.is_authenticated %}
+                    {% if user.factory %}
+                    <a href="{% url 'catalog:factory_dashboard' %}">🏭 Кабинет</a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        {% if favorites %}
+            <h2 class="page-title">Ваши избранные товары ({{ favorites.count }})</h2>
+            
+            <div class="products-grid">
+                {% for favorite in favorites %}
+                    <div class="product-card">
+                        <a href="{% url 'catalog:product_detail' favorite.product.article %}">
+                            {% if favorite.product.images.all.0 %}
+                                <img src="{{ favorite.product.images.all.0.image.url }}" alt="{{ favorite.product.name }}" class="product-image">
+                            {% else %}
+                                <div class="product-image"></div>
+                            {% endif %}
+                        </a>
+                        
+                        <form action="{% url 'catalog:toggle_favorite' favorite.product.article %}" method="post" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="remove-favorite" title="Удалить из избранного">✖</button>
+                        </form>
+                        
+                        <div class="product-info">
+                            <div class="product-category">{{ favorite.product.category.name }}</div>
+                            <h3 class="product-name">{{ favorite.product.name }}</h3>
+                            <div class="product-article">Арт: {{ favorite.product.article }}</div>
+                            <div class="product-material">{{ favorite.product.material.name }} • {{ favorite.product.weight }} г</div>
+                            <div class="added-date">Добавлено: {{ favorite.added_at|date:"d.m.Y" }}</div>
+                            
+                            <div class="product-footer">
+                                <div class="product-price">{{ favorite.product.price }} ₽</div>
+                                <a href="{% url 'catalog:product_detail' favorite.product.article %}" class="product-link">Смотреть</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <h2>У вас пока нет избранных товаров</h2>
+                <p>Добавляйте товары в избранное, чтобы не потерять их</p>
+                <a href="{% url 'catalog:home' %}">Перейти к каталогу</a>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
