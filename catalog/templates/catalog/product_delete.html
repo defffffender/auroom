@@ -1,22 +1,14 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>Удалить товар</title>
-    <style>
-        body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .delete-box { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 500px; text-align: center; }
-        h2 { color: #f44336; margin-bottom: 1rem; }
-        p { margin: 1.5rem 0; color: #666; }
-        .buttons { display: flex; gap: 1rem; justify-content: center; margin-top: 2rem; }
-        button { padding: 12px 30px; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; }
-        .btn-delete { background: #f44336; color: white; }
-        .btn-delete:hover { background: #d32f2f; }
-        .btn-cancel { background: #e0e0e0; color: #333; text-decoration: none; display: inline-block; }
-        .btn-cancel:hover { background: #d0d0d0; }
-    </style>
-</head>
-<body>
+{% extends 'catalog/base.html' %}
+{% load static %}
+
+{% block title %}Удалить товар{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block body_content %}
+<div style="background: #f5f5f5; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px;">
     <div class="delete-box">
         <h2>⚠️ Удалить товар?</h2>
         <p><strong>{{ product.name }}</strong><br>Артикул: {{ product.article }}</p>
@@ -25,10 +17,10 @@
         <form method="post">
             {% csrf_token %}
             <div class="buttons">
-                <button type="submit" class="btn-delete">🗑️ Удалить</button>
-                <a href="{% url 'catalog:factory_dashboard' %}" class="btn-cancel">❌ Отмена</a>
+                <button type="submit" class="btn btn-danger">🗑️ Удалить</button>
+                <a href="{% url 'catalog:factory_dashboard' %}" class="btn btn-secondary">❌ Отмена</a>
             </div>
         </form>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

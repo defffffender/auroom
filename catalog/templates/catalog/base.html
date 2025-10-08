@@ -1,0 +1,68 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Ювелирный Каталог{% endblock %}</title>
+    
+    <!-- Базовые стили -->
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    
+    <!-- Дополнительные стили для конкретных страниц -->
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% block body_content %}
+    <!-- Шапка -->
+    <header>
+        <div class="header-content">
+            <h1>💎 {% block header_title %}Ювелирный Каталог{% endblock %}</h1>
+            <div class="header-nav">
+                {% block header_nav %}
+                <a href="{% url 'catalog:home' %}">🏠 Главная</a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'catalog:favorites_list' %}">❤️ Избранное</a>
+                    {% if user.factory %}
+                        <a href="{% url 'catalog:factory_dashboard' %}">🏭 Кабинет</a>
+                    {% endif %}
+                    <a href="{% url 'catalog:logout' %}">🚪 Выход</a>
+                {% else %}
+                    <a href="{% url 'catalog:customer_register' %}">👤 Регистрация</a>
+                    <a href="{% url 'catalog:login' %}">🔐 Вход</a>
+                {% endif %}
+                {% endblock %}
+            </div>
+        </div>
+    </header>
+
+    <!-- Контент страницы -->
+    <div class="container">
+        <!-- Сообщения -->
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Основной контент -->
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Футер -->
+    {% block footer %}
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Ювелирный Каталог. Платформа для производителей ювелирных изделий</p>
+        </div>
+    </footer>
+    {% endblock %}
+    {% endblock body_content %}
+
+    <!-- JavaScript -->
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

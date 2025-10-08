@@ -1,323 +1,85 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ factory.name }} - Каталог товаров</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: #f5f5f5;
-            color: #333;
-        }
-        
-        /* Шапка */
-        header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 1.5rem 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
-        .header-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .header-content h1 {
-            font-size: 1.5rem;
-        }
-        
-        .header-content a {
-            color: white;
-            text-decoration: none;
-            padding: 0.5rem 1rem;
-            background: rgba(255,255,255,0.2);
-            border-radius: 8px;
-            transition: background 0.3s;
-        }
-        
-        .header-content a:hover {
-            background: rgba(255,255,255,0.3);
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 20px;
-        }
-        
-        /* Информация о заводе */
-        .factory-header {
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            margin-bottom: 2rem;
-            display: flex;
-            gap: 2rem;
-            align-items: start;
-        }
-        
-        .factory-logo {
-            width: 120px;
-            height: 120px;
-            border-radius: 12px;
-            object-fit: cover;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        
-        .factory-details {
-            flex: 1;
-        }
-        
-        .factory-details h1 {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .verified-badge {
-            display: inline-block;
-            padding: 6px 12px;
-            background: #e8f5e9;
-            color: #2e7d32;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            margin-bottom: 1rem;
-        }
-        
-        .factory-description {
-            color: #666;
-            line-height: 1.6;
-            margin-bottom: 1rem;
-        }
-        
-        .factory-contacts {
-            display: flex;
-            gap: 2rem;
-            flex-wrap: wrap;
-            color: #666;
-            font-size: 0.95rem;
-        }
-        
-        .contact-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        /* Каталог товаров */
-        .products-section {
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-        
-        .products-section h2 {
-            margin-bottom: 1.5rem;
-            font-size: 1.5rem;
-        }
-        
-        .products-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 2rem;
-        }
-        
-        .product-card {
-            background: white;
-            border: 2px solid #f0f0f0;
-            border-radius: 12px;
-            overflow: hidden;
-            transition: transform 0.3s, box-shadow 0.3s;
-            text-decoration: none;
-            color: inherit;
-            display: block;
-        }
-        
-        .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-            border-color: #667eea;
-        }
-        
-        .product-image {
-            width: 100%;
-            height: 280px;
-            object-fit: cover;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-        }
-        
-        .product-info {
-            padding: 1.5rem;
-        }
-        
-        .product-category {
-            color: #667eea;
-            font-size: 0.85rem;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .product-name {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin: 0.5rem 0;
-            color: #333;
-        }
-        
-        .product-article {
-            color: #999;
-            font-size: 0.9rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .product-material {
-            font-size: 0.9rem;
-            color: #666;
-            margin-bottom: 1rem;
-        }
-        
-        .product-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid #f0f0f0;
-        }
-        
-        .product-price {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #667eea;
-        }
-        
-        .stock-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 0.8rem;
-            font-weight: 500;
-        }
-        
-        .in-stock {
-            background: #e8f5e9;
-            color: #2e7d32;
-        }
-        
-        .out-stock {
-            background: #ffebee;
-            color: #c62828;
-        }
-        
-        .empty-state {
-            text-align: center;
-            padding: 4rem 2rem;
-            color: #999;
-        }
-        
-        .empty-state h3 {
-            font-size: 1.3rem;
-            margin-bottom: 1rem;
-        }
-    </style>
-</head>
-<body>
-    <header>
-        <div class="header-content">
-            <h1>💎 Ювелирный Каталог</h1>
-            <a href="{% url 'catalog:home' %}">← Назад к каталогу</a>
-        </div>
-    </header>
+{% extends 'catalog/base.html' %}
+{% load static %}
 
-    <div class="container">
-        <!-- Информация о заводе -->
-        <div class="factory-header">
-            {% if factory.logo %}
-                <img src="{{ factory.logo.url }}" alt="{{ factory.name }}" class="factory-logo">
-            {% else %}
-                <div class="factory-logo"></div>
-            {% endif %}
-            
-            <div class="factory-details">
-                <h1>{{ factory.name }}</h1>
-                
-                {% if factory.is_verified %}
-                    <span class="verified-badge">✓ Проверенный производитель</span>
-                {% endif %}
-                
-                {% if factory.description %}
-                    <p class="factory-description">{{ factory.description }}</p>
-                {% endif %}
-                
-                <div class="factory-contacts">
-                    <div class="contact-item">
-                        📍 {{ factory.address }}
-                    </div>
-                    <div class="contact-item">
-                        📞 {{ factory.phone }}
-                    </div>
-                    <div class="contact-item">
-                        ✉️ {{ factory.email }}
-                    </div>
-                </div>
+{% block title %}{{ factory.name }} - Каталог товаров{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/catalog.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- Информация о заводе -->
+<div class="factory-detail-header">
+    {% if factory.logo %}
+        <img src="{{ factory.logo.url }}" alt="{{ factory.name }}" class="factory-logo-large">
+    {% else %}
+        <div class="factory-logo-large"></div>
+    {% endif %}
+    
+    <div class="factory-details">
+        <h1>{{ factory.name }}</h1>
+        
+        {% if factory.is_verified %}
+            <span class="verified-badge">✓ Проверенный производитель</span>
+        {% endif %}
+        
+        {% if factory.description %}
+            <p class="factory-description">{{ factory.description }}</p>
+        {% endif %}
+        
+        <div class="factory-contacts">
+            <div class="contact-item">
+                📍 {{ factory.address }}
+            </div>
+            <div class="contact-item">
+                📞 {{ factory.phone }}
+            </div>
+            <div class="contact-item">
+                ✉️ {{ factory.email }}
             </div>
         </div>
-
-        <!-- Товары завода -->
-        <div class="products-section">
-            <h2>Товары производителя ({{ products.count }})</h2>
-            
-            {% if products %}
-                <div class="products-grid">
-                    {% for product in products %}
-                        <a href="{% url 'catalog:product_detail' product.article %}" class="product-card">
-                            {% if product.images.all.0 %}
-                                <img src="{{ product.images.all.0.image.url }}" alt="{{ product.name }}" class="product-image">
-                            {% else %}
-                                <div class="product-image"></div>
-                            {% endif %}
-                            
-                            <div class="product-info">
-                                <div class="product-category">{{ product.category.name }}</div>
-                                <h3 class="product-name">{{ product.name }}</h3>
-                                <div class="product-article">Арт: {{ product.article }}</div>
-                                <div class="product-material">{{ product.material.name }} • {{ product.weight }} г</div>
-                                
-                                {% if product.in_stock %}
-                                    <span class="stock-badge in-stock">✓ В наличии</span>
-                                {% else %}
-                                    <span class="stock-badge out-stock">Нет в наличии</span>
-                                {% endif %}
-                                
-                                <div class="product-footer">
-                                    <div class="product-price">{{ product.price }} ₽</div>
-                                </div>
-                            </div>
-                        </a>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <div class="empty-state">
-                    <h3>У производителя пока нет товаров в каталоге</h3>
-                    <p>Заходите позже, товары скоро появятся</p>
-                </div>
-            {% endif %}
-        </div>
     </div>
-</body>
-</html>
+</div>
+
+<!-- Товары завода -->
+<div class="products-section">
+    <h2>Товары производителя ({{ products.count }})</h2>
+    
+    {% if products %}
+        <div class="products-grid">
+            {% for product in products %}
+                <a href="{% url 'catalog:product_detail' product.article %}" class="product-card">
+                    {% if product.images.all.0 %}
+                        <img src="{{ product.images.all.0.image.url }}" alt="{{ product.name }}" class="product-image">
+                    {% else %}
+                        <div class="product-image"></div>
+                    {% endif %}
+                    
+                    <div class="product-info">
+                        <div class="product-category">{{ product.category.name }}</div>
+                        <h3 class="product-name">{{ product.name }}</h3>
+                        <div class="product-article">Арт: {{ product.article }}</div>
+                        <div class="product-material">{{ product.material.name }} • {{ product.weight }} г</div>
+                        
+                        {% if product.in_stock %}
+                            <span class="stock-badge in-stock">✓ В наличии</span>
+                        {% else %}
+                            <span class="stock-badge out-stock">Нет в наличии</span>
+                        {% endif %}
+                        
+                        <div class="product-footer">
+                            <div class="product-price">{{ product.price }} $</div>
+                        </div>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <h3>У производителя пока нет товаров в каталоге</h3>
+            <p>Заходите позже, товары скоро появятся</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
