@@ -69,38 +69,52 @@
                 
                 <!-- Контролы -->
                 <div class="editor-controls">
-                    <!-- Загрузка изделия -->
-                    <div class="file-upload">
-                        <input type="file" id="productImageInput" accept="image/*">
-                        <label for="productImageInput" class="file-upload-btn">
-                            📤 Загрузить фото изделия
-                        </label>
-                    </div>
-                    
-                    <!-- Прозрачность эталона -->
-                    <div class="control-group">
-                        <label for="referenceOpacity">Прозрачность эталона:</label>
-                        <input type="range" 
-                               id="referenceOpacity" 
-                               class="opacity-slider"
-                               min="0" 
-                               max="1" 
-                               step="0.1" 
-                               value="0.5">
-                    </div>
-                    
-                    <!-- Zoom контролы -->
-                    <div class="zoom-controls">
-                        <button type="button" class="zoom-btn" id="zoomOut" disabled>−</button>
-                        <span class="zoom-level">100%</span>
-                        <button type="button" class="zoom-btn" id="zoomIn" disabled>+</button>
-                    </div>
-                    
-                    <!-- Сброс -->
-                    <button type="button" class="control-btn control-btn-secondary" id="resetPosition" disabled>
-                        🔄 Сбросить позицию
-                    </button>
-                </div>
+    <!-- Загрузка изделия -->
+    <div class="file-upload">
+        <input type="file" id="productImageInput" accept="image/*">
+        <label for="productImageInput" class="file-upload-btn">
+            📤 Загрузить фото изделия
+        </label>
+    </div>
+    
+    <!-- Прозрачность эталона -->
+    <div class="control-group">
+        <label for="referenceOpacity">Прозрачность эталона:</label>
+        <input type="range" 
+               id="referenceOpacity" 
+               class="opacity-slider"
+               min="0" 
+               max="1" 
+               step="0.1" 
+               value="0.5">
+    </div>
+    
+    <!-- НОВЫЙ: Прозрачность изделия -->
+    <div class="control-group">
+        <label for="productOpacity">Прозрачность изделия:</label>
+        <input type="range" 
+               id="productOpacity" 
+               class="opacity-slider"
+               min="0" 
+               max="1" 
+               step="0.1" 
+               value="1"
+               disabled>
+        <span class="opacity-value">100%</span>
+    </div>
+    
+    <!-- Zoom контролы -->
+    <div class="zoom-controls">
+        <button type="button" class="zoom-btn" id="zoomOut" disabled>−</button>
+        <span class="zoom-level">100%</span>
+        <button type="button" class="zoom-btn" id="zoomIn" disabled>+</button>
+    </div>
+    
+    <!-- Сброс -->
+    <button type="button" class="control-btn control-btn-secondary" id="resetPosition" disabled>
+        🔄 Сбросить позицию
+    </button>
+</div>
                 
                 <!-- Canvas контейнер -->
                 <div class="canvas-container-wrapper">

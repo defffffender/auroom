@@ -118,7 +118,6 @@ class ReferenceImage(models.Model):
 class Product(models.Model):
     """Модель ювелирного изделия"""
     
-    # Типы изделий для эталонных фото
     REFERENCE_TYPES = [
         ('ear', '👂 Серьги'),
         ('finger', '💍 Кольцо'),
@@ -132,7 +131,7 @@ class Product(models.Model):
     material = models.ForeignKey(Material, on_delete=models.PROTECT, related_name='products', verbose_name="Материал")
     
     name = models.CharField(max_length=200, verbose_name="Название")
-    article = models.CharField(max_length=50, verbose_name="Артикул", unique=True)
+    article = models.CharField(max_length=50, verbose_name="Артикул", unique=True, blank=True)  # ← blank=True!
     description = models.TextField(verbose_name="Описание")
     
     weight = models.DecimalField(max_digits=6, decimal_places=2, validators=[MinValueValidator(0.01)], 
@@ -153,7 +152,6 @@ class Product(models.Model):
     
     views_count = models.IntegerField(default=0, verbose_name="Количество просмотров")
     
-    # ПОЛЯ ДЛЯ РАЗМЕРОВ (рассчитываются автоматически)
     reference_photo_type = models.CharField(
         max_length=20,
         choices=REFERENCE_TYPES,
@@ -162,7 +160,6 @@ class Product(models.Model):
         help_text="Выберите тип для подгонки под эталон"
     )
     
-    # Автоматически рассчитанные размеры
     width_mm = models.DecimalField(
         max_digits=6, 
         decimal_places=2, 
@@ -190,7 +187,6 @@ class Product(models.Model):
         help_text="Для колец - рассчитывается автоматически"
     )
     
-    # Данные позиционирования из редактора
     editor_data = models.TextField(
         blank=True,
         verbose_name="Данные редактора",
@@ -213,6 +209,26 @@ class Product(models.Model):
             models.Index(fields=['factory', 'is_active']),
         ]
 
+    def save(self, *args, **kwargs):
+        """Автоматическая генерация артикула"""
+        if not self.article:
+            last_product = Product.objects.filter(
+                factory=self.factory
+            ).order_by('-id').first()
+            
+            if last_product and '-' in last_product.article:
+                try:
+                    last_number = int(last_product.article.split('-')[1])
+                    next_number = last_number + 1
+                except (ValueError, IndexError):
+                    next_number = 1
+            else:
+                next_number = 1
+            
+            self.article = f"{self.factory.id}-{next_number:06d}"
+        
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.article} - {self.name}"
 
@@ -222,12 +238,10 @@ class Product(models.Model):
     
     @property
     def has_dimensions(self):
-        """Проверка, указаны ли размеры изделия"""
         return any([self.width_mm, self.height_mm, self.diameter_mm])
     
     @property
     def dimensions_text(self):
-        """Текстовое представление размеров"""
         dims = []
         if self.width_mm:
             dims.append(f"Ш: {self.width_mm} мм")
@@ -238,7 +252,6 @@ class Product(models.Model):
         return " × ".join(dims) if dims else "Размеры не указаны"
     
     def get_editor_data(self):
-        """Получить данные редактора как словарь"""
         if self.editor_data:
             try:
                 return json.loads(self.editor_data)
@@ -247,7 +260,6 @@ class Product(models.Model):
         return {}
     
     def set_editor_data(self, data):
-        """Сохранить данные редактора"""
         self.editor_data = json.dumps(data)
 
 

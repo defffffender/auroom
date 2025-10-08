@@ -58,10 +58,11 @@ class FactoryProfileForm(forms.ModelForm):
 
 class ProductForm(forms.ModelForm):
     """Форма добавления/редактирования товара"""
+
     class Meta:
         model = Product
         fields = [
-            'category', 'material', 'name', 'article', 'description',
+            'category', 'material', 'name', 'description',
             'weight', 'size', 'price', 'stock_quantity',
             'has_stones', 'stone_description', 'is_active',
             'reference_photo_type', 'width_mm', 'height_mm', 'diameter_mm',
@@ -71,7 +72,6 @@ class ProductForm(forms.ModelForm):
             'category': 'Категория',
             'material': 'Материал',
             'name': 'Название',
-            'article': 'Артикул',
             'description': 'Описание',
             'weight': 'Вес (г)',
             'size': 'Размер',
