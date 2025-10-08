@@ -206,33 +206,40 @@ def product_add(request):
         messages.error(request, 'У вас нет профиля завода')
         return redirect('catalog:home')
     
-    ImageFormSet = modelformset_factory(ProductImage, form=ProductImageForm, extra=3, can_delete=False)
-    
     if request.method == 'POST':
         form = ProductForm(request.POST)
-        formset = ImageFormSet(request.POST, request.FILES, queryset=ProductImage.objects.none())
         
-        if form.is_valid() and formset.is_valid():
+        print("Form valid:", form.is_valid())
+        if not form.is_valid():
+            print("Form errors:", form.errors)
+        
+        if form.is_valid():
             product = form.save(commit=False)
             product.factory = factory
             product.save()
             
-            # Сохраняем изображения
-            for image_form in formset:
-                if image_form.cleaned_data.get('image'):
-                    image = image_form.save(commit=False)
-                    image.product = product
-                    image.save()
+            # Обрабатываем изображение из canvas (если есть)
+            canvas_image = request.FILES.get('canvas_image')
+            if canvas_image:
+                # Создаём главное изображение товара из canvas
+                ProductImage.objects.create(
+                    product=product,
+                    image=canvas_image,
+                    is_main=True,
+                    is_reference=True,  # Это эталонное фото
+                    order=0
+                )
+                print(f"✅ Изображение из canvas сохранено: {canvas_image.name}")
             
             messages.success(request, f'Товар "{product.name}" успешно добавлен!')
             return redirect('catalog:factory_dashboard')
+        else:
+            messages.error(request, 'Пожалуйста, исправьте ошибки в форме.')
     else:
         form = ProductForm()
-        formset = ImageFormSet(queryset=ProductImage.objects.none())
     
     return render(request, 'catalog/product_add.html', {
         'form': form,
-        'formset': formset,
         'factory': factory
     })
 

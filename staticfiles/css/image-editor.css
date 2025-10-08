@@ -41,14 +41,26 @@
     padding: 1rem;
     margin-bottom: 1.5rem;
     min-height: 600px;
+    max-height: 650px;
     display: flex;
     justify-content: center;
     align-items: center;
+    overflow: hidden; /* ВАЖНО! */
 }
 
 .canvas-container {
     position: relative;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    max-width: 800px; /* Ограничение */
+    max-height: 600px; /* Ограничение */
+}
+
+/* Сам canvas */
+canvas#fabricCanvas {
+    max-width: 100% !important;
+    max-height: 100% !important;
+    height: auto !important;
+    width: auto !important;
 }
 
 /* Контролы редактора */

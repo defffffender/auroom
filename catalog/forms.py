@@ -64,7 +64,8 @@ class ProductForm(forms.ModelForm):
             'category', 'material', 'name', 'article', 'description',
             'weight', 'size', 'price', 'stock_quantity',
             'has_stones', 'stone_description', 'is_active',
-            'reference_photo_type', 'width_mm', 'height_mm', 'diameter_mm', 'show_ruler'
+            'reference_photo_type', 'width_mm', 'height_mm', 'diameter_mm',
+            'show_ruler', 'editor_data'
         ]
         labels = {
             'category': 'Категория',
@@ -79,15 +80,20 @@ class ProductForm(forms.ModelForm):
             'has_stones': 'Со вставками',
             'stone_description': 'Описание вставок',
             'is_active': 'Активен (показывать в каталоге)',
-            'reference_photo_type': 'Тип изделия (для линейки)',
+            'reference_photo_type': 'Тип эталонного фото',
             'width_mm': 'Ширина (мм)',
             'height_mm': 'Высота (мм)',
             'diameter_mm': 'Диаметр (мм)',
-            'show_ruler': 'Показывать интерактивную линейку',
+            'show_ruler': 'Показывать линейку на странице товара',
+            'editor_data': 'Данные редактора',
         }
         widgets = {
             'description': forms.Textarea(attrs={'rows': 4}),
             'stone_description': forms.Textarea(attrs={'rows': 3}),
+            'width_mm': forms.HiddenInput(),
+            'height_mm': forms.HiddenInput(),
+            'diameter_mm': forms.HiddenInput(),
+            'editor_data': forms.HiddenInput(),
         }
 
 
