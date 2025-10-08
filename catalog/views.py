@@ -1,7 +1,7 @@
 # catalog/views.py
 from django.shortcuts import render, get_object_or_404
 from django.db.models import Q
-from .models import Product, Category, Material, Factory, ProductImage
+from .models import Product, Category, Material, Factory, ProductImage, Favorite
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login
 from django.shortcuts import redirect
