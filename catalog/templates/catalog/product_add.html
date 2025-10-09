@@ -125,7 +125,29 @@
         🔄 Сбросить позицию
     </button>
 </div>
-                
+<!-- Undo/Redo контролы -->
+<div class="undo-redo-controls">
+    <button type="button" class="control-btn" id="undoBtn" disabled title="Отменить (Ctrl+Z)">
+        ↶ Отменить
+    </button>
+    <button type="button" class="control-btn" id="redoBtn" disabled title="Вернуть (Ctrl+Shift+Z)">
+        ↷ Вернуть
+    </button>
+</div>
+
+<!-- 🧲 Кнопка магнитного прилипания -->
+<div class="snap-controls">
+    <button type="button" class="control-btn active" id="toggleSnapBtn" title="Магнитное прилипание к эталону">
+        🧲 Магнит: ВКЛ
+    </button>
+</div>
+
+<!-- 👁️ Кнопка предпросмотра -->
+<div class="preview-controls">
+    <button type="button" class="control-btn control-btn-preview" id="previewBtn" disabled title="Посмотреть финальный результат">
+        👁️ Предпросмотр
+    </button>
+</div>
                 <!-- Canvas контейнер -->
                 <div class="canvas-container-wrapper">
                     <!-- Canvas будет создан через JavaScript -->
@@ -177,10 +199,11 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
 <!-- Редактор изображений -->
 <script src="{% static 'js/image-editor.js' %}"></script>
-
 <script>
 // Показ/скрытие редактора при выборе типа
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Ювелирный Каталог загружен! 💎');
+    
     const referenceTypeSelect = document.querySelector('[name="reference_photo_type"]');
     const editorSection = document.getElementById('editorSection');
     const referenceInfo = document.getElementById('referenceInfo');
@@ -217,11 +240,52 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
     
+    // 🔧 ФИКС: Функция полного удаления редактора
+    function destroyEditor() {
+        if (window.jewelryEditor) {
+            console.log('🗑️ Удаляем старый редактор...');
+            
+            // Удаляем canvas instance
+            if (window.jewelryEditor.canvas) {
+                try {
+                    window.jewelryEditor.canvas.dispose();
+                    window.jewelryEditor.canvas = null;
+                } catch (e) {
+                    console.warn('Ошибка при удалении canvas:', e);
+                }
+            }
+            
+            // Удаляем DOM элементы
+            const canvasContainer = document.querySelector('.canvas-container');
+            if (canvasContainer) {
+                canvasContainer.remove();
+            }
+            
+            const oldCanvas = document.getElementById('fabricCanvas');
+            if (oldCanvas) {
+                oldCanvas.remove();
+            }
+            
+            // Очищаем все ссылки
+            window.jewelryEditor.referenceImg = null;
+            window.jewelryEditor.productImg = null;
+            window.jewelryEditor.cropRect = null;
+            window.jewelryEditor.history = [];
+            window.jewelryEditor.historyStep = -1;
+            window.jewelryEditor = null;
+            
+            console.log('✅ Редактор удалён');
+        }
+    }
+    
     if (referenceTypeSelect) {
         referenceTypeSelect.addEventListener('change', function() {
             const selectedType = this.value;
             
             if (selectedType && selectedType !== 'none' && referenceData[selectedType]) {
+                // Удаляем старый редактор
+                destroyEditor();
+                
                 // Показываем редактор
                 editorSection.classList.remove('hidden');
                 referenceInfo.style.display = 'block';
@@ -231,48 +295,44 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('referenceTypeText').textContent = ref.name;
                 document.getElementById('referenceSizeText').textContent = ref.description;
                 
-                // ВАЖНО: Полностью удаляем старый редактор
-                if (window.jewelryEditor) {
-                    // Удаляем canvas
-                    if (window.jewelryEditor.canvas) {
-                        window.jewelryEditor.canvas.dispose();
-                    }
-                    
-                    // Удаляем DOM элемент canvas
-                    const oldCanvasContainer = document.querySelector('.canvas-container');
-                    if (oldCanvasContainer) {
-                        oldCanvasContainer.remove();
-                    }
-                    
-                    // Очищаем ссылку
-                    window.jewelryEditor = null;
-                }
-                
-                // Создаём новый редактор с чистого листа
+                // 🔧 ФИКС: Ждём пока секция станет видимой
                 setTimeout(() => {
-                    window.jewelryEditor = new JewelryImageEditor('imageEditorContainer', {
-                        referenceImage: ref.image,
-                        referenceWidth: ref.width,
-                        referenceHeight: ref.height
-                    });
-                }, 100); // Небольшая задержка для корректного удаления
+                    console.log('🆕 Создаём новый редактор для типа:', selectedType);
+                    
+                    // Проверяем что контейнер видим
+                    const container = document.getElementById('imageEditorContainer');
+                    if (container && container.offsetWidth > 0) {
+                        window.jewelryEditor = new JewelryImageEditor('imageEditorContainer', {
+                            referenceImage: ref.image,
+                            referenceWidth: ref.width,
+                            referenceHeight: ref.height
+                        });
+                        
+                        // 🔧 Подключаем обработчик загрузки файла для включения crop кнопки
+                        const originalLoadProductImage = window.jewelryEditor.loadProductImage.bind(window.jewelryEditor);
+                        window.jewelryEditor.loadProductImage = function(file) {
+                            originalLoadProductImage(file);
+                            
+                            // Включаем crop кнопку после загрузки
+                            const cropTools = document.getElementById('cropTools');
+                            const startCropBtn = document.getElementById('startCropBtn');
+                            if (cropTools) cropTools.style.display = 'flex';
+                            if (startCropBtn) startCropBtn.disabled = false;
+                        };
+                        
+                        console.log('✅ Новый редактор создан');
+                    } else {
+                        console.error('❌ Контейнер редактора не виден или не найден');
+                    }
+                }, 300); // Увеличенная задержка для надёжности
                 
             } else {
                 // Скрываем редактор
                 editorSection.classList.add('hidden');
                 referenceInfo.style.display = 'none';
                 
-                // Удаляем редактор если скрыли
-                if (window.jewelryEditor) {
-                    if (window.jewelryEditor.canvas) {
-                        window.jewelryEditor.canvas.dispose();
-                    }
-                    const oldCanvasContainer = document.querySelector('.canvas-container');
-                    if (oldCanvasContainer) {
-                        oldCanvasContainer.remove();
-                    }
-                    window.jewelryEditor = null;
-                }
+                // Удаляем редактор
+                destroyEditor();
             }
         });
     }

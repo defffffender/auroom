@@ -9,21 +9,40 @@
 }
 
 .ruler-controls {
+    background: #f9f9f9;
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+}
+
+/* Контейнер с кнопками - НОВЫЙ МАКЕТ */
+.ruler-toggle-section {
     display: flex;
     gap: 1rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
+    align-items: center;
     flex-wrap: wrap;
 }
 
+.ruler-main-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    flex: 1;
+}
+
+/* Основные кнопки */
 .ruler-btn {
-    padding: 10px 20px;
+    padding: 12px 24px;
     background: #667eea;
     color: white;
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    font-size: 0.95rem;
+    font-size: 1rem;
+    font-weight: 500;
     transition: all 0.3s;
+    white-space: nowrap;
 }
 
 .ruler-btn:hover {
@@ -33,12 +52,133 @@
 
 .ruler-btn.active {
     background: #4caf50;
+    animation: pulse 2s infinite;
 }
 
 .ruler-btn:disabled {
     background: #ccc;
     cursor: not-allowed;
     transform: none;
+}
+
+/* Маленькая кнопка очистки - СПРАВА */
+.ruler-btn-small {
+    padding: 10px 18px;
+    font-size: 0.9rem;
+    min-width: 120px;
+}
+
+/* Кнопка очистки */
+.ruler-btn-secondary {
+    background: #f44336;
+}
+
+.ruler-btn-secondary:hover {
+    background: #d32f2f;
+    transform: translateY(-2px) scale(1.05);
+}
+
+/* Анимация пульса для активной кнопки */
+@keyframes pulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+    }
+}
+
+/* Инфо блоки */
+.ruler-info {
+    background: #fff3cd;
+    border-left: 4px solid #ffc107;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+
+.ruler-instruction {
+    margin: 0 0 1rem 0;
+    color: #856404;
+    font-size: 0.95rem;
+}
+
+.ruler-status {
+    background: white;
+    padding: 0.75rem;
+    border-radius: 6px;
+    color: #667eea;
+    font-weight: 600;
+    text-align: center;
+}
+
+/* Статус для режима сетки */
+#gridDrawStatus {
+    background: white;
+    padding: 0.75rem;
+    border-radius: 6px;
+    color: #4caf50;
+    font-weight: 600;
+    text-align: center;
+}
+
+/* Улучшенные координаты */
+.ruler-coordinates {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.ruler-coordinates span {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.ruler-coordinates strong {
+    color: #667eea;
+    font-size: 1.3rem;
+    min-width: 60px;
+    text-align: right;
+}
+
+/* Стиль для инфо сетки */
+.ruler-info-grid {
+    background: #e8f5e9;
+    border-left-color: #4caf50;
+}
+
+.ruler-info-grid .ruler-instruction {
+    color: #2e7d32;
+}
+
+/* Стиль для инфо перпендикуляра */
+.ruler-info-perpendicular {
+    background: #ffebee;
+    border-left-color: #ff4444;
+}
+
+.ruler-info-perpendicular .ruler-instruction {
+    color: #c62828;
+}
+
+/* Информация о эталоне */
+.reference-info-ruler {
+    background: #e8eaf6;
+    padding: 1rem;
+    border-radius: 8px;
+    color: #5568d3;
+    font-size: 0.95rem;
+    margin-top: 1rem;
+}
+
+.reference-info-ruler strong {
+    color: #667eea;
 }
 
 /* Изображение с линейкой */
@@ -52,144 +192,12 @@
     max-width: 100%;
     height: auto;
     display: block;
-    border-radius: 8px;
-}
-
-/* Overlay для линейки */
-.ruler-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    pointer-events: none;
-}
-
-/* Горизонтальная линейка */
-.ruler-horizontal {
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: rgba(255, 59, 48, 0.8);
-    transform: translateY(-50%);
-    pointer-events: none;
-}
-
-.ruler-horizontal::before,
-.ruler-horizontal::after {
-    content: '';
-    position: absolute;
-    width: 2px;
-    height: 20px;
-    background: rgba(255, 59, 48, 0.8);
-    top: 50%;
-    transform: translateY(-50%);
-}
-
-.ruler-horizontal::before {
-    left: 0;
-}
-
-.ruler-horizontal::after {
-    right: 0;
-}
-
-/* Вертикальная линейка */
-.ruler-vertical {
-    position: absolute;
-    left: 50%;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background: rgba(255, 59, 48, 0.8);
-    transform: translateX(-50%);
-    pointer-events: none;
-}
-
-.ruler-vertical::before,
-.ruler-vertical::after {
-    content: '';
-    position: absolute;
-    height: 2px;
-    width: 20px;
-    background: rgba(255, 59, 48, 0.8);
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-.ruler-vertical::before {
-    top: 0;
-}
-
-.ruler-vertical::after {
-    bottom: 0;
-}
-
-/* Метки размеров */
-.ruler-label {
-    position: absolute;
-    background: rgba(255, 59, 48, 0.9);
-    color: white;
-    padding: 4px 12px;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    white-space: nowrap;
-    pointer-events: none;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-}
-
-.ruler-label-horizontal {
-    top: calc(50% + 15px);
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-.ruler-label-vertical {
-    left: calc(50% + 15px);
-    top: 50%;
-    transform: translateY(-50%);
-}
-
-/* Информация о размерах */
-.dimensions-info {
-    background: white;
-    padding: 1.5rem;
     border-radius: 12px;
-    margin-top: 1.5rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
-.dimensions-info h4 {
-    margin-bottom: 1rem;
-    color: #333;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.dimension-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.75rem 0;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.dimension-item:last-child {
-    border-bottom: none;
-}
-
-.dimension-label {
-    color: #666;
-    font-weight: 500;
-}
-
-.dimension-value {
-    color: #667eea;
-    font-weight: 700;
-    font-size: 1.1rem;
+/* Canvas поверх изображения */
+#rulerCanvas {
+    pointer-events: auto;
 }
 
 /* Подсказка для эталонного фото */
@@ -204,66 +212,6 @@
     font-size: 0.85rem;
     font-weight: 500;
     margin-bottom: 1rem;
-}
-
-/* Toggle для показа/скрытия линейки */
-.ruler-toggle {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 1rem;
-}
-
-.ruler-toggle label {
-    margin: 0;
-    cursor: pointer;
-    font-weight: 500;
-}
-
-.ruler-toggle input[type="checkbox"] {
-    width: 50px;
-    height: 26px;
-    position: relative;
-    appearance: none;
-    background: #ccc;
-    border-radius: 13px;
-    cursor: pointer;
-    transition: background 0.3s;
-}
-
-.ruler-toggle input[type="checkbox"]:checked {
-    background: #667eea;
-}
-
-.ruler-toggle input[type="checkbox"]::before {
-    content: '';
-    position: absolute;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: white;
-    top: 2px;
-    left: 2px;
-    transition: left 0.3s;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-.ruler-toggle input[type="checkbox"]:checked::before {
-    left: 26px;
-}
-
-/* Информация о типе эталона */
-.reference-info {
-    background: #e8eaf6;
-    padding: 1rem;
-    border-radius: 8px;
-    margin-bottom: 1rem;
-    font-size: 0.9rem;
-    color: #5568d3;
-}
-
-.reference-info strong {
-    color: #667eea;
 }
 
 /* Анимация появления */
@@ -289,18 +237,35 @@
     }
     
     .ruler-controls {
+        padding: 1rem;
+    }
+    
+    .ruler-toggle-section {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .ruler-main-buttons {
         flex-direction: column;
     }
     
     .ruler-btn {
         width: 100%;
+        justify-content: center;
+        font-size: 0.9rem;
     }
     
-    .dimensions-info {
-        padding: 1rem;
+    .ruler-btn-small {
+        width: 100%;
     }
     
-    .dimension-value {
+    .ruler-coordinates {
+        flex-direction: column;
+        gap: 0.5rem;
         font-size: 1rem;
+    }
+    
+    .ruler-coordinates strong {
+        font-size: 1.1rem;
     }
 }

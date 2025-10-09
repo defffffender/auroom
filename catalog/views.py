@@ -209,10 +209,6 @@ def product_add(request):
     if request.method == 'POST':
         form = ProductForm(request.POST)
         
-        print("Form valid:", form.is_valid())
-        if not form.is_valid():
-            print("Form errors:", form.errors)
-        
         if form.is_valid():
             product = form.save(commit=False)
             product.factory = factory
@@ -220,18 +216,22 @@ def product_add(request):
             
             # Обрабатываем изображение из canvas (если есть)
             canvas_image = request.FILES.get('canvas_image')
+            
             if canvas_image:
-                # Создаём главное изображение товара из canvas
-                ProductImage.objects.create(
-                    product=product,
-                    image=canvas_image,
-                    is_main=True,
-                    is_reference=True,  # Это эталонное фото
-                    order=0
-                )
-                print(f"✅ Изображение из canvas сохранено: {canvas_image.name}")
+                try:
+                    ProductImage.objects.create(
+                        product=product,
+                        image=canvas_image,
+                        is_main=True,
+                        order=0
+                    )
+                    print(f"✅ Изображение из canvas сохранено: {canvas_image.name}")
+                except Exception as e:
+                    print(f"❌ Ошибка при сохранении изображения: {e}")
             
             messages.success(request, f'Товар "{product.name}" успешно добавлен!')
+            
+            # 🔧 ФИКС: Просто редирект, без JsonResponse
             return redirect('catalog:factory_dashboard')
         else:
             messages.error(request, 'Пожалуйста, исправьте ошибки в форме.')
