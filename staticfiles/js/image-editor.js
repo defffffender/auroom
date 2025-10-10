@@ -330,73 +330,139 @@ class JewelryImageEditor {
     
     // 🧲 Магнитное прилипание при перемещении
     this.canvas.on('object:moving', (e) => {
-        if (this.snapEnabled && e.target === this.productImg && this.referenceImg) {
+    if (e.target === this.productImg) {
+        // 🔒 КРИТИЧНО: Сначала ограничиваем границами эталона
+        this.constrainToReference(e.target);
+        
+        // 🧲 Потом применяем магнитное прилипание (если включено)
+        if (this.snapEnabled && this.referenceImg) {
             this.applySnap(e.target);
         }
+        
         this.updateDimensions();
-    });
+    }
+});
+
+// 🔒 НОВОЕ: Ограничение при масштабировании
+this.canvas.on('object:scaling', (e) => {
+    if (e.target === this.productImg) {
+        // После масштабирования проверяем границы
+        this.constrainToReference(e.target);
+        this.updateDimensions();
+    }
+});
 }
     
-    // 🧲 НОВЫЙ МЕТОД: Применить магнитное прилипание
-    applySnap(obj) {
-        if (!this.referenceImg) return;
-        
-        const ref = this.referenceImg;
-        const threshold = this.snapThreshold;
-        
-        // Центр эталона
-        const refCenterX = ref.left;
-        const refCenterY = ref.top;
-        
-        // Края эталона
-        const refLeft = ref.left - (ref.width * ref.scaleX) / 2;
-        const refRight = ref.left + (ref.width * ref.scaleX) / 2;
-        const refTop = ref.top - (ref.height * ref.scaleY) / 2;
-        const refBottom = ref.top + (ref.height * ref.scaleY) / 2;
-        
-        // Края объекта
-        const objLeft = obj.left - (obj.width * obj.scaleX) / 2;
-        const objRight = obj.left + (obj.width * obj.scaleX) / 2;
-        const objTop = obj.top - (obj.height * obj.scaleY) / 2;
-        const objBottom = obj.top + (obj.height * obj.scaleY) / 2;
-        
-        // Привязка к центру эталона
-        if (Math.abs(obj.left - refCenterX) < threshold) {
-            obj.set({ left: refCenterX });
-            this.showSnapGuide('vertical', refCenterX);
-        }
-        
-        if (Math.abs(obj.top - refCenterY) < threshold) {
-            obj.set({ top: refCenterY });
-            this.showSnapGuide('horizontal', refCenterY);
-        }
-        
-        // Привязка к краям эталона (выравнивание левых краёв)
-        if (Math.abs(objLeft - refLeft) < threshold) {
-            obj.set({ left: refLeft + (obj.width * obj.scaleX) / 2 });
-            this.showSnapGuide('vertical', refLeft);
-        }
-        
-        // Выравнивание правых краёв
-        if (Math.abs(objRight - refRight) < threshold) {
-            obj.set({ left: refRight - (obj.width * obj.scaleX) / 2 });
-            this.showSnapGuide('vertical', refRight);
-        }
-        
-        // Выравнивание верхних краёв
-        if (Math.abs(objTop - refTop) < threshold) {
-            obj.set({ top: refTop + (obj.height * obj.scaleY) / 2 });
-            this.showSnapGuide('horizontal', refTop);
-        }
-        
-        // Выравнивание нижних краёв
-        if (Math.abs(objBottom - refBottom) < threshold) {
-            obj.set({ top: refBottom - (obj.height * obj.scaleY) / 2 });
-            this.showSnapGuide('horizontal', refBottom);
-        }
-        
+    // 🔒 НОВЫЙ МЕТОД: Ограничение движения границами эталона
+    constrainToReference(obj) {
+    if (!this.referenceImg) return;
+    
+    const ref = this.referenceImg;
+    
+    // Границы эталона
+    const refLeft = ref.left - (ref.width * ref.scaleX) / 2;
+    const refRight = ref.left + (ref.width * ref.scaleX) / 2;
+    const refTop = ref.top - (ref.height * ref.scaleY) / 2;
+    const refBottom = ref.top + (ref.height * ref.scaleY) / 2;
+    
+    // Границы объекта
+    const objHalfWidth = (obj.width * obj.scaleX) / 2;
+    const objHalfHeight = (obj.height * obj.scaleY) / 2;
+    
+    // Ограничиваем позицию объекта
+    let newLeft = obj.left;
+    let newTop = obj.top;
+    
+    // Не даём выйти за левый край
+    if (obj.left - objHalfWidth < refLeft) {
+        newLeft = refLeft + objHalfWidth;
+    }
+    
+    // Не даём выйти за правый край
+    if (obj.left + objHalfWidth > refRight) {
+        newLeft = refRight - objHalfWidth;
+    }
+    
+    // Не даём выйти за верхний край
+    if (obj.top - objHalfHeight < refTop) {
+        newTop = refTop + objHalfHeight;
+    }
+    
+    // Не даём выйти за нижний край
+    if (obj.top + objHalfHeight > refBottom) {
+        newTop = refBottom - objHalfHeight;
+    }
+    
+    // Применяем ограничения
+    if (newLeft !== obj.left || newTop !== obj.top) {
+        obj.set({
+            left: newLeft,
+            top: newTop
+        });
         obj.setCoords();
     }
+}
+
+// 🧲 ОБНОВЛЕННЫЙ МЕТОД: Магнитное прилипание (опционально)
+applySnap(obj) {
+    if (!this.referenceImg) return;
+    
+    const ref = this.referenceImg;
+    const threshold = this.snapThreshold;
+    
+    // Центр эталона
+    const refCenterX = ref.left;
+    const refCenterY = ref.top;
+    
+    // Края эталона
+    const refLeft = ref.left - (ref.width * ref.scaleX) / 2;
+    const refRight = ref.left + (ref.width * ref.scaleX) / 2;
+    const refTop = ref.top - (ref.height * ref.scaleY) / 2;
+    const refBottom = ref.top + (ref.height * ref.scaleY) / 2;
+    
+    // Края объекта
+    const objLeft = obj.left - (obj.width * obj.scaleX) / 2;
+    const objRight = obj.left + (obj.width * obj.scaleX) / 2;
+    const objTop = obj.top - (obj.height * obj.scaleY) / 2;
+    const objBottom = obj.top + (obj.height * obj.scaleY) / 2;
+    
+    // Привязка к центру эталона
+    if (Math.abs(obj.left - refCenterX) < threshold) {
+        obj.set({ left: refCenterX });
+        this.showSnapGuide('vertical', refCenterX);
+    }
+    
+    if (Math.abs(obj.top - refCenterY) < threshold) {
+        obj.set({ top: refCenterY });
+        this.showSnapGuide('horizontal', refCenterY);
+    }
+    
+    // Привязка к краям эталона (выравнивание левых краёв)
+    if (Math.abs(objLeft - refLeft) < threshold) {
+        obj.set({ left: refLeft + (obj.width * obj.scaleX) / 2 });
+        this.showSnapGuide('vertical', refLeft);
+    }
+    
+    // Выравнивание правых краёв
+    if (Math.abs(objRight - refRight) < threshold) {
+        obj.set({ left: refRight - (obj.width * obj.scaleX) / 2 });
+        this.showSnapGuide('vertical', refRight);
+    }
+    
+    // Выравнивание верхних краёв
+    if (Math.abs(objTop - refTop) < threshold) {
+        obj.set({ top: refTop + (obj.height * obj.scaleY) / 2 });
+        this.showSnapGuide('horizontal', refTop);
+    }
+    
+    // Выравнивание нижних краёв
+    if (Math.abs(objBottom - refBottom) < threshold) {
+        obj.set({ top: refBottom - (obj.height * obj.scaleY) / 2 });
+        this.showSnapGuide('horizontal', refBottom);
+    }
+    
+    obj.setCoords();
+}
     
     // 🧲 НОВЫЙ МЕТОД: Показать направляющую при прилипании
     showSnapGuide(type, position) {
