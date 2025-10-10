@@ -805,7 +805,9 @@ enableControls() {
         return null;
     }
     
-    // 🔧 ФИКС: Экспортируем только изделие, обрезая до его границ
+    // 🔧 ФИКС: Убираем выделение и контролы перед экспортом
+    this.canvas.discardActiveObject();
+    this.canvas.renderAll();
     
     // Скрываем эталон
     const refWasVisible = this.referenceImg && this.referenceImg.opacity > 0;
@@ -842,24 +844,24 @@ enableControls() {
     tempCanvas.height = cropHeight;
     const tempCtx = tempCanvas.getContext('2d');
     
-    // Копируем только область с изделием
+    // 🔧 ФИКС: Копируем ТОЛЬКО нижний слой (без контролов)
     tempCtx.drawImage(
         this.canvas.lowerCanvasEl,
-        cropX, cropY, cropWidth, cropHeight,  // Источник
-        0, 0, cropWidth, cropHeight            // Назначение
+        cropX, cropY, cropWidth, cropHeight,
+        0, 0, cropWidth, cropHeight
     );
     
     // Получаем dataURL из временного canvas
-    const dataURL = tempCanvas.toDataURL({
-        format: 'png',
-        quality: 1
-    });
+    const dataURL = tempCanvas.toDataURL('image/png', 1.0);
     
     // Восстанавливаем состояние
     this.productImg.set('opacity', originalOpacity);
     if (this.referenceImg && refWasVisible) {
         this.referenceImg.set('opacity', this.referenceOpacity);
     }
+    
+    // 🔧 ФИКС: Возвращаем выделение объекта
+    this.canvas.setActiveObject(this.productImg);
     this.canvas.renderAll();
     
     console.log(`✂️ Изделие обрезано: ${cropWidth.toFixed(0)}x${cropHeight.toFixed(0)}px`);
@@ -1024,169 +1026,103 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Валидация формы перед отправкой
-document.addEventListener('DOMContentLoaded', function() {
-    const productForm = document.querySelector('form[data-editor-form]');
-    
-    if (productForm) {
-        productForm.addEventListener('submit', function(e) {
-            const referenceType = document.querySelector('[name="reference_photo_type"]');
-            const widthInput = document.getElementById('id_width_mm');
-            const heightInput = document.getElementById('id_height_mm');
-            
-            if (referenceType && referenceType.value !== 'none') {
-                e.preventDefault();
-                
-                if (!widthInput.value || !heightInput.value) {
-                    alert('Пожалуйста, подгоните изделие под эталон для автоматического расчёта размеров.');
-                    return false;
-                }
-                
-                if (!window.jewelryEditor || !window.jewelryEditor.productImg) {
-                    alert('Пожалуйста, загрузите фото изделия в редактор.');
-                    return false;
-                }
-                
-                const imageDataURL = window.jewelryEditor.exportImage();
-                
-                if (imageDataURL) {
-                    const blob = window.jewelryEditor.dataURLtoBlob(imageDataURL);
-                    const formData = new FormData(productForm);
-                    formData.append('canvas_image', blob, 'product_fitted.png');
-                    
-                    fetch(productForm.action || window.location.href, {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                        }
-                    })
-                    .then(response => {
-                        if (response.redirected) {
-                            window.location.href = response.url;
-                        } else if (response.ok) {
-                            return response.text();
-                        } else {
-                            throw new Error('Ошибка сервера: ' + response.status);
-                        }
-                    })
-                    .then(html => {
-                        if (html) {
-                            document.open();
-                            document.write(html);
-                            document.close();
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Ошибка:', error);
-                        alert('Произошла ошибка при сохранении товара. Проверьте заполнение всех полей и попробуйте ещё раз.');
-                    });
-                }
-                
-                return false;
-            }
-            
-            return true;
-        });
-    }
-});
 
 // Валидация формы перед отправкой
-// Валидация формы перед отправкой
 document.addEventListener('DOMContentLoaded', function() {
     const productForm = document.querySelector('form[data-editor-form]');
     
     if (productForm) {
-        let isSubmitting = false; // 🔧 ФИКС: Флаг для предотвращения двойной отправки
+        let isSubmitting = false;
         
         productForm.addEventListener('submit', function(e) {
             const referenceType = document.querySelector('[name="reference_photo_type"]');
             const widthInput = document.getElementById('id_width_mm');
             const heightInput = document.getElementById('id_height_mm');
             
-            if (referenceType && referenceType.value !== 'none') {
-                e.preventDefault();
-                
-                // 🔧 ФИКС: Проверяем флаг отправки
-                if (isSubmitting) {
-                    console.log('⏸️ Форма уже отправляется, игнорируем повторную отправку');
-                    return false;
-                }
-                
-                if (!widthInput.value || !heightInput.value) {
-                    alert('Пожалуйста, подгоните изделие под эталон для автоматического расчёта размеров.');
-                    return false;
-                }
-                
-                if (!window.jewelryEditor || !window.jewelryEditor.productImg) {
-                    alert('Пожалуйста, загрузите фото изделия в редактор.');
-                    return false;
-                }
-                
-                const imageDataURL = window.jewelryEditor.exportImage();
-                
-                if (imageDataURL) {
-                    // 🔧 ФИКС: Устанавливаем флаг
-                    isSubmitting = true;
-                    
-                    const blob = window.jewelryEditor.dataURLtoBlob(imageDataURL);
-                    const formData = new FormData(productForm);
-                    formData.append('canvas_image', blob, 'product_fitted.png');
-                    
-                    // Показываем загрузку
-                    const submitBtn = productForm.querySelector('button[type="submit"]');
-                    const originalText = submitBtn.textContent;
-                    submitBtn.disabled = true;
-                    submitBtn.textContent = '⏳ Сохранение...';
-                    
-                    fetch(productForm.action || window.location.href, {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                        },
-                        redirect: 'follow' // 🔧 ФИКС: Следуем за редиректами
-                    })
-                    .then(response => {
-                        console.log('📥 Response status:', response.status);
-                        console.log('📥 Response URL:', response.url);
-                        
-                        // 🔧 ФИКС: Если это редирект - просто переходим
-                        if (response.redirected || response.status === 302) {
-                            console.log('✅ Товар сохранён, редирект на:', response.url);
-                            window.location.href = response.url;
-                            return null; // Прерываем цепочку
-                        }
-                        
-                        // Если не редирект - проверяем содержимое
-                        return response.text();
-                    })
-                    .then(html => {
-                        if (html === null) return; // Был редирект
-                        
-                        // Если вернулась HTML страница - значит есть ошибки
-                        console.log('📄 Получена HTML страница, показываем её');
-                        document.open();
-                        document.write(html);
-                        document.close();
-                        
-                        // Сбрасываем флаг
-                        isSubmitting = false;
-                    })
-                    .catch(error => {
-                        console.error('❌ Ошибка отправки:', error);
-                        alert('Произошла ошибка при сохранении товара.');
-                        submitBtn.disabled = false;
-                        submitBtn.textContent = originalText;
-                        isSubmitting = false; // Сбрасываем флаг
-                    });
-                }
-                
+            // Если НЕ выбран эталон - отправляем форму как обычно
+            if (!referenceType || referenceType.value === 'none') {
+                console.log('📤 Отправка формы без эталона (обычный submit)');
+                return true; // Разрешаем стандартную отправку
+            }
+            
+            // Если выбран эталон - проверяем подгонку
+            e.preventDefault();
+            
+            // Проверяем флаг отправки
+            if (isSubmitting) {
+                console.log('⸙ Форма уже отправляется');
                 return false;
             }
             
-            // Если тип "none" - обычная отправка формы
-            return true;
+            if (!widthInput.value || !heightInput.value) {
+                alert('Пожалуйста, подгоните изделие под эталон для автоматического расчёта размеров.');
+                return false;
+            }
+            
+            if (!window.jewelryEditor || !window.jewelryEditor.productImg) {
+                alert('Пожалуйста, загрузите фото изделия в редактор.');
+                return false;
+            }
+            
+            // 🔧 ФИКС: Вызываем exportImage только ОДИН раз
+            console.log('📸 Экспортируем изображение...');
+            const imageDataURL = window.jewelryEditor.exportImage();
+            
+            if (!imageDataURL) {
+                alert('Ошибка при экспорте изображения.');
+                return false;
+            }
+            
+            // Устанавливаем флаг
+            isSubmitting = true;
+            
+            const blob = window.jewelryEditor.dataURLtoBlob(imageDataURL);
+            const formData = new FormData(productForm);
+            formData.append('canvas_image', blob, 'product_fitted.png');
+            
+            // Показываем загрузку
+            const submitBtn = productForm.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = '⏳ Сохранение...';
+            
+            console.log('📤 Отправляем форму через AJAX...');
+            
+            fetch(productForm.action || window.location.href, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(response => {
+                console.log('📥 Response:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('✅ Получен ответ:', data);
+                
+                if (data.success) {
+                    console.log('✅ Товар сохранён, редирект...');
+                    window.location.href = data.redirect_url || '/dashboard/';
+                } else {
+                    console.error('❌ Ошибки формы:', data.errors);
+                    alert('Ошибка при сохранении товара. Проверьте заполнение всех полей.');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                    isSubmitting = false;
+                }
+            })
+            .catch(error => {
+                console.error('❌ Ошибка отправки:', error);
+                alert('Произошла ошибка при сохранении товара: ' + error.message);
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+                isSubmitting = false;
+            });
+            
+            return false;
         });
     }
 });

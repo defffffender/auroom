@@ -231,10 +231,28 @@ def product_add(request):
             
             messages.success(request, f'Товар "{product.name}" успешно добавлен!')
             
-            # 🔧 ФИКС: Просто редирект, без JsonResponse
-            return redirect('catalog:factory_dashboard')
+            # 🔧 ФИКС: Проверяем тип запроса
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                # Для AJAX запросов возвращаем JSON
+                from django.http import JsonResponse
+                return JsonResponse({
+                    'success': True,
+                    'message': f'Товар "{product.name}" успешно добавлен!',
+                    'redirect_url': '/dashboard/'
+                })
+            else:
+                # Для обычных запросов делаем редирект
+                return redirect('catalog:factory_dashboard')
         else:
-            messages.error(request, 'Пожалуйста, исправьте ошибки в форме.')
+            # 🔧 ФИКС: Для AJAX возвращаем ошибки
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                from django.http import JsonResponse
+                return JsonResponse({
+                    'success': False,
+                    'errors': form.errors
+                }, status=400)
+            else:
+                messages.error(request, 'Пожалуйста, исправьте ошибки в форме.')
     else:
         form = ProductForm()
     
