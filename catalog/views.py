@@ -11,44 +11,75 @@ from django.forms import modelformset_factory
 from django.contrib.auth import logout
 
 def home(request):
-    """Главная страница с каталогом товаров"""
+    """Главная страница с каталогом товаров с расширенными фильтрами"""
     from django.core.paginator import Paginator
-    
+    from .models import Purity, MetalColor, Style
+
     # Получаем параметры фильтрации из URL
     category_slug = request.GET.get('category')
     material_id = request.GET.get('material')
+    purity_id = request.GET.get('purity')
+    metal_color_id = request.GET.get('metal_color')
+    style_id = request.GET.get('style')
+    has_inserts = request.GET.get('has_inserts')
+    has_stamp = request.GET.get('has_stamp')
     search_query = request.GET.get('search')
     sort_by = request.GET.get('sort', '-created_at')  # По умолчанию сортировка по новизне
     min_price = request.GET.get('min_price')
     max_price = request.GET.get('max_price')
-    
+
     # Базовый запрос - только активные товары
     products = Product.objects.filter(is_active=True).select_related(
-        'factory', 'category', 'material'
-    ).prefetch_related('images')
-    
-    # Фильтр по категории
+        'factory', 'category', 'material', 'purity', 'metal_color', 'style'
+    ).prefetch_related('images', 'insert_types', 'coatings')
+
+    # Фильтр по категории (включая подкатегории)
     if category_slug:
-        products = products.filter(category__slug=category_slug)
-    
+        category = Category.objects.filter(slug=category_slug).first()
+        if category:
+            if category.parent is None:
+                # Если это главная категория, показываем товары из всех подкатегорий
+                subcategory_ids = category.subcategories.values_list('id', flat=True)
+                products = products.filter(Q(category=category) | Q(category_id__in=subcategory_ids))
+            else:
+                # Если это подкатегория, показываем только её товары
+                products = products.filter(category=category)
+
     # Фильтр по материалу
     if material_id:
         products = products.filter(material_id=material_id)
-    
+
+    # Новые фильтры
+    if purity_id:
+        products = products.filter(purity_id=purity_id)
+
+    if metal_color_id:
+        products = products.filter(metal_color_id=metal_color_id)
+
+    if style_id:
+        products = products.filter(style_id=style_id)
+
+    if has_inserts:
+        products = products.filter(has_inserts=(has_inserts == 'true'))
+
+    if has_stamp:
+        products = products.filter(has_stamp=(has_stamp == 'true'))
+
     # Фильтр по цене
     if min_price:
         products = products.filter(price__gte=min_price)
     if max_price:
         products = products.filter(price__lte=max_price)
-    
+
     # Поиск
     if search_query:
         products = products.filter(
             Q(name__icontains=search_query) |
             Q(article__icontains=search_query) |
-            Q(description__icontains=search_query)
+            Q(description__icontains=search_query) |
+            Q(manufacturer_brand__icontains=search_query)
         )
-    
+
     # Сортировка
     if sort_by == 'price_asc':
         products = products.order_by('price')
@@ -60,28 +91,39 @@ def home(request):
         products = products.order_by('name')
     else:  # -created_at (по умолчанию - новые)
         products = products.order_by('-created_at')
-    
+
     # Пагинация (по 12 товаров на странице)
     paginator = Paginator(products, 12)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    
+
     # Данные для фильтров
-    categories = Category.objects.all()
+    categories = Category.objects.filter(parent__isnull=True, is_active=True)
     materials = Material.objects.all()
-    
+    purities = Purity.objects.all()
+    metal_colors = MetalColor.objects.all()
+    styles = Style.objects.all()
+
     context = {
         'page_obj': page_obj,
         'categories': categories,
         'materials': materials,
+        'purities': purities,
+        'metal_colors': metal_colors,
+        'styles': styles,
         'current_category': category_slug,
         'current_material': material_id,
+        'current_purity': purity_id,
+        'current_metal_color': metal_color_id,
+        'current_style': style_id,
+        'current_has_inserts': has_inserts,
+        'current_has_stamp': has_stamp,
         'search_query': search_query,
         'sort_by': sort_by,
         'min_price': min_price,
         'max_price': max_price,
     }
-    
+
     return render(request, 'catalog/home.html', context)
 
 
@@ -393,3 +435,97 @@ def logout_view(request):
     logout(request)
     messages.success(request, 'Вы успешно вышли из системы')
     return redirect('catalog:home')
+
+
+@login_required
+def factory_category_add(request):
+    """Добавление новой категории/подкатегории заводом"""
+    try:
+        factory = request.user.factory
+    except Factory.DoesNotExist:
+        messages.error(request, 'У вас нет профиля завода')
+        return redirect('catalog:home')
+
+    from .forms import CategoryForm
+
+    if request.method == 'POST':
+        form = CategoryForm(request.POST, request.FILES)
+        if form.is_valid():
+            category = form.save(commit=False, factory=factory)
+            category.save()
+            messages.success(request, f'Категория "{category.name}" успешно добавлена!')
+            return redirect('catalog:factory_dashboard')
+    else:
+        form = CategoryForm()
+
+    return render(request, 'catalog/factory_category_add.html', {
+        'form': form,
+        'factory': factory
+    })
+
+
+@login_required
+def factory_characteristic_add(request):
+    """Добавление новых характеристик заводом"""
+    try:
+        factory = request.user.factory
+    except Factory.DoesNotExist:
+        messages.error(request, 'У вас нет профиля завода')
+        return redirect('catalog:home')
+
+    from .forms import CharacteristicForm
+    from .models import Purity, MetalColor, Style, InsertType, Coating
+    from django.utils.text import slugify
+
+    if request.method == 'POST':
+        form = CharacteristicForm(request.POST)
+        if form.is_valid():
+            char_type = form.cleaned_data['characteristic_type']
+            name = form.cleaned_data['name']
+            description = form.cleaned_data.get('description', '')
+
+            try:
+                if char_type == 'purity':
+                    Purity.objects.create(
+                        material_type=form.cleaned_data['material_type'],
+                        value=name,
+                        system=form.cleaned_data['purity_system'],
+                        description=description
+                    )
+                elif char_type == 'metal_color':
+                    MetalColor.objects.create(
+                        name=name,
+                        slug=slugify(name),
+                        description=description
+                    )
+                elif char_type == 'style':
+                    Style.objects.create(
+                        name=name,
+                        slug=slugify(name),
+                        description=description
+                    )
+                elif char_type == 'insert_type':
+                    InsertType.objects.create(
+                        name=name,
+                        slug=slugify(name),
+                        category=form.cleaned_data['insert_category'],
+                        description=description
+                    )
+                elif char_type == 'coating':
+                    Coating.objects.create(
+                        name=name,
+                        slug=slugify(name),
+                        description=description
+                    )
+
+                messages.success(request, f'Характеристика "{name}" успешно добавлена!')
+                return redirect('catalog:factory_dashboard')
+            except Exception as e:
+                messages.error(request, f'Ошибка при добавлении: {str(e)}')
+    else:
+        form = CharacteristicForm()
+
+    return render(request, 'catalog/factory_characteristic_add.html', {
+        'form': form,
+        'factory': factory
+    })

@@ -26,4 +26,11 @@ urlpatterns = [
     path('dashboard/product/add/', views.product_add, name='product_add'),
     path('dashboard/product/<str:article>/edit/', views.product_edit, name='product_edit'),
     path('dashboard/product/<str:article>/delete/', views.product_delete, name='product_delete'),
+
+    # Управление категориями и характеристиками
+    path('dashboard/category/add/', views.factory_category_add, name='factory_category_add'),
+    path('dashboard/characteristic/add/', views.factory_characteristic_add, name='factory_characteristic_add'),
+
+    # Регистрация завода
+    path('factory/register/', views.factory_register, name='factory_register'),
 ]

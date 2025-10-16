@@ -1,0 +1,122 @@
+{% extends 'catalog/base.html' %}
+{% load static %}
+
+{% block title %}Добавить категорию - {{ factory.name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block header_title %}Добавить категорию{% endblock %}
+
+{% block header_nav %}
+<a href="{% url 'catalog:factory_dashboard' %}">← Назад в кабинет</a>
+<a href="{% url 'catalog:logout' %}">🚪 Выход</a>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h2>Создать новую категорию/подкатегорию</h2>
+    <p>Добавьте собственную категорию для ваших товаров. Она будет доступна всем пользователям каталога.</p>
+
+    <form method="post" enctype="multipart/form-data" class="product-form">
+        {% csrf_token %}
+
+        {% if form.errors %}
+        <div class="error-message">
+            <strong>Пожалуйста, исправьте ошибки:</strong>
+            {{ form.errors }}
+        </div>
+        {% endif %}
+
+        <div class="form-group">
+            <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+            {{ form.name }}
+            {% if form.name.help_text %}
+            <small class="help-text">{{ form.name.help_text }}</small>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.parent.id_for_label }}">{{ form.parent.label }}</label>
+            {{ form.parent }}
+            <small class="help-text">Если выберете родительскую категорию, создастся подкатегория. Оставьте пустым для главной категории.</small>
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+            {{ form.description }}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.image.id_for_label }}">{{ form.image.label }}</label>
+            {{ form.image }}
+            <small class="help-text">Изображение для категории (необязательно)</small>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn">✅ Создать категорию</button>
+            <a href="{% url 'catalog:factory_dashboard' %}" class="btn btn-secondary">Отмена</a>
+        </div>
+    </form>
+</div>
+
+<style>
+.form-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.form-group input[type="text"],
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.form-group textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.help-text {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: #666;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.error-message {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    background: #fee;
+    border: 1px solid #fcc;
+    border-radius: 4px;
+    color: #c33;
+}
+</style>
+{% endblock %}

@@ -27,11 +27,29 @@ class Factory(models.Model):
 
 
 class Category(models.Model):
-    """Категории ювелирных изделий"""
+    """Категории ювелирных изделий с иерархией"""
     name = models.CharField(max_length=100, verbose_name="Название")
     slug = models.SlugField(unique=True, verbose_name="URL")
+    parent = models.ForeignKey(
+        'self',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='subcategories',
+        verbose_name="Родительская категория"
+    )
     description = models.TextField(blank=True, verbose_name="Описание")
     image = models.ImageField(upload_to='categories/', blank=True, null=True, verbose_name="Изображение")
+    created_by = models.ForeignKey(
+        'Factory',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='created_categories',
+        verbose_name="Создана заводом"
+    )
+    is_active = models.BooleanField(default=True, verbose_name="Активна")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
 
     class Meta:
         verbose_name = "Категория"
@@ -39,6 +57,17 @@ class Category(models.Model):
         ordering = ['name']
 
     def __str__(self):
+        if self.parent:
+            return f"{self.parent.name} → {self.name}"
+        return self.name
+
+    def is_subcategory(self):
+        return self.parent is not None
+
+    def get_full_path(self):
+        """Возвращает полный путь категории"""
+        if self.parent:
+            return f"{self.parent.name} / {self.name}"
         return self.name
 
 
@@ -47,10 +76,8 @@ class Material(models.Model):
     MATERIAL_TYPES = [
         ('gold', 'Золото'),
         ('silver', 'Серебро'),
-        ('platinum', 'Платина'),
-        ('palladium', 'Палладий'),
     ]
-    
+
     name = models.CharField(max_length=100, verbose_name="Название")
     material_type = models.CharField(max_length=20, choices=MATERIAL_TYPES, verbose_name="Тип материала")
     purity = models.CharField(max_length=20, verbose_name="Проба", help_text="Например: 585, 750, 925")
@@ -62,6 +89,109 @@ class Material(models.Model):
 
     def __str__(self):
         return f"{self.get_material_type_display()} {self.purity}"
+
+
+class Purity(models.Model):
+    """Пробы для металлов"""
+    PURITY_SYSTEMS = [
+        ('metric', 'Метрическая'),
+        ('carat', 'Каратная'),
+    ]
+
+    material_type = models.CharField(
+        max_length=20,
+        choices=Material.MATERIAL_TYPES,
+        verbose_name="Тип металла"
+    )
+    value = models.CharField(max_length=20, verbose_name="Значение пробы")
+    system = models.CharField(
+        max_length=20,
+        choices=PURITY_SYSTEMS,
+        default='metric',
+        verbose_name="Система проб"
+    )
+    description = models.CharField(max_length=200, blank=True, verbose_name="Описание")
+
+    class Meta:
+        verbose_name = "Проба"
+        verbose_name_plural = "Пробы"
+        unique_together = ['material_type', 'value', 'system']
+        ordering = ['material_type', '-value']
+
+    def __str__(self):
+        return f"{self.get_material_type_display()} - {self.value} ({self.get_system_display()})"
+
+
+class MetalColor(models.Model):
+    """Цвета металлов"""
+    name = models.CharField(max_length=100, unique=True, verbose_name="Название")
+    slug = models.SlugField(unique=True, verbose_name="URL")
+    description = models.CharField(max_length=200, blank=True, verbose_name="Описание")
+
+    class Meta:
+        verbose_name = "Цвет металла"
+        verbose_name_plural = "Цвета металлов"
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class Style(models.Model):
+    """Стили ювелирных изделий"""
+    name = models.CharField(max_length=100, unique=True, verbose_name="Название")
+    slug = models.SlugField(unique=True, verbose_name="URL")
+    description = models.TextField(blank=True, verbose_name="Описание")
+
+    class Meta:
+        verbose_name = "Стиль"
+        verbose_name_plural = "Стили"
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class InsertType(models.Model):
+    """Типы вставок (камни, органика, синтетика)"""
+    INSERT_CATEGORIES = [
+        ('precious', 'Драгоценные камни'),
+        ('semi_precious', 'Полудрагоценные камни'),
+        ('organic', 'Органические материалы'),
+        ('synthetic', 'Синтетические/Неминеральные'),
+    ]
+
+    name = models.CharField(max_length=100, verbose_name="Название")
+    slug = models.SlugField(unique=True, verbose_name="URL")
+    category = models.CharField(
+        max_length=20,
+        choices=INSERT_CATEGORIES,
+        verbose_name="Категория вставки"
+    )
+    description = models.TextField(blank=True, verbose_name="Описание")
+
+    class Meta:
+        verbose_name = "Тип вставки"
+        verbose_name_plural = "Типы вставок"
+        ordering = ['category', 'name']
+
+    def __str__(self):
+        return f"{self.name} ({self.get_category_display()})"
+
+
+class Coating(models.Model):
+    """Покрытия и обработка поверхности"""
+    name = models.CharField(max_length=100, unique=True, verbose_name="Название")
+    slug = models.SlugField(unique=True, verbose_name="URL")
+    description = models.TextField(blank=True, verbose_name="Описание")
+
+    class Meta:
+        verbose_name = "Покрытие"
+        verbose_name_plural = "Покрытия"
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
 
 
 class ReferenceImage(models.Model):
@@ -117,7 +247,7 @@ class ReferenceImage(models.Model):
 
 class Product(models.Model):
     """Модель ювелирного изделия"""
-    
+
     REFERENCE_TYPES = [
         ('ear', '👂 Серьги'),
         ('finger', '💍 Кольцо'),
@@ -125,33 +255,95 @@ class Product(models.Model):
         ('neck', '📿 Колье/Подвеска'),
         ('none', 'Без эталона'),
     ]
-    
+
+    # Основные связи
     factory = models.ForeignKey(Factory, on_delete=models.CASCADE, related_name='products', verbose_name="Завод")
     category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name='products', verbose_name="Категория")
     material = models.ForeignKey(Material, on_delete=models.PROTECT, related_name='products', verbose_name="Материал")
-    
+
+    # Основная информация
     name = models.CharField(max_length=200, verbose_name="Название")
-    article = models.CharField(max_length=50, verbose_name="Артикул", unique=True, blank=True)  # ← blank=True!
+    article = models.CharField(max_length=50, verbose_name="Артикул", unique=True, blank=True)
     description = models.TextField(verbose_name="Описание")
-    
-    weight = models.DecimalField(max_digits=6, decimal_places=2, validators=[MinValueValidator(0.01)], 
-                                 verbose_name="Вес (г)")
+    manufacturer_brand = models.CharField(max_length=200, blank=True, verbose_name="Производитель/Бренд")
+
+    # Новые характеристики из списка заказчика
+    purity = models.ForeignKey(
+        Purity,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='products',
+        verbose_name="Проба"
+    )
+    metal_color = models.ForeignKey(
+        MetalColor,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='products',
+        verbose_name="Цвет металла"
+    )
+    style = models.ForeignKey(
+        Style,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='products',
+        verbose_name="Стиль"
+    )
+
+    # Вес и размеры
+    metal_weight = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        validators=[MinValueValidator(0.01)],
+        verbose_name="Масса металла (г)"
+    )
+    total_weight = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        validators=[MinValueValidator(0.01)],
+        verbose_name="Общая масса изделия (г)"
+    )
     size = models.CharField(max_length=50, blank=True, verbose_name="Размер")
-    
-    price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)], 
+
+    # Цена и остатки
+    price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)],
                                 verbose_name="Цена")
-    stock_quantity = models.IntegerField(default=0, validators=[MinValueValidator(0)], 
+    stock_quantity = models.IntegerField(default=0, validators=[MinValueValidator(0)],
                                         verbose_name="Количество на складе")
-    
-    has_stones = models.BooleanField(default=False, verbose_name="Со вставками")
-    stone_description = models.TextField(blank=True, verbose_name="Описание вставок")
-    
+
+    # Вставки (камни)
+    has_inserts = models.BooleanField(default=False, verbose_name="Наличие вставок")
+    insert_types = models.ManyToManyField(
+        InsertType,
+        blank=True,
+        related_name='products',
+        verbose_name="Типы вставок"
+    )
+    insert_description = models.TextField(blank=True, verbose_name="Описание вставок")
+
+    # Покрытие
+    coatings = models.ManyToManyField(
+        Coating,
+        blank=True,
+        related_name='products',
+        verbose_name="Покрытия"
+    )
+
+    # Клеймо
+    has_stamp = models.BooleanField(default=False, verbose_name="Наличие клейма")
+    stamp_description = models.CharField(max_length=200, blank=True, verbose_name="Описание клейма")
+
+    # Статус и даты
     is_active = models.BooleanField(default=True, verbose_name="Активен")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата добавления")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
-    
+
     views_count = models.IntegerField(default=0, verbose_name="Количество просмотров")
-    
+
+    # Эталонные фото и редактор
     reference_photo_type = models.CharField(
         max_length=20,
         choices=REFERENCE_TYPES,
@@ -159,40 +351,40 @@ class Product(models.Model):
         verbose_name="Тип изделия",
         help_text="Выберите тип для подгонки под эталон"
     )
-    
+
     width_mm = models.DecimalField(
-        max_digits=6, 
-        decimal_places=2, 
-        blank=True, 
+        max_digits=6,
+        decimal_places=2,
+        blank=True,
         null=True,
         verbose_name="Ширина (мм)",
         help_text="Рассчитывается автоматически при подгонке"
     )
-    
+
     height_mm = models.DecimalField(
-        max_digits=6, 
-        decimal_places=2, 
-        blank=True, 
+        max_digits=6,
+        decimal_places=2,
+        blank=True,
         null=True,
         verbose_name="Высота (мм)",
         help_text="Рассчитывается автоматически при подгонке"
     )
-    
+
     diameter_mm = models.DecimalField(
-        max_digits=6, 
-        decimal_places=2, 
-        blank=True, 
+        max_digits=6,
+        decimal_places=2,
+        blank=True,
         null=True,
         verbose_name="Диаметр (мм)",
         help_text="Для колец - рассчитывается автоматически"
     )
-    
+
     editor_data = models.TextField(
         blank=True,
         verbose_name="Данные редактора",
         help_text="JSON с координатами и масштабом"
     )
-    
+
     show_ruler = models.BooleanField(
         default=True,
         verbose_name="Показывать линейку",

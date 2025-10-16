@@ -1,0 +1,162 @@
+{% extends 'catalog/base.html' %}
+{% load static %}
+
+{% block title %}Добавить характеристику - {{ factory.name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block header_title %}Добавить характеристику{% endblock %}
+
+{% block header_nav %}
+<a href="{% url 'catalog:factory_dashboard' %}">← Назад в кабинет</a>
+<a href="{% url 'catalog:logout' %}">🚪 Выход</a>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h2>Добавить новую характеристику</h2>
+    <p>Создайте характеристику (проба, цвет металла, стиль и т.д.) для использования в ваших товарах.</p>
+
+    <form method="post" class="product-form" id="characteristic-form">
+        {% csrf_token %}
+
+        {% if form.errors %}
+        <div class="error-message">
+            <strong>Пожалуйста, исправьте ошибки:</strong>
+            {{ form.errors }}
+        </div>
+        {% endif %}
+
+        <div class="form-group">
+            <label for="{{ form.characteristic_type.id_for_label }}">{{ form.characteristic_type.label }}</label>
+            {{ form.characteristic_type }}
+            <small class="help-text">Выберите тип характеристики, которую хотите добавить</small>
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+            {{ form.name }}
+            <small class="help-text">Например: "585", "Желтое", "Классический" и т.д.</small>
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+            {{ form.description }}
+        </div>
+
+        <!-- Дополнительные поля для проб -->
+        <div class="form-group conditional-field" data-show-for="purity">
+            <label for="{{ form.material_type.id_for_label }}">{{ form.material_type.label }}</label>
+            {{ form.material_type }}
+        </div>
+
+        <div class="form-group conditional-field" data-show-for="purity">
+            <label for="{{ form.purity_system.id_for_label }}">{{ form.purity_system.label }}</label>
+            {{ form.purity_system }}
+        </div>
+
+        <!-- Дополнительное поле для типов вставок -->
+        <div class="form-group conditional-field" data-show-for="insert_type">
+            <label for="{{ form.insert_category.id_for_label }}">{{ form.insert_category.label }}</label>
+            {{ form.insert_category }}
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn">✅ Создать характеристику</button>
+            <a href="{% url 'catalog:factory_dashboard' %}" class="btn btn-secondary">Отмена</a>
+        </div>
+    </form>
+</div>
+
+<style>
+.form-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.form-group input[type="text"],
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.form-group textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.help-text {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: #666;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.error-message {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    background: #fee;
+    border: 1px solid #fcc;
+    border-radius: 4px;
+    color: #c33;
+}
+
+.conditional-field {
+    display: none;
+}
+
+.conditional-field.show {
+    display: block;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const typeSelect = document.getElementById('{{ form.characteristic_type.id_for_label }}');
+    const conditionalFields = document.querySelectorAll('.conditional-field');
+
+    function updateFieldsVisibility() {
+        const selectedType = typeSelect.value;
+
+        conditionalFields.forEach(field => {
+            const showFor = field.getAttribute('data-show-for');
+            if (showFor === selectedType) {
+                field.classList.add('show');
+            } else {
+                field.classList.remove('show');
+            }
+        });
+    }
+
+    typeSelect.addEventListener('change', updateFieldsVisibility);
+    updateFieldsVisibility();
+});
+</script>
+{% endblock %}

@@ -2,7 +2,11 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
-from .models import Factory, Product, ProductImage
+from django.utils.text import slugify
+from .models import (
+    Factory, Product, ProductImage, Category,
+    Purity, MetalColor, Style, InsertType, Coating
+)
 
 
 class FactoryRegistrationForm(UserCreationForm):
@@ -57,15 +61,18 @@ class FactoryProfileForm(forms.ModelForm):
 
 
 class ProductForm(forms.ModelForm):
-    """Форма добавления/редактирования товара"""
+    """Форма добавления/редактирования товара с новыми характеристиками"""
 
     class Meta:
         model = Product
         fields = [
-            'category', 'material', 'name', 'description',
-            'weight', 'size', 'price', 'stock_quantity',
-            'has_stones', 'stone_description', 'is_active',
-            'reference_photo_type', 'width_mm', 'height_mm', 'diameter_mm',
+            'category', 'material', 'name', 'description', 'manufacturer_brand',
+            'purity', 'metal_color', 'style',
+            'metal_weight', 'total_weight', 'size',
+            'price', 'stock_quantity',
+            'has_inserts', 'insert_types', 'insert_description',
+            'coatings', 'has_stamp', 'stamp_description',
+            'is_active', 'reference_photo_type', 'width_mm', 'height_mm', 'diameter_mm',
             'show_ruler', 'editor_data'
         ]
         labels = {
@@ -73,12 +80,21 @@ class ProductForm(forms.ModelForm):
             'material': 'Материал',
             'name': 'Название',
             'description': 'Описание',
-            'weight': 'Вес (г)',
+            'manufacturer_brand': 'Производитель/Бренд',
+            'purity': 'Проба',
+            'metal_color': 'Цвет металла',
+            'style': 'Стиль',
+            'metal_weight': 'Масса металла (г)',
+            'total_weight': 'Общая масса изделия (г)',
             'size': 'Размер',
             'price': 'Цена ($)',
             'stock_quantity': 'Количество на складе',
-            'has_stones': 'Со вставками',
-            'stone_description': 'Описание вставок',
+            'has_inserts': 'Наличие вставок',
+            'insert_types': 'Типы вставок',
+            'insert_description': 'Описание вставок',
+            'coatings': 'Покрытия',
+            'has_stamp': 'Наличие клейма',
+            'stamp_description': 'Описание клейма',
             'is_active': 'Активен (показывать в каталоге)',
             'reference_photo_type': 'Тип эталонного фото',
             'width_mm': 'Ширина (мм)',
@@ -89,7 +105,9 @@ class ProductForm(forms.ModelForm):
         }
         widgets = {
             'description': forms.Textarea(attrs={'rows': 4}),
-            'stone_description': forms.Textarea(attrs={'rows': 3}),
+            'insert_description': forms.Textarea(attrs={'rows': 3}),
+            'insert_types': forms.CheckboxSelectMultiple(),
+            'coatings': forms.CheckboxSelectMultiple(),
             'width_mm': forms.HiddenInput(),
             'height_mm': forms.HiddenInput(),
             'diameter_mm': forms.HiddenInput(),
@@ -115,7 +133,7 @@ class CustomerRegistrationForm(UserCreationForm):
     email = forms.EmailField(required=True, label="Email")
     first_name = forms.CharField(max_length=30, required=False, label="Имя")
     last_name = forms.CharField(max_length=30, required=False, label="Фамилия")
-    
+
     class Meta:
         model = User
         fields = ('username', 'email', 'first_name', 'last_name', 'password1', 'password2')
@@ -124,7 +142,7 @@ class CustomerRegistrationForm(UserCreationForm):
             'password1': 'Пароль',
             'password2': 'Подтверждение пароля',
         }
-    
+
     def save(self, commit=True):
         user = super().save(commit=False)
         user.email = self.cleaned_data['email']
@@ -133,3 +151,75 @@ class CustomerRegistrationForm(UserCreationForm):
         if commit:
             user.save()
         return user
+
+
+class CategoryForm(forms.ModelForm):
+    """Форма для создания категории фабрикой"""
+
+    class Meta:
+        model = Category
+        fields = ['name', 'parent', 'description', 'image']
+        labels = {
+            'name': 'Название категории',
+            'parent': 'Родительская категория (оставьте пустым для главной категории)',
+            'description': 'Описание',
+            'image': 'Изображение',
+        }
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Показываем только главные категории в выборе родительской
+        self.fields['parent'].queryset = Category.objects.filter(parent__isnull=True, is_active=True)
+        self.fields['parent'].required = False
+
+    def save(self, commit=True, factory=None):
+        category = super().save(commit=False)
+        if not category.slug:
+            category.slug = slugify(category.name)
+        if factory:
+            category.created_by = factory
+        if commit:
+            category.save()
+        return category
+
+
+class CharacteristicForm(forms.Form):
+    """Универсальная форма для добавления характеристик (проба, цвет, стиль и т.д.)"""
+    characteristic_type = forms.ChoiceField(
+        label="Тип характеристики",
+        choices=[
+            ('purity', 'Проба'),
+            ('metal_color', 'Цвет металла'),
+            ('style', 'Стиль'),
+            ('insert_type', 'Тип вставки'),
+            ('coating', 'Покрытие'),
+        ]
+    )
+    name = forms.CharField(max_length=100, label="Название")
+    description = forms.CharField(
+        widget=forms.Textarea(attrs={'rows': 3}),
+        required=False,
+        label="Описание"
+    )
+
+    # Дополнительные поля для проб
+    material_type = forms.ChoiceField(
+        choices=[('', '---')] + list(Purity._meta.get_field('material_type').choices),
+        required=False,
+        label="Тип металла"
+    )
+    purity_system = forms.ChoiceField(
+        choices=[('', '---')] + list(Purity._meta.get_field('system').choices),
+        required=False,
+        label="Система проб"
+    )
+
+    # Дополнительное поле для типов вставок
+    insert_category = forms.ChoiceField(
+        choices=[('', '---')] + list(InsertType._meta.get_field('category').choices),
+        required=False,
+        label="Категория вставки"
+    )
