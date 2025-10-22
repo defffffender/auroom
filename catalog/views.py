@@ -289,6 +289,10 @@ def product_add(request):
             # 🔧 ФИКС: Для AJAX возвращаем ошибки
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 from django.http import JsonResponse
+                # 🔧 НОВОЕ: Логируем ошибки на сервере
+                print("❌ Ошибки валидации формы:")
+                for field, errors in form.errors.items():
+                    print(f"  - {field}: {errors}")
                 return JsonResponse({
                     'success': False,
                     'errors': form.errors

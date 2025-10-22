@@ -297,14 +297,20 @@ class Product(models.Model):
     metal_weight = models.DecimalField(
         max_digits=6,
         decimal_places=2,
+        blank=True,
+        null=True,
         validators=[MinValueValidator(0.01)],
-        verbose_name="Масса металла (г)"
+        verbose_name="Масса металла (г)",
+        help_text="Масса чистого металла без вставок"
     )
     total_weight = models.DecimalField(
         max_digits=6,
         decimal_places=2,
+        blank=True,
+        null=True,
         validators=[MinValueValidator(0.01)],
-        verbose_name="Общая масса изделия (г)"
+        verbose_name="Общая масса изделия (г)",
+        help_text="Масса всего изделия со всеми вставками"
     )
     size = models.CharField(max_length=50, blank=True, verbose_name="Размер")
 

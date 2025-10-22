@@ -6,7 +6,7 @@
 from django.core.management.base import BaseCommand
 from django.utils.text import slugify
 from catalog.models import (
-    Category, Purity, MetalColor, Style, InsertType, Coating
+    Category, Material, Purity, MetalColor, Style, InsertType, Coating
 )
 
 
@@ -42,19 +42,22 @@ class Command(BaseCommand):
         # 1. Категории и подкатегории
         self.load_categories()
 
-        # 2. Пробы
+        # 2. Материалы
+        self.load_materials()
+
+        # 3. Пробы
         self.load_purities()
 
-        # 3. Цвета металлов
+        # 4. Цвета металлов
         self.load_metal_colors()
 
-        # 4. Стили
+        # 5. Стили
         self.load_styles()
 
-        # 5. Типы вставок
+        # 6. Типы вставок
         self.load_insert_types()
 
-        # 6. Покрытия
+        # 7. Покрытия
         self.load_coatings()
 
         self.stdout.write(self.style.SUCCESS('\n✅ Все данные успешно загружены!'))
@@ -115,6 +118,26 @@ class Command(BaseCommand):
                 )
                 if created:
                     self.stdout.write(f'    - Подкатегория: {subcat_name}')
+
+    def load_materials(self):
+        self.stdout.write('\nЗагрузка материалов...')
+
+        materials_data = [
+            ('gold', 'Золото', '585'),
+            ('gold', 'Золото', '750'),
+            ('gold', 'Золото', '999'),
+            ('silver', 'Серебро', '925'),
+            ('silver', 'Серебро', '999'),
+        ]
+
+        for material_type, name, purity in materials_data:
+            obj, created = Material.objects.get_or_create(
+                material_type=material_type,
+                purity=purity,
+                defaults={'name': f"{name} {purity}"}
+            )
+            if created:
+                self.stdout.write(f'  + Материал: {name} {purity}')
 
     def load_purities(self):
         self.stdout.write('\nЗагрузка проб...')
@@ -217,8 +240,13 @@ class Command(BaseCommand):
             ('precious', 'Изумруд'),
             ('precious', 'Александрит'),
 
-            # Полудрагоценные
+            # Полудрагоценные камни - Корунды
+            ('semi_precious', 'Звездчатый сапфир'),
+
+            # Полудрагоценные камни - Бериллы
             ('semi_precious', 'Аквамарин'),
+
+            # Полудрагоценные камни - Кварцы
             ('semi_precious', 'Аметист'),
             ('semi_precious', 'Цитрин'),
             ('semi_precious', 'Раухтопаз'),
@@ -228,10 +256,20 @@ class Command(BaseCommand):
             ('semi_precious', 'Агат'),
             ('semi_precious', 'Оникс'),
             ('semi_precious', 'Яшма'),
+
+            # Полудрагоценные камни - Гранаты
+            ('semi_precious', 'Демантоид'),
+            ('semi_precious', 'Альмандин'),
+            ('semi_precious', 'Родолит'),
+            ('semi_precious', 'Спессартин'),
+            ('semi_precious', 'Гранат'),
+
+            # Полудрагоценные камни - Прочие
             ('semi_precious', 'Топаз'),
             ('semi_precious', 'Хризолит (Перидот)'),
             ('semi_precious', 'Бирюза'),
-            ('semi_precious', 'Опал'),
+            ('semi_precious', 'Опал (Благородный)'),
+            ('semi_precious', 'Опал (Огненный)'),
             ('semi_precious', 'Турмалин'),
             ('semi_precious', 'Шпинель'),
             ('semi_precious', 'Циркон'),
@@ -240,16 +278,15 @@ class Command(BaseCommand):
             ('semi_precious', 'Малахит'),
             ('semi_precious', 'Нефрит'),
             ('semi_precious', 'Жадеит'),
-            ('semi_precious', 'Гранат'),
 
-            # Органические
-            ('organic', 'Жемчуг речной'),
-            ('organic', 'Жемчуг морской'),
+            # Органические материалы
+            ('organic', 'Жемчуг (Речной)'),
+            ('organic', 'Жемчуг (Морской)'),
             ('organic', 'Янтарь'),
             ('organic', 'Коралл'),
             ('organic', 'Перламутр'),
 
-            # Синтетические
+            # Синтетические/Неминеральные
             ('synthetic', 'Фианит (Кубический цирконий)'),
             ('synthetic', 'Муассанит'),
             ('synthetic', 'Синтетический корунд'),
@@ -259,13 +296,34 @@ class Command(BaseCommand):
         ]
 
         for category, name in insert_types_data:
-            obj, created = InsertType.objects.get_or_create(
-                name=name,
-                defaults={
-                    'slug': translit_slugify(name),
-                    'category': category
-                }
-            )
+            # Генерируем уникальный slug
+            base_slug = translit_slugify(name)
+            slug = base_slug
+            counter = 1
+
+            # Проверяем, существует ли такой slug
+            while InsertType.objects.filter(slug=slug).exists():
+                # Если существует, проверяем название
+                existing = InsertType.objects.filter(slug=slug).first()
+                if existing.name == name:
+                    # Это тот же камень, пропускаем
+                    obj = existing
+                    created = False
+                    break
+                else:
+                    # Другой камень с таким же slug, добавляем счётчик
+                    slug = f"{base_slug}-{counter}"
+                    counter += 1
+            else:
+                # Slug уникален, создаём новую запись
+                obj, created = InsertType.objects.get_or_create(
+                    name=name,
+                    defaults={
+                        'slug': slug,
+                        'category': category
+                    }
+                )
+
             if created:
                 self.stdout.write(f'  + Вставка: {name}')
 

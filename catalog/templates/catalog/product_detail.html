@@ -27,7 +27,8 @@
                      data-width-mm="{{ product.width_mm }}"
                      data-height-mm="{{ product.height_mm }}"
                      data-diameter-mm="{{ product.diameter_mm }}"
-                     data-reference-type="{{ product.reference_photo_type }}">
+                     data-reference-type="{{ product.reference_photo_type }}"
+                     data-editor-data="{{ product.editor_data|escapejs }}">
                     
                     {% if product.reference_photo_type != 'none' %}
                         <div class="reference-badge">

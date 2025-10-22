@@ -26,11 +26,37 @@
         {{ form.description.label_tag }} {{ form.description }}
         
         <!-- Характеристики -->
-        <h3>Характеристики</h3>
-        {{ form.weight.label_tag }} {{ form.weight }}
+        <h3>Характеристики металла</h3>
+        {{ form.purity.label_tag }} {{ form.purity }}
+        {{ form.metal_color.label_tag }} {{ form.metal_color }}
+        {{ form.style.label_tag }} {{ form.style }}
+
+        <h3>Вес и размеры</h3>
+        {{ form.metal_weight.label_tag }} {{ form.metal_weight }}
+        <span class="help-text">{{ form.metal_weight.help_text }}</span>
+
+        {{ form.total_weight.label_tag }} {{ form.total_weight }}
+        <span class="help-text">{{ form.total_weight.help_text }}</span>
+
         {{ form.size.label_tag }} {{ form.size }}
-        {{ form.has_stones.label_tag }} {{ form.has_stones }}
-        {{ form.stone_description.label_tag }} {{ form.stone_description }}
+
+        <h3>Вставки и покрытия</h3>
+        {{ form.has_inserts.label_tag }} {{ form.has_inserts }}
+
+        <div id="insertTypesSection" style="display:none;">
+            {{ form.insert_types.label_tag }}
+            {{ form.insert_types }}
+        </div>
+
+        {{ form.insert_description.label_tag }} {{ form.insert_description }}
+
+        {{ form.coatings.label_tag }} {{ form.coatings }}
+
+        {{ form.has_stamp.label_tag }} {{ form.has_stamp }}
+
+        <div id="stampDescSection" style="display:none;">
+            {{ form.stamp_description.label_tag }} {{ form.stamp_description }}
+        </div>
         
         <!-- Выбор типа изделия -->
         <h3>📏 Тип изделия</h3>
@@ -203,7 +229,31 @@
 // Показ/скрытие редактора при выборе типа
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Ювелирный Каталог загружен! 💎');
-    
+
+    // 🔧 НОВОЕ: Показ/скрытие секции вставок
+    const hasInsertsCheckbox = document.querySelector('[name="has_inserts"]');
+    const insertTypesSection = document.getElementById('insertTypesSection');
+
+    if (hasInsertsCheckbox && insertTypesSection) {
+        hasInsertsCheckbox.addEventListener('change', function() {
+            insertTypesSection.style.display = this.checked ? 'block' : 'none';
+        });
+        // Инициализация при загрузке
+        insertTypesSection.style.display = hasInsertsCheckbox.checked ? 'block' : 'none';
+    }
+
+    // 🔧 НОВОЕ: Показ/скрытие описания клейма
+    const hasStampCheckbox = document.querySelector('[name="has_stamp"]');
+    const stampDescSection = document.getElementById('stampDescSection');
+
+    if (hasStampCheckbox && stampDescSection) {
+        hasStampCheckbox.addEventListener('change', function() {
+            stampDescSection.style.display = this.checked ? 'block' : 'none';
+        });
+        // Инициализация при загрузке
+        stampDescSection.style.display = hasStampCheckbox.checked ? 'block' : 'none';
+    }
+
     const referenceTypeSelect = document.querySelector('[name="reference_photo_type"]');
     const editorSection = document.getElementById('editorSection');
     const referenceInfo = document.getElementById('referenceInfo');

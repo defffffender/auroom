@@ -57,22 +57,22 @@ class JewelryImageEditor {
     if (existingCanvas) {
         existingCanvas.remove();
     }
-    
+
     const existingContainer = this.container.querySelector('.canvas-container');
     if (existingContainer) {
         existingContainer.remove();
     }
-    
+
     const canvasEl = document.createElement('canvas');
     canvasEl.id = 'fabricCanvas';
-    
+
     // 🔧 ФИКС: Правильный расчёт размеров контейнера
     const canvasWrapper = this.container.querySelector('.canvas-container-wrapper');
     if (!canvasWrapper) {
         console.error('❌ canvas-container-wrapper не найден!');
         return;
     }
-    
+
     // Получаем размеры с учётом padding
     const wrapperRect = canvasWrapper.getBoundingClientRect();
     const wrapperStyles = window.getComputedStyle(canvasWrapper);
@@ -80,34 +80,50 @@ class JewelryImageEditor {
     const paddingRight = parseInt(wrapperStyles.paddingRight);
     const paddingTop = parseInt(wrapperStyles.paddingTop);
     const paddingBottom = parseInt(wrapperStyles.paddingBottom);
-    
-    // Доступная ширина = ширина wrapper минус padding
+
+    // 📐 НОВОЕ: Фиксированный логический размер canvas для точной калибровки
+    const FIXED_CANVAS_WIDTH = 800;
+    const FIXED_CANVAS_HEIGHT = 600;
+
+    // Устанавливаем фиксированные размеры canvas
+    canvasEl.width = FIXED_CANVAS_WIDTH;
+    canvasEl.height = FIXED_CANVAS_HEIGHT;
+
+    // Доступная ширина в контейнере
     const availableWidth = wrapperRect.width - paddingLeft - paddingRight;
     const availableHeight = wrapperRect.height - paddingTop - paddingBottom;
-    
-    // Ограничиваем размеры
-    const maxWidth = Math.min(availableWidth, 800);
-    const maxHeight = Math.min(availableHeight, 600);
-    
+
+    // Вычисляем CSS-масштаб для адаптивности
+    const scaleX = availableWidth / FIXED_CANVAS_WIDTH;
+    const scaleY = availableHeight / FIXED_CANVAS_HEIGHT;
+    const cssScale = Math.min(scaleX, scaleY, 1); // Не увеличиваем больше 100%
+
+    // Визуальные размеры (для отображения)
+    const displayWidth = FIXED_CANVAS_WIDTH * cssScale;
+    const displayHeight = FIXED_CANVAS_HEIGHT * cssScale;
+
     // 🔧 ФИКС: Проверяем что размеры положительные
-    if (maxWidth <= 0 || maxHeight <= 0) {
-        console.error('❌ Некорректные размеры canvas:', maxWidth, maxHeight);
+    if (displayWidth <= 0 || displayHeight <= 0) {
+        console.error('❌ Некорректные размеры canvas:', displayWidth, displayHeight);
         return;
     }
-    
-    canvasEl.width = maxWidth;
-    canvasEl.height = maxHeight;
-    
+
+    // Применяем CSS-размеры для отображения
+    canvasEl.style.width = `${displayWidth}px`;
+    canvasEl.style.height = `${displayHeight}px`;
+    canvasEl.style.display = 'block';
+
     const canvasContainer = document.createElement('div');
     canvasContainer.className = 'canvas-container';
-    canvasContainer.style.maxWidth = maxWidth + 'px';
-    canvasContainer.style.maxHeight = maxHeight + 'px';
+    canvasContainer.style.width = `${displayWidth}px`;
+    canvasContainer.style.height = `${displayHeight}px`;
     canvasContainer.style.overflow = 'hidden';
     canvasContainer.style.position = 'relative';
-    
+    canvasContainer.style.margin = '0 auto';
+
     canvasContainer.appendChild(canvasEl);
     canvasWrapper.appendChild(canvasContainer);
-    
+
     // 🔧 ФИКС: Удаляем старый canvas instance перед созданием нового
     if (this.canvas) {
         try {
@@ -117,20 +133,22 @@ class JewelryImageEditor {
         }
         this.canvas = null;
     }
-    
+
     this.canvas = new fabric.Canvas('fabricCanvas', {
         backgroundColor: '#ffffff',
         selection: true,
         preserveObjectStacking: true,
-        width: maxWidth,
-        height: maxHeight
+        width: FIXED_CANVAS_WIDTH,
+        height: FIXED_CANVAS_HEIGHT
     });
-    
-    this.canvas.wrapperEl.style.overflow = 'hidden';
-    this.canvas.wrapperEl.style.maxWidth = maxWidth + 'px';
-    this.canvas.wrapperEl.style.maxHeight = maxHeight + 'px';
-    
-    console.log(`✅ Canvas создан: ${maxWidth}x${maxHeight}px`);
+
+    // Сохраняем размеры для дальнейших расчётов
+    this.canvasLogicalWidth = FIXED_CANVAS_WIDTH;
+    this.canvasLogicalHeight = FIXED_CANVAS_HEIGHT;
+    this.canvasCSSScale = cssScale;
+
+    console.log(`✅ Canvas создан: ${FIXED_CANVAS_WIDTH}×${FIXED_CANVAS_HEIGHT}px (логический)`);
+    console.log(`📐 CSS масштаб: ${(cssScale * 100).toFixed(1)}% (отображение: ${displayWidth.toFixed(0)}×${displayHeight.toFixed(0)}px)`);
 }
     
     loadReferenceImage() {
@@ -822,7 +840,18 @@ enableControls() {
     
     saveEditorData() {
         if (!this.productImg) return;
-        
+
+        // 📐 НОВОЕ: Расчёт калибровочных данных для ruler.js
+        let pxPerMm = null;
+        if (this.referenceImg) {
+            const refScaledWidth = this.referenceImg.width * this.referenceImg.scaleX;
+            const refScaledHeight = this.referenceImg.height * this.referenceImg.scaleY;
+
+            const pxPerMmWidth = refScaledWidth / this.options.referenceWidth;
+            const pxPerMmHeight = refScaledHeight / this.options.referenceHeight;
+            pxPerMm = (pxPerMmWidth + pxPerMmHeight) / 2;
+        }
+
         const editorData = {
             productImage: {
                 left: this.productImg.left,
@@ -833,13 +862,24 @@ enableControls() {
             },
             cropData: this.cropData,
             referenceOpacity: this.referenceOpacity,
+            // 📐 НОВОЕ: Калибровка для ruler.js
+            calibration: {
+                canvasWidth: this.canvasLogicalWidth,
+                canvasHeight: this.canvasLogicalHeight,
+                pxPerMm: pxPerMm,
+                cssScale: this.canvasCSSScale,
+                referenceWidth: this.options.referenceWidth,
+                referenceHeight: this.options.referenceHeight
+            },
             timestamp: Date.now()
         };
-        
+
         const editorDataInput = document.getElementById('id_editor_data');
         if (editorDataInput) {
             editorDataInput.value = JSON.stringify(editorData);
         }
+
+        console.log('💾 Калибровочные данные сохранены:', editorData.calibration);
     }
     
     showStatus(message, type = 'info') {
@@ -1168,13 +1208,30 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(data => {
                 console.log('✅ Получен ответ:', data);
-                
+
                 if (data.success) {
                     console.log('✅ Товар сохранён, редирект...');
                     window.location.href = data.redirect_url || '/dashboard/';
                 } else {
                     console.error('❌ Ошибки формы:', data.errors);
-                    alert('Ошибка при сохранении товара. Проверьте заполнение всех полей.');
+
+                    // 🔧 НОВОЕ: Подробное логирование ошибок
+                    if (data.errors) {
+                        console.log('📋 Детали ошибок:');
+                        for (const [field, errors] of Object.entries(data.errors)) {
+                            console.log(`  - ${field}:`, errors);
+                        }
+                    }
+
+                    // Показываем понятное сообщение
+                    let errorMessage = 'Ошибка при сохранении товара:\n\n';
+                    if (data.errors) {
+                        for (const [field, errors] of Object.entries(data.errors)) {
+                            errorMessage += `${field}: ${errors.join(', ')}\n`;
+                        }
+                    }
+                    alert(errorMessage);
+
                     submitBtn.disabled = false;
                     submitBtn.textContent = originalText;
                     isSubmitting = false;

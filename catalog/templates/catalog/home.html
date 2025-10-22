@@ -40,7 +40,43 @@
             {% endfor %}
         </div>
     </div>
-    
+
+    <div class="filter-chips" style="margin-top: 1rem;">
+        <div class="filter-group">
+            <label>Пробы:</label>
+            <a href="?" class="chip {% if not current_purity %}active{% endif %}">Все</a>
+            {% for purity in purities %}
+                <a href="?purity={{ purity.id }}" class="chip {% if current_purity == purity.id|stringformat:'s' %}active{% endif %}">
+                    {{ purity.value }}
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="filter-chips" style="margin-top: 1rem;">
+        <div class="filter-group">
+            <label>Цвета металлов:</label>
+            <a href="?" class="chip {% if not current_metal_color %}active{% endif %}">Все</a>
+            {% for color in metal_colors %}
+                <a href="?metal_color={{ color.id }}" class="chip {% if current_metal_color == color.id|stringformat:'s' %}active{% endif %}">
+                    {{ color.name }}
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="filter-chips" style="margin-top: 1rem;">
+        <div class="filter-group">
+            <label>Стили:</label>
+            <a href="?" class="chip {% if not current_style %}active{% endif %}">Все</a>
+            {% for style in styles %}
+                <a href="?style={{ style.id }}" class="chip {% if current_style == style.id|stringformat:'s' %}active{% endif %}">
+                    {{ style.name }}
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+
     <!-- Сортировка и фильтр по цене -->
     <form method="get" class="controls">
         <!-- Сохраняем текущие фильтры -->

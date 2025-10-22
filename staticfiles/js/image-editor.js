@@ -1,6 +1,4 @@
 // Редактор изображений с эталоном для ювелирных изделий
-// ФИКС 1: Canvas не выходит за границы контейнера
-
 class JewelryImageEditor {
     constructor(containerId, options = {}) {
         this.container = document.getElementById(containerId);
