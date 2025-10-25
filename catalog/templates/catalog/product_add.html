@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="{% static 'css/image-editor.css' %}">
 {% endblock %}
 
-{% block header_title %}➕ Добавить новый товар{% endblock %}
+{% block header_title %}<i class="bi bi-plus-circle-fill"></i> Добавить новый товар{% endblock %}
 
 {% block content %}
 <div class="form-box">
@@ -59,7 +59,7 @@
         </div>
         
         <!-- Выбор типа изделия -->
-        <h3>📏 Тип изделия</h3>
+        <h3><i class="bi bi-rulers"></i> Тип изделия</h3>
         <div class="form-group">
             {{ form.reference_photo_type.label_tag }}
             {{ form.reference_photo_type }}
@@ -68,7 +68,7 @@
         
         <!-- Редактор изображений (показывается только если выбран тип) -->
         <div id="editorSection" class="hidden">
-            <h3>📐 Подгонка изделия под эталон</h3>
+            <h3><i class="bi bi-bounding-box"></i> Подгонка изделия под эталон</h3>
             
             <div class="image-editor-container" 
                  id="imageEditorContainer"
@@ -99,7 +99,7 @@
     <div class="file-upload">
         <input type="file" id="productImageInput" accept="image/*">
         <label for="productImageInput" class="file-upload-btn">
-            📤 Загрузить фото изделия
+            <i class="bi bi-upload"></i> Загрузить фото изделия
         </label>
     </div>
     
@@ -137,41 +137,41 @@
     </div>
     <div class="crop-tools" id="cropTools" style="display:none;">
         <button type="button" class="control-btn" id="startCropBtn" disabled>
-            ✂️ Выделить область изделия
+            <i class="bi bi-scissors"></i> Выделить область изделия
         </button>
         <button type="button" class="control-btn control-btn-success" id="applyCropBtn" style="display:none;">
-            ✓ Применить выделение
+            <i class="bi bi-check-lg"></i> Применить выделение
         </button>
         <button type="button" class="control-btn control-btn-secondary" id="cancelCropBtn" style="display:none;">
-            ✗ Отменить
+            <i class="bi bi-x-lg"></i> Отменить
         </button>
     </div>
     <!-- Сброс -->
     <button type="button" class="control-btn control-btn-secondary" id="resetPosition" disabled>
-        🔄 Сбросить позицию
+        <i class="bi bi-arrow-counterclockwise"></i> Сбросить позицию
     </button>
 </div>
 <!-- Undo/Redo контролы -->
 <div class="undo-redo-controls">
     <button type="button" class="control-btn" id="undoBtn" disabled title="Отменить (Ctrl+Z)">
-        ↶ Отменить
+        <i class="bi bi-arrow-counterclockwise"></i> Отменить
     </button>
     <button type="button" class="control-btn" id="redoBtn" disabled title="Вернуть (Ctrl+Shift+Z)">
-        ↷ Вернуть
+        <i class="bi bi-arrow-clockwise"></i> Вернуть
     </button>
 </div>
 
-<!-- 🧲 Кнопка магнитного прилипания -->
+<!-- Кнопка магнитного прилипания -->
 <div class="snap-controls">
     <button type="button" class="control-btn active" id="toggleSnapBtn" title="Магнитное прилипание к эталону">
-        🧲 Магнит: ВКЛ
+        <i class="bi bi-magnet"></i> Магнит: ВКЛ
     </button>
 </div>
 
-<!-- 👁️ Кнопка предпросмотра -->
+<!-- Кнопка предпросмотра -->
 <div class="preview-controls">
     <button type="button" class="control-btn control-btn-preview" id="previewBtn" disabled title="Посмотреть финальный результат">
-        👁️ Предпросмотр
+        <i class="bi bi-eye"></i> Предпросмотр
     </button>
 </div>
                 <!-- Canvas контейнер -->
@@ -184,7 +184,7 @@
                 
                 <!-- Рассчитанные размеры -->
                 <div class="dimensions-display">
-                    <h4>📊 Рассчитанные размеры изделия</h4>
+                    <h4><i class="bi bi-calculator"></i> Рассчитанные размеры изделия</h4>
                     <div class="dimension-row">
                         <span class="dimension-label">Ширина:</span>
                         <span class="dimension-value calculated" id="calculatedWidth">— мм</span>
@@ -213,10 +213,14 @@
         {{ form.is_active.label_tag }} {{ form.is_active }}
         {{ form.show_ruler }} {{ form.show_ruler.label_tag }}
         
-        <button type="submit" class="btn">💾 Добавить товар</button>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-save"></i> Добавить товар
+        </button>
     </form>
-    
-    <a href="{% url 'catalog:factory_dashboard' %}" class="back-link">← Назад в кабинет</a>
+
+    <a href="{% url 'catalog:factory_dashboard' %}" class="back-link">
+        <i class="bi bi-arrow-left"></i> Назад в кабинет
+    </a>
 </div>
 {% endblock %}
 

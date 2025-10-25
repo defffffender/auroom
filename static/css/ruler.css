@@ -34,7 +34,7 @@
 /* Основные кнопки */
 .ruler-btn {
     padding: 12px 24px;
-    background: #667eea;
+    background: var(--color-primary);
     color: white;
     border: none;
     border-radius: 8px;
@@ -43,11 +43,28 @@
     font-weight: 500;
     transition: all 0.3s;
     white-space: nowrap;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Градиентный блик для ruler-btn */
+.ruler-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.5s ease;
+}
+
+.ruler-btn:hover::before {
+    left: 100%;
 }
 
 .ruler-btn:hover {
-    background: #5568d3;
-    transform: translateY(-2px);
+    background: var(--color-primary);
 }
 
 .ruler-btn.active {
@@ -71,11 +88,28 @@
 /* Кнопка очистки */
 .ruler-btn-secondary {
     background: #f44336;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Градиентный блик для ruler-btn-secondary */
+.ruler-btn-secondary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.5s ease;
+}
+
+.ruler-btn-secondary:hover::before {
+    left: 100%;
 }
 
 .ruler-btn-secondary:hover {
     background: #d32f2f;
-    transform: translateY(-2px) scale(1.05);
 }
 
 /* Анимация пульса для активной кнопки */
@@ -107,7 +141,7 @@
     background: white;
     padding: 0.75rem;
     border-radius: 6px;
-    color: #667eea;
+    color: var(--color-primary);
     font-weight: 600;
     text-align: center;
 }
@@ -141,7 +175,7 @@
 }
 
 .ruler-coordinates strong {
-    color: #667eea;
+    color: var(--color-primary);
     font-size: 1.3rem;
     min-width: 60px;
     text-align: right;
@@ -172,13 +206,13 @@
     background: #e8eaf6;
     padding: 1rem;
     border-radius: 8px;
-    color: #5568d3;
+    color: var(--color-primary);
     font-size: 0.95rem;
     margin-top: 1rem;
 }
 
 .reference-info-ruler strong {
-    color: #667eea;
+    color: var(--color-primary);
 }
 
 /* Изображение с линейкой */
@@ -206,7 +240,7 @@
     align-items: center;
     gap: 0.5rem;
     padding: 6px 12px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-success) 100%);
     color: white;
     border-radius: 20px;
     font-size: 0.85rem;

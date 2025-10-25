@@ -11,8 +11,12 @@
 {% block content %}
 <!-- Хлебные крошки -->
 <div class="breadcrumbs">
-    <a href="{% url 'catalog:home' %}">Главная</a> / 
-    <a href="{% url 'catalog:home' %}?category={{ product.category.slug }}">{{ product.category.name }}</a> / 
+    <a href="{% url 'catalog:home' %}">
+        <i class="bi bi-house"></i> Главная
+    </a> /
+    <a href="{% url 'catalog:home' %}?category={{ product.category.slug }}">
+        {{ product.category.name }}
+    </a> /
     {{ product.name }}
 </div>
 
@@ -29,55 +33,61 @@
                      data-diameter-mm="{{ product.diameter_mm }}"
                      data-reference-type="{{ product.reference_photo_type }}"
                      data-editor-data="{{ product.editor_data|escapejs }}">
-                    
+
                     {% if product.reference_photo_type != 'none' %}
-                        <div class="reference-badge">
-                            📏 Эталонное фото для точных размеров
+                        <div class="alert alert-info d-flex align-items-center gap-2 mb-2">
+                            <i class="bi bi-rulers"></i> Эталонное фото для точных размеров
                         </div>
                     {% endif %}
-                    
+
                     <div class="ruler-image-wrapper">
-                        <img src="{{ product.images.all.0.image.url }}" 
-                             alt="{{ product.name }}" 
-                             class="ruler-image" 
+                        <img src="{{ product.images.all.0.image.url }}"
+                             alt="{{ product.name }}"
+                             class="ruler-image"
                              id="mainImage">
                     </div>
                 </div>
             {% else %}
                 <!-- Обычная галерея без линейки -->
-                <img src="{{ product.images.all.0.image.url }}" 
-                     alt="{{ product.name }}" 
-                     class="main-image" 
+                <img src="{{ product.images.all.0.image.url }}"
+                     alt="{{ product.name }}"
+                     class="main-image"
                      id="mainImage">
             {% endif %}
-            
+
             {% if product.images.all|length > 1 %}
             <div class="thumbnails">
                 {% for image in product.images.all %}
-                    <img src="{{ image.image.url }}" 
-                         alt="{{ product.name }}" 
-                         class="thumbnail {% if forloop.first %}active{% endif %}" 
+                    <img src="{{ image.image.url }}"
+                         alt="{{ product.name }}"
+                         class="thumbnail {% if forloop.first %}active{% endif %}"
                          onclick="changeImage('{{ image.image.url }}', this)"
-                         {% if image.is_reference %}title="📏 Эталонное фото"{% endif %}>
+                         {% if image.is_reference %}title="Эталонное фото"{% endif %}>
                 {% endfor %}
             </div>
             {% endif %}
         {% else %}
-            <div class="main-image"></div>
+            <div class="main-image bg-light d-flex align-items-center justify-content-center">
+                <i class="bi bi-image" style="font-size: 4rem; color: #ccc;"></i>
+            </div>
         {% endif %}
     </div>
 
     <!-- Информация -->
     <div class="product-detail-info">
         <h1>{{ product.name }}</h1>
-        
+
         <div class="product-meta">
             <span class="category-badge">{{ product.category.name }}</span>
-            <span class="meta-item">Артикул: <strong>{{ product.article }}</strong></span>
-            <span class="meta-item">👁️ Просмотров: {{ product.views_count }}</span>
+            <span class="meta-item">
+                <i class="bi bi-hash"></i> Артикул: <strong>{{ product.article }}</strong>
+            </span>
+            <span class="meta-item">
+                <i class="bi bi-eye"></i> Просмотров: {{ product.views_count }}
+            </span>
         </div>
 
-        <div class="price">{{ product.price }} $</div>
+        <div class="price">${{ product.price }}</div>
 
         <!-- Кнопка избранного -->
         {% if user.is_authenticated %}
@@ -85,27 +95,27 @@
                 {% csrf_token %}
                 {% if product in user.favorites.all %}
                     <button type="submit" class="btn btn-danger favorite-btn">
-                        ❤️ Удалить из избранного
+                        <i class="bi bi-heart-fill"></i> Удалить из избранного
                     </button>
                 {% else %}
-                    <button type="submit" class="btn favorite-btn" style="background: #4caf50;">
-                        🤍 Добавить в избранное
+                    <button type="submit" class="btn btn-success favorite-btn">
+                        <i class="bi bi-heart"></i> Добавить в избранное
                     </button>
                 {% endif %}
             </form>
         {% else %}
-            <a href="{% url 'catalog:login' %}" class="btn favorite-btn">
-                Войдите, чтобы добавить в избранное
+            <a href="{% url 'catalog:login' %}" class="btn btn-secondary favorite-btn">
+                <i class="bi bi-box-arrow-in-right"></i> Войдите, чтобы добавить в избранное
             </a>
         {% endif %}
 
         {% if product.in_stock %}
             <div class="stock-status in-stock">
-                ✓ В наличии ({{ product.stock_quantity }} шт)
+                <i class="bi bi-check-circle"></i> В наличии ({{ product.stock_quantity }} шт)
             </div>
         {% else %}
             <div class="stock-status out-stock">
-                ✗ Нет в наличии
+                <i class="bi bi-x-circle"></i> Нет в наличии
             </div>
         {% endif %}
 
@@ -115,38 +125,44 @@
 
         <!-- Характеристики -->
         <div class="specs">
-            <h3>📋 Характеристики</h3>
+            <h3><i class="bi bi-list-ul"></i> Характеристики</h3>
             <div class="spec-row">
-                <span class="spec-label">Материал</span>
+                <span class="spec-label"><i class="bi bi-gem"></i> Материал</span>
                 <span class="spec-value">{{ product.material.name }}</span>
             </div>
             <div class="spec-row">
-                <span class="spec-label">Вес</span>
-                <span class="spec-value">{{ product.weight }} г</span>
+                <span class="spec-label"><i class="bi bi-box"></i> Вес металла</span>
+                <span class="spec-value">{{ product.metal_weight }} г</span>
             </div>
+            {% if product.total_weight %}
+            <div class="spec-row">
+                <span class="spec-label"><i class="bi bi-layers"></i> Общий вес</span>
+                <span class="spec-value">{{ product.total_weight }} г</span>
+            </div>
+            {% endif %}
             {% if product.size %}
             <div class="spec-row">
-                <span class="spec-label">Размер</span>
+                <span class="spec-label"><i class="bi bi-arrows-angle-expand"></i> Размер</span>
                 <span class="spec-value">{{ product.size }}</span>
             </div>
             {% endif %}
-            
+
             <!-- Точные размеры -->
             {% if product.has_dimensions %}
             <div class="spec-row">
-                <span class="spec-label">📐 Размеры</span>
+                <span class="spec-label"><i class="bi bi-rulers"></i> Размеры</span>
                 <span class="spec-value">{{ product.dimensions_text }}</span>
             </div>
             {% endif %}
-            
-            {% if product.has_stones %}
+
+            {% if product.has_inserts %}
             <div class="spec-row">
-                <span class="spec-label">Вставки</span>
-                <span class="spec-value">{{ product.stone_description|default:"Есть" }}</span>
+                <span class="spec-label"><i class="bi bi-asterisk"></i> Вставки</span>
+                <span class="spec-value">{{ product.insert_description|default:"Есть" }}</span>
             </div>
             {% endif %}
             <div class="spec-row">
-                <span class="spec-label">Категория</span>
+                <span class="spec-label"><i class="bi bi-tag"></i> Категория</span>
                 <span class="spec-value">{{ product.category.name }}</span>
             </div>
         </div>
@@ -157,22 +173,26 @@
                 {% if product.factory.logo %}
                     <img src="{{ product.factory.logo.url }}" alt="{{ product.factory.name }}" class="factory-logo">
                 {% else %}
-                    <div class="factory-logo"></div>
+                    <div class="factory-logo bg-light d-flex align-items-center justify-content-center">
+                        <i class="bi bi-building text-muted"></i>
+                    </div>
                 {% endif %}
                 <div>
                     <h3>{{ product.factory.name }}</h3>
                     {% if product.factory.is_verified %}
-                    <span>✓ Проверенный производитель</span>
+                    <span>
+                        <i class="bi bi-patch-check-fill"></i> Проверенный производитель
+                    </span>
                     {% endif %}
                 </div>
             </div>
             <div class="factory-contacts">
-                📍 {{ product.factory.address }}<br>
-                📞 {{ product.factory.phone }}<br>
-                ✉️ {{ product.factory.email }}
+                <i class="bi bi-geo-alt"></i> {{ product.factory.address }}<br>
+                <i class="bi bi-telephone"></i> {{ product.factory.phone }}<br>
+                <i class="bi bi-envelope"></i> {{ product.factory.email }}
             </div>
             <a href="{% url 'catalog:factory_detail' product.factory.id %}" class="factory-link">
-                Все товары завода →
+                <i class="bi bi-arrow-right-circle"></i> Все товары завода
             </a>
         </div>
     </div>
@@ -181,18 +201,20 @@
 <!-- Похожие товары -->
 {% if similar_products %}
 <div class="similar-section">
-    <h2>Похожие товары</h2>
+    <h2><i class="bi bi-grid"></i> Похожие товары</h2>
     <div class="similar-grid">
         {% for similar in similar_products %}
             <a href="{% url 'catalog:product_detail' similar.article %}" class="similar-card">
                 {% if similar.images.all.0 %}
                     <img src="{{ similar.images.all.0.image.url }}" alt="{{ similar.name }}" class="similar-image">
                 {% else %}
-                    <div class="similar-image"></div>
+                    <div class="similar-image bg-light d-flex align-items-center justify-content-center">
+                        <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+                    </div>
                 {% endif %}
                 <div class="similar-info">
                     <div class="similar-name">{{ similar.name }}</div>
-                    <div class="similar-price">{{ similar.price }} $</div>
+                    <div class="similar-price">${{ similar.price }}</div>
                 </div>
             </a>
         {% endfor %}

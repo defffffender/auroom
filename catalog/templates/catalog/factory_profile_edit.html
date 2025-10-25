@@ -7,16 +7,24 @@
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
 {% endblock %}
 
-{% block header_title %}⚙️ Настройки профиля{% endblock %}
-
 {% block content %}
-<div class="form-box">
-    <h2>Редактировать профиль завода</h2>
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn">💾 Сохранить</button>
-    </form>
-    <a href="{% url 'catalog:factory_dashboard' %}" class="back-link">← Назад в кабинет</a>
+<div class="card">
+    <div class="card-header bg-primary">
+        <i class="bi bi-gear"></i> Редактировать профиль завода
+    </div>
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-save"></i> Сохранить
+                </button>
+                <a href="{% url 'catalog:factory_dashboard' %}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Назад в кабинет
+                </a>
+            </div>
+        </form>
+    </div>
 </div>
 {% endblock %}

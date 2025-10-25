@@ -1,7 +1,7 @@
 {% extends 'catalog/base.html' %}
 {% load static %}
 
-{% block title %}Регистрация - Ювелирный Каталог{% endblock %}
+{% block title %}Регистрация завода - Ювелирный Каталог{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/auth.css' %}">
@@ -12,8 +12,8 @@
     <div class="col-md-8 col-lg-6">
         <div class="card shadow">
             <div class="card-header bg-primary text-center" style="color: white;">
-                <h2 class="mb-0" style="color: white;"><i class="bi bi-person-plus"></i> Регистрация покупателя</h2>
-                <p class="mb-0 mt-2" style="color: white;">Создайте аккаунт, чтобы сохранять избранные товары</p>
+                <h2 class="mb-0" style="color: white;"><i class="bi bi-building"></i> Регистрация завода</h2>
+                <p class="mb-0 mt-2" style="color: white;">Создайте аккаунт для публикации ваших товаров</p>
             </div>
             <div class="card-body">
                 <form method="post">
@@ -35,7 +35,7 @@
                     {% endfor %}
 
                     <button type="submit" class="btn btn-success w-100">
-                        <i class="bi bi-person-check"></i> Зарегистрироваться
+                        <i class="bi bi-check-circle"></i> Зарегистрировать завод
                     </button>
                 </form>
 

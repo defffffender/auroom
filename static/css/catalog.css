@@ -2,7 +2,7 @@
 
 /* Заголовок каталога */
 .catalog-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-success) 100%);
     color: white;
     padding: 2rem 0;
 }
@@ -74,9 +74,9 @@
 }
 
 .chip.active {
-    background: #667eea;
+    background: var(--color-primary);
     color: white;
-    border-color: #667eea;
+    border-color: var(--color-primary);
 }
 
 /* Контролы (сортировка и цена) */
@@ -132,7 +132,6 @@
 }
 
 .product-card:hover {
-    transform: translateY(-5px);
     box-shadow: 0 8px 20px rgba(0,0,0,0.15);
 }
 
@@ -148,7 +147,7 @@
 }
 
 .product-category {
-    color: #667eea;
+    color: var(--color-primary);
     font-size: 0.85rem;
     font-weight: 500;
     text-transform: uppercase;
@@ -186,7 +185,7 @@
 .product-price {
     font-size: 1.5rem;
     font-weight: 700;
-    color: #667eea;
+    color: var(--color-primary);
 }
 
 .product-factory {
@@ -243,15 +242,15 @@
 }
 
 .pagination a:hover {
-    background: #667eea;
+    background: var(--color-primary);
     color: white;
-    border-color: #667eea;
+    border-color: var(--color-primary);
 }
 
 .pagination .current {
-    background: #667eea;
+    background: var(--color-primary);
     color: white;
-    border-color: #667eea;
+    border-color: var(--color-primary);
     font-weight: 600;
 }
 

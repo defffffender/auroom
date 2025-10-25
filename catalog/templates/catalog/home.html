@@ -10,167 +10,256 @@
 {% block header_title %}Ювелирный Каталог{% endblock %}
 
 {% block content %}
-<!-- Фильтры и поиск -->
-<div class="filters">
-    <form method="get" class="search-box">
-        <input type="text" name="search" placeholder="Поиск по названию или артикулу..." value="{{ search_query|default:'' }}">
-        <button type="submit" class="btn">🔍 Найти</button>
-    </form>
-    
-    <div class="filter-chips">
-        <div class="filter-group">
-            <label>Категории:</label>
-            <a href="?" class="chip {% if not current_category %}active{% endif %}">Все</a>
-            {% for category in categories %}
-                <a href="?category={{ category.slug }}" class="chip {% if current_category == category.slug %}active{% endif %}">
-                    {{ category.name }}
-                </a>
-            {% endfor %}
-        </div>
+<!-- Фильтры и поиск с Bootstrap и Fonon стилями -->
+<div class="card mb-4">
+    <div class="card-header bg-primary">
+        <i class="bi bi-funnel"></i> Фильтры и поиск
     </div>
-    
-    <div class="filter-chips" style="margin-top: 1rem;">
-        <div class="filter-group">
-            <label>Материалы:</label>
-            <a href="?" class="chip {% if not current_material %}active{% endif %}">Все</a>
-            {% for material in materials %}
-                <a href="?material={{ material.id }}" class="chip {% if current_material == material.id|stringformat:'s' %}active{% endif %}">
-                    {{ material.name }}
-                </a>
-            {% endfor %}
-        </div>
-    </div>
+    <div class="card-body">
+        <!-- Поиск -->
+        <form method="get" class="mb-3">
+            <div class="input-group">
+                <input type="text" name="search" class="form-control" placeholder="Поиск по названию или артикулу..." value="{{ search_query|default:'' }}">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-search"></i> Найти
+                </button>
+            </div>
+        </form>
 
-    <div class="filter-chips" style="margin-top: 1rem;">
-        <div class="filter-group">
-            <label>Пробы:</label>
-            <a href="?" class="chip {% if not current_purity %}active{% endif %}">Все</a>
-            {% for purity in purities %}
-                <a href="?purity={{ purity.id }}" class="chip {% if current_purity == purity.id|stringformat:'s' %}active{% endif %}">
-                    {{ purity.value }}
-                </a>
-            {% endfor %}
+        <!-- Фильтр по категориям -->
+        <div class="mb-3">
+            <label class="form-label fw-bold">
+                <i class="bi bi-tag"></i> Категории:
+            </label>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="?" class="badge {% if not current_category %}bg-primary{% else %}bg-secondary{% endif %} text-decoration-none">Все</a>
+                {% for category in categories %}
+                    <a href="?category={{ category.slug }}" class="badge {% if current_category == category.slug %}bg-primary{% else %}bg-secondary{% endif %} text-decoration-none">
+                        {{ category.name }}
+                    </a>
+                {% endfor %}
+            </div>
         </div>
-    </div>
 
-    <div class="filter-chips" style="margin-top: 1rem;">
-        <div class="filter-group">
-            <label>Цвета металлов:</label>
-            <a href="?" class="chip {% if not current_metal_color %}active{% endif %}">Все</a>
-            {% for color in metal_colors %}
-                <a href="?metal_color={{ color.id }}" class="chip {% if current_metal_color == color.id|stringformat:'s' %}active{% endif %}">
-                    {{ color.name }}
-                </a>
-            {% endfor %}
+        <!-- Фильтр по материалам -->
+        <div class="mb-3">
+            <label class="form-label fw-bold">
+                <i class="bi bi-gem"></i> Материалы:
+            </label>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="?" class="badge {% if not current_material %}bg-primary{% else %}bg-secondary{% endif %} text-decoration-none">Все</a>
+                {% for material in materials %}
+                    <a href="?material={{ material.id }}" class="badge {% if current_material == material.id|stringformat:'s' %}bg-primary{% else %}bg-secondary{% endif %} text-decoration-none">
+                        {{ material.name }}
+                    </a>
+                {% endfor %}
+            </div>
         </div>
-    </div>
 
-    <div class="filter-chips" style="margin-top: 1rem;">
-        <div class="filter-group">
-            <label>Стили:</label>
-            <a href="?" class="chip {% if not current_style %}active{% endif %}">Все</a>
-            {% for style in styles %}
-                <a href="?style={{ style.id }}" class="chip {% if current_style == style.id|stringformat:'s' %}active{% endif %}">
-                    {{ style.name }}
-                </a>
-            {% endfor %}
+        <!-- Фильтр по пробам -->
+        <div class="mb-3">
+            <label class="form-label fw-bold">
+                <i class="bi bi-award"></i> Пробы:
+            </label>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="?" class="badge {% if not current_purity %}bg-primary{% else %}bg-secondary{% endif %} text-decoration-none">Все</a>
+                {% for purity in purities %}
+                    <a href="?purity={{ purity.id }}" class="badge {% if current_purity == purity.id|stringformat:'s' %}bg-primary{% else %}bg-secondary{% endif %} text-decoration-none">
+                        {{ purity.value }}
+                    </a>
+                {% endfor %}
+            </div>
         </div>
-    </div>
 
-    <!-- Сортировка и фильтр по цене -->
-    <form method="get" class="controls">
-        <!-- Сохраняем текущие фильтры -->
-        {% if current_category %}<input type="hidden" name="category" value="{{ current_category }}">{% endif %}
-        {% if current_material %}<input type="hidden" name="material" value="{{ current_material }}">{% endif %}
-        {% if search_query %}<input type="hidden" name="search" value="{{ search_query }}">{% endif %}
-        
-        <div class="control-group">
-            <label>Сортировка:</label>
-            <select name="sort" onchange="this.form.submit()">
-                <option value="-created_at" {% if sort_by == '-created_at' %}selected{% endif %}>Новые</option>
-                <option value="price_asc" {% if sort_by == 'price_asc' %}selected{% endif %}>Цена: по возрастанию</option>
-                <option value="price_desc" {% if sort_by == 'price_desc' %}selected{% endif %}>Цена: по убыванию</option>
-                <option value="popular" {% if sort_by == 'popular' %}selected{% endif %}>Популярные</option>
-                <option value="name" {% if sort_by == 'name' %}selected{% endif %}>По алфавиту</option>
-            </select>
+        <!-- Фильтр по цветам металлов -->
+        <div class="mb-3">
+            <label class="form-label fw-bold">
+                <i class="bi bi-palette"></i> Цвета металлов:
+            </label>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="?" class="badge {% if not current_metal_color %}bg-primary{% else %}bg-secondary{% endif %} text-decoration-none">Все</a>
+                {% for color in metal_colors %}
+                    <a href="?metal_color={{ color.id }}" class="badge {% if current_metal_color == color.id|stringformat:'s' %}bg-primary{% else %}bg-secondary{% endif %} text-decoration-none">
+                        {{ color.name }}
+                    </a>
+                {% endfor %}
+            </div>
         </div>
-        
-        <div class="control-group">
-            <label>Цена от ($):</label>
-            <input type="number" name="min_price" placeholder="Мин" value="{{ min_price|default:'' }}">
+
+        <!-- Фильтр по стилям -->
+        <div class="mb-3">
+            <label class="form-label fw-bold">
+                <i class="bi bi-brush"></i> Стили:
+            </label>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="?" class="badge {% if not current_style %}bg-primary{% else %}bg-secondary{% endif %} text-decoration-none">Все</a>
+                {% for style in styles %}
+                    <a href="?style={{ style.id }}" class="badge {% if current_style == style.id|stringformat:'s' %}bg-primary{% else %}bg-secondary{% endif %} text-decoration-none">
+                        {{ style.name }}
+                    </a>
+                {% endfor %}
+            </div>
         </div>
-        
-        <div class="control-group">
-            <label>Цена до ($):</label>
-            <input type="number" name="max_price" placeholder="Макс" value="{{ max_price|default:'' }}">
-        </div>
-        
-        <button type="submit" class="btn apply-btn">Применить</button>
-    </form>
+
+        <!-- Сортировка и фильтр по цене -->
+        <form method="get" class="row g-3">
+            <!-- Сохраняем текущие фильтры -->
+            {% if current_category %}<input type="hidden" name="category" value="{{ current_category }}">{% endif %}
+            {% if current_material %}<input type="hidden" name="material" value="{{ current_material }}">{% endif %}
+            {% if search_query %}<input type="hidden" name="search" value="{{ search_query }}">{% endif %}
+
+            <div class="col-md-4">
+                <label class="form-label">
+                    <i class="bi bi-sort-down"></i> Сортировка:
+                </label>
+                <select name="sort" class="form-select" onchange="this.form.submit()">
+                    <option value="-created_at" {% if sort_by == '-created_at' %}selected{% endif %}>Новые</option>
+                    <option value="price_asc" {% if sort_by == 'price_asc' %}selected{% endif %}>Цена: по возрастанию</option>
+                    <option value="price_desc" {% if sort_by == 'price_desc' %}selected{% endif %}>Цена: по убыванию</option>
+                    <option value="popular" {% if sort_by == 'popular' %}selected{% endif %}>Популярные</option>
+                    <option value="name" {% if sort_by == 'name' %}selected{% endif %}>По алфавиту</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">
+                    <i class="bi bi-currency-dollar"></i> Цена от ($):
+                </label>
+                <input type="number" name="min_price" class="form-control" placeholder="Мин" value="{{ min_price|default:'' }}">
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">
+                    <i class="bi bi-currency-dollar"></i> Цена до ($):
+                </label>
+                <input type="number" name="max_price" class="form-control" placeholder="Макс" value="{{ max_price|default:'' }}">
+            </div>
+
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-success w-100">
+                    <i class="bi bi-check-circle"></i> Применить
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <!-- Каталог товаров -->
 {% if page_obj %}
-    <div class="results-info">
-        Показано {{ page_obj.start_index }}–{{ page_obj.end_index }} из {{ page_obj.paginator.count }} товаров
+    <!-- Информация о результатах -->
+    <div class="alert alert-info mb-3">
+        <i class="bi bi-info-circle"></i> Показано {{ page_obj.start_index }}–{{ page_obj.end_index }} из {{ page_obj.paginator.count }} товаров
     </div>
-    
-    <div class="products-grid">
+
+    <!-- Сетка товаров -->
+    <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4 mb-4">
         {% for product in page_obj %}
-            <a href="{% url 'catalog:product_detail' product.article %}" class="product-card">
-                {% if product.images.all.0 %}
-                    <img src="{{ product.images.all.0.image.url }}" alt="{{ product.name }}" class="product-image">
-                {% else %}
-                    <div class="product-image"></div>
-                {% endif %}
-                
-                <div class="product-info">
-                    <div class="product-category">{{ product.category.name }}</div>
-                    <h3 class="product-name">{{ product.name }}</h3>
-                    <div class="product-article">Арт: {{ product.article }}</div>
-                    <div class="product-material">{{ product.material.name }} • {{ product.weight }} г</div>
-                    
-                    {% if product.in_stock %}
-                        <span class="stock-badge in-stock">✓ В наличии</span>
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    {% if product.images.all.0 %}
+                        <img src="{{ product.images.all.0.image.url }}" alt="{{ product.name }}" class="card-img-top" style="height: 250px; object-fit: cover;">
                     {% else %}
-                        <span class="stock-badge out-stock">Нет в наличии</span>
+                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 250px;">
+                            <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+                        </div>
                     {% endif %}
-                    
-                    <div class="product-footer">
-                        <div class="product-price">{{ product.price }} $</div>
-                        <div class="product-factory">{{ product.factory.name }}</div>
+
+                    <div class="card-body d-flex flex-column">
+                        <span class="badge bg-info mb-2 align-self-start">{{ product.category.name }}</span>
+                        <h5 class="card-title">{{ product.name }}</h5>
+                        <p class="card-text text-muted small">
+                            <i class="bi bi-hash"></i> Арт: {{ product.article }}<br>
+                            <i class="bi bi-gem"></i> {{ product.material.name }} • {{ product.metal_weight|default:"—" }} г
+                        </p>
+
+                        {% if product.in_stock %}
+                            <span class="badge bg-success mb-2">
+                                <i class="bi bi-check-circle"></i> В наличии
+                            </span>
+                        {% else %}
+                            <span class="badge bg-secondary mb-2">
+                                <i class="bi bi-x-circle"></i> Нет в наличии
+                            </span>
+                        {% endif %}
+
+                        <div class="mt-auto">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h4 class="text-primary mb-0">${{ product.price }}</h4>
+                            </div>
+                            <p class="text-muted small mb-2">
+                                <i class="bi bi-building"></i> {{ product.factory.name }}
+                            </p>
+                            <a href="{% url 'catalog:product_detail' product.article %}" class="btn btn-primary w-100">
+                                <i class="bi bi-eye"></i> Подробнее
+                            </a>
+                        </div>
                     </div>
                 </div>
-            </a>
+            </div>
         {% endfor %}
     </div>
-    
-    <!-- Пагинация -->
+
+    <!-- Пагинация с Bootstrap -->
     {% if page_obj.has_other_pages %}
-    <div class="pagination">
-        {% if page_obj.has_previous %}
-            <a href="?page=1{% if current_category %}&category={{ current_category }}{% endif %}{% if current_material %}&material={{ current_material }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}">« Первая</a>
-            <a href="?page={{ page_obj.previous_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}{% if current_material %}&material={{ current_material }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}">‹ Назад</a>
-        {% else %}
-            <span class="disabled">« Первая</span>
-            <span class="disabled">‹ Назад</span>
-        {% endif %}
-        
-        <span class="current">Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
-        
-        {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}{% if current_material %}&material={{ current_material }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}">Вперёд ›</a>
-            <a href="?page={{ page_obj.paginator.num_pages }}{% if current_category %}&category={{ current_category }}{% endif %}{% if current_material %}&material={{ current_material }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}">Последняя »</a>
-        {% else %}
-            <span class="disabled">Вперёд ›</span>
-            <span class="disabled">Последняя »</span>
-        {% endif %}
-    </div>
+    <nav aria-label="Навигация по страницам">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if current_category %}&category={{ current_category }}{% endif %}{% if current_material %}&material={{ current_material }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}">
+                        <i class="bi bi-chevron-double-left"></i> Первая
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}{% if current_material %}&material={{ current_material }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}">
+                        <i class="bi bi-chevron-left"></i> Назад
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link"><i class="bi bi-chevron-double-left"></i> Первая</span>
+                </li>
+                <li class="page-item disabled">
+                    <span class="page-link"><i class="bi bi-chevron-left"></i> Назад</span>
+                </li>
+            {% endif %}
+
+            <li class="page-item active">
+                <span class="page-link">Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+            </li>
+
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}{% if current_material %}&material={{ current_material }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}">
+                        Вперёд <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if current_category %}&category={{ current_category }}{% endif %}{% if current_material %}&material={{ current_material }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}">
+                        Последняя <i class="bi bi-chevron-double-right"></i>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Вперёд <i class="bi bi-chevron-right"></i></span>
+                </li>
+                <li class="page-item disabled">
+                    <span class="page-link">Последняя <i class="bi bi-chevron-double-right"></i></span>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
     {% endif %}
 {% else %}
-    <div class="empty-state">
-        <h2>Товары не найдены</h2>
-        <p>Попробуйте изменить фильтры или поисковый запрос</p>
+    <!-- Пустое состояние -->
+    <div class="card text-center">
+        <div class="card-body py-5">
+            <i class="bi bi-inbox" style="font-size: 4rem; color: var(--color-primary);"></i>
+            <h2 class="mt-3">Товары не найдены</h2>
+            <p class="text-muted">Попробуйте изменить фильтры или поисковый запрос</p>
+            <a href="{% url 'catalog:home' %}" class="btn btn-primary mt-3">
+                <i class="bi bi-arrow-clockwise"></i> Сбросить фильтры
+            </a>
+        </div>
     </div>
 {% endif %}
 {% endblock %}

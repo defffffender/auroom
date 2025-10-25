@@ -1,0 +1,290 @@
+{% extends "base.html" %}
+
+{% block title %}Примеры компонентов - Fonon Design System{% endblock %}
+
+{% block content %}
+<!-- Заголовок страницы -->
+<div class="page-header">
+    <h1>Примеры компонентов Fonon Design System</h1>
+    <p class="mb-0">Демонстрация всех стилевых компонентов</p>
+</div>
+
+<!-- Кнопки -->
+<section class="mb-5">
+    <h2>Кнопки</h2>
+    <div class="mb-3">
+        <button class="btn btn-primary">Primary</button>
+        <button class="btn btn-secondary">Secondary</button>
+        <button class="btn btn-success">Success</button>
+        <button class="btn btn-info">Info</button>
+        <button class="btn btn-warning">Warning</button>
+        <button class="btn btn-danger">Danger</button>
+    </div>
+    <div>
+        <button class="btn btn-outline-primary">Outline Primary</button>
+        <button class="btn btn-outline-secondary">Outline Secondary</button>
+    </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- Карточки -->
+<section class="mb-5">
+    <h2>Карточки</h2>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-primary">
+                    <i class="bi bi-star"></i> Заголовок карточки
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Заголовок</h5>
+                    <p class="card-text">Текст карточки с описанием.</p>
+                    <a href="#" class="btn btn-primary">Действие</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <h6 class="text-muted">Статистика</h6>
+                    <h3 class="mb-0">1,234</h3>
+                    <small class="text-success"><i class="bi bi-arrow-up"></i> 12.5%</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card stats-card success">
+                <div class="card-body">
+                    <h6 class="text-muted">Успешно</h6>
+                    <h3 class="mb-0">567</h3>
+                    <small class="text-success"><i class="bi bi-check-circle"></i> Отлично</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- Формы -->
+<section class="mb-5">
+    <h2>Формы</h2>
+    <div class="card">
+        <div class="card-body">
+            <form>
+                <div class="mb-3">
+                    <label for="textInput" class="form-label">Текстовое поле</label>
+                    <input type="text" class="form-control" id="textInput" placeholder="Введите текст">
+                </div>
+
+                <div class="mb-3">
+                    <label for="selectInput" class="form-label">Выпадающий список</label>
+                    <select class="form-select" id="selectInput">
+                        <option selected>Выберите опцию</option>
+                        <option value="1">Опция 1</option>
+                        <option value="2">Опция 2</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="dateInput" class="form-label">Дата</label>
+                    <input type="date" class="form-control" id="dateInput">
+                </div>
+
+                <div class="mb-3">
+                    <label for="textareaInput" class="form-label">Текстовая область</label>
+                    <textarea class="form-control" id="textareaInput" rows="3"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="checkboxInput">
+                        <label class="form-check-label" for="checkboxInput">
+                            Согласен с условиями
+                        </label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Отправить</button>
+                <button type="reset" class="btn btn-secondary">Сбросить</button>
+            </form>
+        </div>
+    </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- Алерты -->
+<section class="mb-5">
+    <h2>Уведомления (Alerts)</h2>
+    <div class="alert alert-primary" role="alert">
+        <i class="bi bi-info-circle"></i> Информационное сообщение
+    </div>
+    <div class="alert alert-success" role="alert">
+        <i class="bi bi-check-circle"></i> Успешное выполнение операции
+    </div>
+    <div class="alert alert-info" role="alert">
+        <i class="bi bi-info-square"></i> Дополнительная информация
+    </div>
+    <div class="alert alert-warning" role="alert">
+        <i class="bi bi-exclamation-triangle"></i> Предупреждение
+    </div>
+    <div class="alert alert-danger" role="alert">
+        <i class="bi bi-x-circle"></i> Ошибка
+    </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- Badges -->
+<section class="mb-5">
+    <h2>Значки (Badges)</h2>
+    <p>
+        <span class="badge bg-primary">Primary</span>
+        <span class="badge bg-secondary">Secondary</span>
+        <span class="badge bg-success">Success</span>
+        <span class="badge bg-info">Info</span>
+        <span class="badge bg-warning">Warning</span>
+        <span class="badge bg-danger">Danger</span>
+    </p>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- Таблицы -->
+<section class="mb-5">
+    <h2>Таблицы</h2>
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Название</th>
+                        <th>Статус</th>
+                        <th>Дата</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>Элемент 1</td>
+                        <td><span class="badge bg-success">Активен</span></td>
+                        <td>01.01.2024</td>
+                        <td>
+                            <a href="#" class="btn btn-sm btn-primary">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="#" class="btn btn-sm btn-danger">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>Элемент 2</td>
+                        <td><span class="badge bg-info">В работе</span></td>
+                        <td>02.01.2024</td>
+                        <td>
+                            <a href="#" class="btn btn-sm btn-primary">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="#" class="btn btn-sm btn-danger">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>Элемент 3</td>
+                        <td><span class="badge bg-warning">Ожидание</span></td>
+                        <td>03.01.2024</td>
+                        <td>
+                            <a href="#" class="btn btn-sm btn-primary">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="#" class="btn btn-sm btn-danger">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- Аккордеон -->
+<section class="mb-5">
+    <h2>Аккордеон</h2>
+    <div class="accordion" id="accordionExample">
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                    Раздел 1
+                </button>
+            </h2>
+            <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#accordionExample">
+                <div class="accordion-body">
+                    Содержимое первого раздела.
+                </div>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">
+                    Раздел 2
+                </button>
+            </h2>
+            <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+                <div class="accordion-body">
+                    Содержимое второго раздела.
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- Пагинация -->
+<section class="mb-5">
+    <h2>Пагинация</h2>
+    <nav>
+        <ul class="pagination">
+            <li class="page-item disabled">
+                <a class="page-link" href="#" tabindex="-1">Назад</a>
+            </li>
+            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+            <li class="page-item"><a class="page-link" href="#">2</a></li>
+            <li class="page-item"><a class="page-link" href="#">3</a></li>
+            <li class="page-item">
+                <a class="page-link" href="#">Вперед</a>
+            </li>
+        </ul>
+    </nav>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- Progress Bar -->
+<section class="mb-5">
+    <h2>Прогресс-бары</h2>
+    <div class="progress mb-3">
+        <div class="progress-bar" role="progressbar" style="width: 25%">25%</div>
+    </div>
+    <div class="progress mb-3">
+        <div class="progress-bar bg-success" role="progressbar" style="width: 50%">50%</div>
+    </div>
+    <div class="progress">
+        <div class="progress-bar bg-info" role="progressbar" style="width: 75%">75%</div>
+    </div>
+</section>
+
+{% endblock %}

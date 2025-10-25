@@ -7,12 +7,7 @@
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
 {% endblock %}
 
-{% block header_title %}Добавить характеристику{% endblock %}
-
-{% block header_nav %}
-<a href="{% url 'catalog:factory_dashboard' %}">← Назад в кабинет</a>
-<a href="{% url 'catalog:logout' %}">🚪 Выход</a>
-{% endblock %}
+{% block header_title %}<i class="bi bi-list-stars"></i> Добавить характеристику{% endblock %}
 
 {% block content %}
 <div class="form-container">
@@ -64,8 +59,12 @@
         </div>
 
         <div class="form-actions">
-            <button type="submit" class="btn">✅ Создать характеристику</button>
-            <a href="{% url 'catalog:factory_dashboard' %}" class="btn btn-secondary">Отмена</a>
+            <button type="submit" class="btn btn-success">
+                <i class="bi bi-check-circle"></i> Создать характеристику
+            </button>
+            <a href="{% url 'catalog:factory_dashboard' %}" class="btn btn-secondary">
+                <i class="bi bi-x-circle"></i> Отмена
+            </a>
         </div>
     </form>
 </div>

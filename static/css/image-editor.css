@@ -1,10 +1,16 @@
-/* Стили для редактора изображений с эталоном */
+/* Стили для редактора изображений с эталоном - Fonon Style */
+
+/* Убираем все закругления в редакторе */
+.image-editor-container *,
+.image-editor-container {
+    border-radius: 0 !important;
+}
 
 .image-editor-container {
     background: #f9f9f9;
     padding: 2rem;
-    border-radius: 12px;
     margin: 2rem 0;
+    border: 2px solid var(--border-color);
 }
 
 .editor-header {
@@ -12,7 +18,7 @@
 }
 
 .editor-header h3 {
-    color: #667eea;
+    color: var(--color-primary);
     margin-bottom: 0.5rem;
     display: flex;
     align-items: center;
@@ -20,24 +26,25 @@
 }
 
 .reference-info {
-    background: #e8eaf6;
+    background: var(--gradient-info);
     padding: 1rem;
-    border-radius: 8px;
+    border-radius: 0 !important;
     margin-bottom: 1rem;
     font-size: 0.95rem;
-    color: #5568d3;
+    color: white;
 }
 
 .reference-info strong {
-    color: #667eea;
+    color: white;
+    font-weight: 700;
 }
 
 /* Canvas контейнер */
 .canvas-container-wrapper {
     position: relative;
     background: white;
-    border: 2px solid #e0e0e0;
-    border-radius: 12px;
+    border: 2px solid var(--border-color);
+    border-radius: 0 !important;
     padding: 1rem;
     margin-bottom: 1.5rem;
     min-height: 600px;
@@ -86,21 +93,38 @@ canvas#fabricCanvas {
 
 .control-btn {
     padding: 10px 20px;
-    background: #667eea;
+    background: var(--gradient-primary);
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 0 !important;
     cursor: pointer;
     font-size: 0.95rem;
     transition: all 0.3s;
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Градиентный блик для control-btn */
+.control-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.5s ease;
+}
+
+.control-btn:hover::before {
+    left: 100%;
 }
 
 .control-btn:hover {
-    background: #5568d3;
-    transform: translateY(-2px);
+    background: var(--gradient-primary-hover);
 }
 
 .control-btn:disabled {
@@ -141,7 +165,7 @@ canvas#fabricCanvas {
     width: 18px;
     height: 18px;
     border-radius: 50%;
-    background: #667eea;
+    background: var(--color-primary);
     cursor: pointer;
 }
 
@@ -149,7 +173,7 @@ canvas#fabricCanvas {
     width: 18px;
     height: 18px;
     border-radius: 50%;
-    background: #667eea;
+    background: var(--color-primary);
     cursor: pointer;
     border: none;
 }
@@ -169,21 +193,38 @@ canvas#fabricCanvas {
 
 .file-upload-btn {
     padding: 10px 20px;
-    background: #4caf50;
+    background: var(--gradient-success);
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 0 !important;
     cursor: pointer;
     font-size: 0.95rem;
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
     transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Градиентный блик для file-upload-btn */
+.file-upload-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.5s ease;
+}
+
+.file-upload-btn:hover::before {
+    left: 100%;
 }
 
 .file-upload-btn:hover {
-    background: #45a049;
-    transform: translateY(-2px);
+    background: var(--gradient-success-hover);
 }
 
 /* Информация о размерах */
@@ -219,7 +260,7 @@ canvas#fabricCanvas {
 }
 
 .dimension-value {
-    color: #667eea;
+    color: var(--color-primary);
     font-weight: 700;
     font-size: 1.1rem;
 }
@@ -289,9 +330,9 @@ canvas#fabricCanvas {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    border: 2px solid #667eea;
+    border: 2px solid var(--color-primary);
     background: white;
-    color: #667eea;
+    color: var(--color-primary);
     cursor: pointer;
     font-size: 1.2rem;
     font-weight: bold;
@@ -302,7 +343,7 @@ canvas#fabricCanvas {
 }
 
 .zoom-btn:hover {
-    background: #667eea;
+    background: var(--color-primary);
     color: white;
 }
 
@@ -310,7 +351,7 @@ canvas#fabricCanvas {
     min-width: 60px;
     text-align: center;
     font-weight: 600;
-    color: #667eea;
+    color: var(--color-primary);
 }
 
 /* Анимация загрузки */
@@ -336,7 +377,7 @@ canvas#fabricCanvas {
     width: 50px;
     height: 50px;
     border: 5px solid #f3f3f3;
-    border-top: 5px solid #667eea;
+    border-top: 5px solid var(--color-primary);
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -393,7 +434,7 @@ canvas#fabricCanvas {
     right: 0;
     top: 0;
     font-size: 0.85rem;
-    color: #667eea;
+    color: var(--color-primary);
     font-weight: 600;
 }
 
@@ -445,8 +486,7 @@ canvas#fabricCanvas {
 }
 
 .undo-redo-controls .control-btn:not(:disabled):hover {
-    background: #5568d3;
-    transform: translateY(-2px);
+    background: var(--gradient-primary-hover);
 }
 
 /* 🧲 Snap контролы */
@@ -462,16 +502,16 @@ canvas#fabricCanvas {
 }
 
 .snap-controls .control-btn.active {
-    background: #4caf50;
+    background: var(--gradient-success);
     animation: pulse-snap 2s infinite;
 }
 
 @keyframes pulse-snap {
     0%, 100% {
-        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+        box-shadow: 0 0 0 0 rgba(57, 125, 84, 0.7);
     }
     50% {
-        box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+        box-shadow: 0 0 0 10px rgba(57, 125, 84, 0);
     }
 }
 
@@ -493,8 +533,7 @@ canvas#fabricCanvas {
 }
 
 .undo-redo-controls .control-btn:not(:disabled):hover {
-    background: #5568d3;
-    transform: translateY(-2px);
+    background: var(--gradient-primary-hover);
 }
 
 /* 🧲 Snap контролы */
@@ -510,16 +549,16 @@ canvas#fabricCanvas {
 }
 
 .snap-controls .control-btn.active {
-    background: #4caf50;
+    background: var(--gradient-success);
     animation: pulse-snap 2s infinite;
 }
 
 @keyframes pulse-snap {
     0%, 100% {
-        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+        box-shadow: 0 0 0 0 rgba(57, 125, 84, 0.7);
     }
     50% {
-        box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+        box-shadow: 0 0 0 10px rgba(57, 125, 84, 0);
     }
 }
 
@@ -602,7 +641,7 @@ canvas#fabricCanvas {
 
 .preview-modal-header h3 {
     margin: 0;
-    color: #667eea;
+    color: var(--color-primary);
     font-size: 1.5rem;
 }
 
@@ -678,17 +717,17 @@ canvas#fabricCanvas {
 }
 
 .preview-dim-value {
-    color: #667eea;
+    color: var(--color-primary);
     font-weight: 700;
     font-size: 1.1rem;
 }
 
 .preview-reference-type {
-    background: #e8eaf6;
+    background: var(--gradient-info);
     padding: 1rem;
-    border-radius: 8px;
     margin-bottom: 1.5rem;
-    color: #5568d3;
+    color: white;
+    font-weight: 600;
 }
 
 .preview-actions {
@@ -709,13 +748,12 @@ canvas#fabricCanvas {
 }
 
 .btn-success {
-    background: #4caf50;
+    background: var(--gradient-success);
     color: white;
 }
 
 .btn-success:hover {
-    background: #45a049;
-    transform: translateY(-2px);
+    background: var(--gradient-success-hover);
 }
 
 .btn-secondary {

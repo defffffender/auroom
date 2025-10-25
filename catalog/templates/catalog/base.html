@@ -5,61 +5,176 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Ювелирный Каталог{% endblock %}</title>
-    
-    <!-- Базовые стили -->
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    <!-- Fonon Design System CSS -->
+    <link rel="stylesheet" href="{% static 'css/fonon-styles.css' %}">
+
+    <!-- Базовые стили (переопределения если нужны) -->
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
-    
+
     <!-- Дополнительные стили для конкретных страниц -->
     {% block extra_css %}{% endblock %}
 </head>
 <body>
     {% block body_content %}
-    <!-- Шапка -->
-    <header>
-        <div class="header-content">
-            <h1>💎 {% block header_title %}Ювелирный Каталог{% endblock %}</h1>
-            <div class="header-nav">
-                {% block header_nav %}
-                <a href="{% url 'catalog:home' %}">🏠 Главная</a>
-                {% if user.is_authenticated %}
-                    <a href="{% url 'catalog:favorites_list' %}">❤️ Избранное</a>
-                    {% if user.factory %}
-                        <a href="{% url 'catalog:factory_dashboard' %}">🏭 Кабинет</a>
+    <!-- Навигационная панель с Fonon Design System -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'catalog:home' %}">
+                <i class="bi bi-gem"></i> {% block header_title %}Ювелирный Каталог{% endblock %}
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    {% block header_nav %}
+                    <li class="nav-item">
+                        <a class="nav-link text-center" href="{% url 'catalog:home' %}">
+                            <div><i class="bi bi-house" style="font-size: 1.5rem; display: block;"></i></div>
+                            <small>Главная</small>
+                        </a>
+                    </li>
+
+                    {% if user.is_authenticated %}
+                        <!-- Для покупателей -->
+                        <li class="nav-item">
+                            <a class="nav-link text-center" href="{% url 'catalog:favorites_list' %}">
+                                <div><i class="bi bi-heart" style="font-size: 1.5rem; display: block;"></i></div>
+                                <small>Избранное</small>
+                            </a>
+                        </li>
+
+                        <!-- Для заводов -->
+                        {% if user.factory %}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle text-center" href="#" role="button" data-bs-toggle="dropdown">
+                                    <div><i class="bi bi-building" style="font-size: 1.5rem; display: block;"></i></div>
+                                    <small>Завод</small>
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{% url 'catalog:factory_dashboard' %}">
+                                        <i class="bi bi-speedometer2"></i> Личный кабинет
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{% url 'catalog:product_add' %}">
+                                        <i class="bi bi-plus-circle"></i> Добавить товар
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'catalog:factory_category_add' %}">
+                                        <i class="bi bi-tag"></i> Добавить категорию
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'catalog:factory_characteristic_add' %}">
+                                        <i class="bi bi-list-stars"></i> Добавить характеристику
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{% url 'catalog:factory_profile_edit' %}">
+                                        <i class="bi bi-pencil-square"></i> Редактировать профиль
+                                    </a></li>
+                                </ul>
+                            </li>
+                        {% endif %}
+
+                        <!-- Админка для staff -->
+                        {% if user.is_staff %}
+                            <li class="nav-item">
+                                <a class="nav-link text-center" href="/admin/">
+                                    <div><i class="bi bi-gear" style="font-size: 1.5rem; display: block;"></i></div>
+                                    <small>Админка</small>
+                                </a>
+                            </li>
+                        {% endif %}
+
+                        <!-- Пользователь -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-center" href="#" role="button" data-bs-toggle="dropdown">
+                                <div><i class="bi bi-person-circle" style="font-size: 1.5rem; display: block;"></i></div>
+                                <small>{{ user.username }}</small>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{% url 'catalog:logout' %}">
+                                    <i class="bi bi-box-arrow-right"></i> Выход
+                                </a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <!-- Для неавторизованных -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-center" href="#" role="button" data-bs-toggle="dropdown">
+                                <div><i class="bi bi-person-plus" style="font-size: 1.5rem; display: block;"></i></div>
+                                <small>Регистрация</small>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{% url 'catalog:customer_register' %}">
+                                    <i class="bi bi-person"></i> Регистрация покупателя
+                                </a></li>
+                                {% comment %}
+                                <li><a class="dropdown-item" href="{% url 'catalog:factory_register' %}">
+                                    <i class="bi bi-building"></i> Регистрация завода
+                                </a></li>
+                                {% endcomment %}
+                            </ul>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-center" href="{% url 'catalog:login' %}">
+                                <div><i class="bi bi-box-arrow-in-right" style="font-size: 1.5rem; display: block;"></i></div>
+                                <small>Вход</small>
+                            </a>
+                        </li>
                     {% endif %}
-                    <a href="{% url 'catalog:logout' %}">🚪 Выход</a>
-                {% else %}
-                    <a href="{% url 'catalog:customer_register' %}">👤 Регистрация</a>
-                    <a href="{% url 'catalog:login' %}">🔐 Вход</a>
-                {% endif %}
-                {% endblock %}
+                    {% endblock %}
+                </ul>
             </div>
         </div>
-    </header>
+    </nav>
 
     <!-- Контент страницы -->
-    <div class="container">
-        <!-- Сообщения -->
+    <main class="container my-4">
+        <!-- Сообщения с Bootstrap и Fonon стилями -->
         {% if messages %}
-        <div class="messages">
+        <div class="messages mb-4">
             {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {% if message.tags == 'success' %}
+                    <i class="bi bi-check-circle"></i>
+                {% elif message.tags == 'error' or message.tags == 'danger' %}
+                    <i class="bi bi-x-circle"></i>
+                {% elif message.tags == 'warning' %}
+                    <i class="bi bi-exclamation-triangle"></i>
+                {% else %}
+                    <i class="bi bi-info-circle"></i>
+                {% endif %}
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
             {% endfor %}
         </div>
         {% endif %}
 
         <!-- Основной контент -->
         {% block content %}{% endblock %}
-    </div>
+    </main>
 
-    <!-- Футер -->
+    <!-- Футер с Fonon стилями -->
     {% block footer %}
-    <footer>
-        <div class="container">
-            <p>&copy; 2025 Ювелирный Каталог. Платформа для производителей ювелирных изделий</p>
+    <footer class="bg-dark text-light mt-5 py-4">
+        <div class="container text-center">
+            <p class="mb-0">
+                <i class="bi bi-gem"></i> &copy; 2025 Ювелирный Каталог.
+                Платформа для производителей ювелирных изделий
+            </p>
         </div>
     </footer>
     {% endblock %}
     {% endblock body_content %}
+
+    <!-- Bootstrap JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- JavaScript -->
     <script src="{% static 'js/main.js' %}"></script>
