@@ -171,8 +171,11 @@ class JewelryImageEditor {
                 opacity: this.referenceOpacity,
                 selectable: true,
                 evented: true,
-                hasControls: true,
-                hasBorders: true
+                hasControls: false,
+                hasBorders: true,
+                lockScalingX: true,
+                lockScalingY: true,
+                lockRotation: true
             });
             
             this.referenceImg = img;
