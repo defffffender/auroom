@@ -169,10 +169,10 @@ class JewelryImageEditor {
                 scaleX: scale,
                 scaleY: scale,
                 opacity: this.referenceOpacity,
-                selectable: false,
-                evented: false,
-                hasControls: false,
-                hasBorders: false
+                selectable: true,
+                evented: true,
+                hasControls: true,
+                hasBorders: true
             });
             
             this.referenceImg = img;
@@ -349,23 +349,18 @@ class JewelryImageEditor {
     // 🧲 Магнитное прилипание при перемещении
     this.canvas.on('object:moving', (e) => {
     if (e.target === this.productImg) {
-        // 🔒 КРИТИЧНО: Сначала ограничиваем границами эталона
-        this.constrainToReference(e.target);
-        
-        // 🧲 Потом применяем магнитное прилипание (если включено)
+        // 🧲 Применяем магнитное прилипание (если включено)
         if (this.snapEnabled && this.referenceImg) {
             this.applySnap(e.target);
         }
-        
+
         this.updateDimensions();
     }
 });
 
-// 🔒 НОВОЕ: Ограничение при масштабировании
+// Масштабирование
 this.canvas.on('object:scaling', (e) => {
     if (e.target === this.productImg) {
-        // После масштабирования проверяем границы
-        this.constrainToReference(e.target);
         this.updateDimensions();
     }
 });
@@ -910,68 +905,88 @@ enableControls() {
         this.showStatus('⚠ Сначала загрузите изделие', 'warning');
         return null;
     }
-    
+
     // 🔧 ФИКС: Убираем выделение и контролы перед экспортом
     this.canvas.discardActiveObject();
     this.canvas.renderAll();
-    
+
     // Скрываем эталон
     const refWasVisible = this.referenceImg && this.referenceImg.opacity > 0;
     if (this.referenceImg) {
         this.referenceImg.set('opacity', 0);
     }
-    
+
     // Сохраняем оригинальную прозрачность изделия
     const originalOpacity = this.productImg.opacity;
     this.productImg.set('opacity', 1.0);
-    
+
     this.canvas.renderAll();
-    
-    // 📐 Получаем границы изделия на canvas
-    const productBounds = this.productImg.getBoundingRect();
-    
-    // Добавляем небольшой отступ (5% от размера)
-    const padding = Math.max(productBounds.width, productBounds.height) * 0.05;
-    
-    const cropX = Math.max(0, productBounds.left - padding);
-    const cropY = Math.max(0, productBounds.top - padding);
-    const cropWidth = Math.min(
-        productBounds.width + padding * 2,
-        this.canvas.width - cropX
-    );
-    const cropHeight = Math.min(
-        productBounds.height + padding * 2,
-        this.canvas.height - cropY
-    );
-    
-    // 🎨 Создаём временный canvas для обрезки
+
+    // 🆕 НОВОЕ: Получаем ПОЛНЫЕ размеры изделия (даже если за границами canvas)
+    const img = this.productImg;
+    const imgWidth = img.width * img.scaleX;
+    const imgHeight = img.height * img.scaleY;
+
+    // Вычисляем реальные границы изделия (могут быть за пределами canvas)
+    const imgLeft = img.left - (imgWidth / 2);
+    const imgTop = img.top - (imgHeight / 2);
+    const imgRight = img.left + (imgWidth / 2);
+    const imgBottom = img.top + (imgHeight / 2);
+
+    // Добавляем отступ 5%
+    const padding = Math.max(imgWidth, imgHeight) * 0.05;
+
+    // Границы с отступом (могут быть отрицательными или больше canvas)
+    const cropX = imgLeft - padding;
+    const cropY = imgTop - padding;
+    const cropWidth = imgWidth + padding * 2;
+    const cropHeight = imgHeight + padding * 2;
+
+    // 🎨 Создаём временный canvas для ПОЛНОГО изделия
     const tempCanvas = document.createElement('canvas');
     tempCanvas.width = cropWidth;
     tempCanvas.height = cropHeight;
     const tempCtx = tempCanvas.getContext('2d');
-    
-    // 🔧 ФИКС: Копируем ТОЛЬКО нижний слой (без контролов)
-    tempCtx.drawImage(
-        this.canvas.lowerCanvasEl,
-        cropX, cropY, cropWidth, cropHeight,
-        0, 0, cropWidth, cropHeight
-    );
-    
+
+    // Заливаем белым фоном
+    tempCtx.fillStyle = '#ffffff';
+    tempCtx.fillRect(0, 0, cropWidth, cropHeight);
+
+    // 🔧 НОВОЕ: Рисуем изделие полностью
+    // Вычисляем смещение если изделие частично за пределами canvas
+    const offsetX = cropX < 0 ? -cropX : 0;
+    const offsetY = cropY < 0 ? -cropY : 0;
+
+    // Вычисляем какая часть canvas нужна
+    const sourceX = Math.max(0, cropX);
+    const sourceY = Math.max(0, cropY);
+    const sourceWidth = Math.min(cropWidth - offsetX, this.canvas.width - sourceX);
+    const sourceHeight = Math.min(cropHeight - offsetY, this.canvas.height - sourceY);
+
+    // Копируем видимую часть с canvas
+    if (sourceWidth > 0 && sourceHeight > 0) {
+        tempCtx.drawImage(
+            this.canvas.lowerCanvasEl,
+            sourceX, sourceY, sourceWidth, sourceHeight,
+            offsetX, offsetY, sourceWidth, sourceHeight
+        );
+    }
+
     // Получаем dataURL из временного canvas
     const dataURL = tempCanvas.toDataURL('image/png', 1.0);
-    
+
     // Восстанавливаем состояние
     this.productImg.set('opacity', originalOpacity);
     if (this.referenceImg && refWasVisible) {
         this.referenceImg.set('opacity', this.referenceOpacity);
     }
-    
+
     // 🔧 ФИКС: Возвращаем выделение объекта
     this.canvas.setActiveObject(this.productImg);
     this.canvas.renderAll();
-    
-    console.log(`✂️ Изделие обрезано: ${cropWidth.toFixed(0)}x${cropHeight.toFixed(0)}px`);
-    
+
+    console.log(`✂️ Изделие экспортировано: ${cropWidth.toFixed(0)}×${cropHeight.toFixed(0)}px (полное изображение)`);
+
     return dataURL;
 }
     

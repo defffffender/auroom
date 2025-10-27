@@ -7,32 +7,54 @@ class JewelryRuler {
             console.error('Контейнер для линейки не найден');
             return;
         }
-        
+
         this.options = {
             widthMm: options.widthMm || null,
             heightMm: options.heightMm || null,
             diameterMm: options.diameterMm || null,
             referenceType: options.referenceType || 'none',
+            editorData: options.editorData || null, // 📐 НОВОЕ: Данные калибровки
             ...options
         };
-        
+
+        // 📐 НОВОЕ: Извлекаем калибровочные данные
+        this.calibration = null;
+        if (this.options.editorData) {
+            try {
+                const parsed = typeof this.options.editorData === 'string'
+                    ? JSON.parse(this.options.editorData)
+                    : this.options.editorData;
+                this.calibration = parsed.calibration || null;
+
+                if (this.calibration && this.calibration.pxPerMm) {
+                    console.log('✅ Калибровка загружена из editor_data:', this.calibration);
+                } else {
+                    console.warn('⚠️ editor_data есть, но калибровка отсутствует. Используем fallback.');
+                }
+            } catch (e) {
+                console.warn('⚠️ Ошибка парсинга editor_data:', e);
+            }
+        } else {
+            console.warn('⚠️ editor_data не предоставлен. Линейка будет показывать пиксели вместо мм.');
+        }
+
         // Режим 1: Рисование линий (простой)
         this.drawMode = false;
         this.lines = [];
         this.currentPoints = [];
         this.maxLines = 2;
-        
+
         // Режим 2: Координатная сетка + рисование линий (комбо!)
         this.gridMode = false;
         this.gridLines = [];
         this.gridCurrentPoints = [];
-        
+
         // Режим 3: Перпендикулярные линии от курсора
         this.perpendicularMode = false;
-        
+
         this.canvas = null;
         this.imageWrapper = null;
-        
+
         this.init();
     }
     
@@ -368,8 +390,9 @@ class JewelryRuler {
     drawAxisLabels() {
         const width = this.canvas.width;
         const height = this.canvas.height;
-        
-        this.ctx.font = '12px Arial';
+
+        // 🎨 НОВЫЙ ДИЗАЙН: Современный шрифт для подписей
+        this.ctx.font = '600 11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
         this.ctx.fillStyle = '#667eea';
         this.ctx.textAlign = 'center';
         
@@ -411,41 +434,44 @@ class JewelryRuler {
     }
     
     drawCrosshair(x, y) {
-        this.ctx.strokeStyle = 'rgba(255, 0, 0, 0.5)';
+        // 🎨 НОВЫЙ ДИЗАЙН: Тонкий элегантный крестик
+        this.ctx.strokeStyle = 'rgba(102, 126, 234, 0.4)';
         this.ctx.lineWidth = 1;
-        this.ctx.setLineDash([5, 5]);
-        
+        this.ctx.setLineDash([4, 4]);
+
         // Вертикальная линия
         this.ctx.beginPath();
         this.ctx.moveTo(x, 0);
         this.ctx.lineTo(x, this.canvas.height);
         this.ctx.stroke();
-        
+
         // Горизонтальная линия
         this.ctx.beginPath();
         this.ctx.moveTo(0, y);
         this.ctx.lineTo(this.canvas.width, y);
         this.ctx.stroke();
-        
+
         this.ctx.setLineDash([]);
-        
-        // Точка в центре перекрестия
-        this.ctx.fillStyle = 'rgba(255, 0, 0, 0.7)';
-        this.ctx.beginPath();
-        this.ctx.arc(x, y, 4, 0, 2 * Math.PI);
-        this.ctx.fill();
+
+        // Точка в центре перекрестия (используем новый стиль)
+        this.drawPoint(x, y, false); // false = меньший размер
     }
     
     drawTemporaryLine(p1, p2) {
-        this.ctx.strokeStyle = 'rgba(0, 255, 0, 0.5)';
+        // 🎨 НОВЫЙ ДИЗАЙН: Пунктирная линия с градиентом
+        const gradient = this.ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
+        gradient.addColorStop(0, 'rgba(102, 126, 234, 0.6)');
+        gradient.addColorStop(1, 'rgba(118, 75, 162, 0.6)');
+
+        this.ctx.strokeStyle = gradient;
         this.ctx.lineWidth = 2;
-        this.ctx.setLineDash([10, 5]);
-        
+        this.ctx.setLineDash([8, 4]);
+
         this.ctx.beginPath();
         this.ctx.moveTo(p1.x, p1.y);
         this.ctx.lineTo(p2.x, p2.y);
         this.ctx.stroke();
-        
+
         this.ctx.setLineDash([]);
     }
     
@@ -456,88 +482,97 @@ class JewelryRuler {
     }
     
     drawSavedLine(p1, p2, distanceMm) {
-        this.ctx.strokeStyle = '#00ff00';
-        this.ctx.lineWidth = 3;
+        // 🎨 НОВЫЙ ДИЗАЙН: Используем те же стили что и в drawLine
+        const gradient = this.ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
+        gradient.addColorStop(0, '#667eea');
+        gradient.addColorStop(1, '#764ba2');
+
+        this.ctx.strokeStyle = gradient;
+        this.ctx.lineWidth = 2;
         this.ctx.setLineDash([]);
+        this.ctx.shadowColor = 'rgba(102, 126, 234, 0.4)';
+        this.ctx.shadowBlur = 8;
         this.ctx.beginPath();
         this.ctx.moveTo(p1.x, p1.y);
         this.ctx.lineTo(p2.x, p2.y);
         this.ctx.stroke();
-        
+
+        // Сброс тени
+        this.ctx.shadowColor = 'transparent';
+        this.ctx.shadowBlur = 0;
+
         // Точки на концах
         this.drawPoint(p1.x, p1.y);
         this.drawPoint(p2.x, p2.y);
-        
+
         // Текст с размером
         const midX = (p1.x + p2.x) / 2;
         const midY = (p1.y + p2.y) / 2;
-        
-        this.ctx.font = 'bold 16px Arial';
-        this.ctx.fillStyle = '#ffffff';
-        this.ctx.strokeStyle = '#000000';
-        this.ctx.lineWidth = 3;
-        this.ctx.textAlign = 'center';
-        
-        const text = `${distanceMm} мм`;
-        this.ctx.strokeText(text, midX, midY - 10);
-        this.ctx.fillText(text, midX, midY - 10);
+
+        this.drawMeasurementLabel(midX, midY - 10, `${distanceMm} мм`);
     }
     
     drawPerpendicularLines(x, y, distanceUp, distanceRight) {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        
-        this.ctx.strokeStyle = '#ff4444';
+
+        // 🎨 НОВЫЙ ДИЗАЙН: Современные линии с градиентом
+        const upGradient = this.ctx.createLinearGradient(x, y, x, 0);
+        upGradient.addColorStop(0, '#667eea');
+        upGradient.addColorStop(1, 'rgba(102, 126, 234, 0.3)');
+
+        const rightGradient = this.ctx.createLinearGradient(x, y, this.canvas.width, y);
+        rightGradient.addColorStop(0, '#667eea');
+        rightGradient.addColorStop(1, 'rgba(102, 126, 234, 0.3)');
+
         this.ctx.lineWidth = 2;
         this.ctx.setLineDash([]);
-        
+        this.ctx.shadowColor = 'rgba(102, 126, 234, 0.4)';
+        this.ctx.shadowBlur = 8;
+
         // Вертикальная линия (вверх)
+        this.ctx.strokeStyle = upGradient;
         this.ctx.beginPath();
         this.ctx.moveTo(x, y);
         this.ctx.lineTo(x, 0);
         this.ctx.stroke();
-        
+
         // Горизонтальная линия (вправо)
+        this.ctx.strokeStyle = rightGradient;
         this.ctx.beginPath();
         this.ctx.moveTo(x, y);
         this.ctx.lineTo(this.canvas.width, y);
         this.ctx.stroke();
-        
-        // Рисуем угол 90°
+
+        // Сброс тени
+        this.ctx.shadowColor = 'transparent';
+        this.ctx.shadowBlur = 0;
+
+        // Рисуем угол 90° (более тонкий и элегантный)
+        this.ctx.strokeStyle = '#667eea';
+        this.ctx.lineWidth = 1.5;
         this.ctx.beginPath();
-        this.ctx.arc(x, y, 20, -Math.PI / 2, 0);
+        this.ctx.arc(x, y, 25, -Math.PI / 2, 0);
         this.ctx.stroke();
-        
-        // Текст "90°"
-        this.ctx.font = 'bold 14px Arial';
-        this.ctx.fillStyle = '#ff4444';
+
+        // Текст "90°" в современном стиле
+        this.ctx.font = '600 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        this.ctx.fillStyle = '#667eea';
         this.ctx.textAlign = 'left';
-        this.ctx.fillText('90°', x + 25, y - 25);
-        
-        // Точка на курсоре
-        this.ctx.fillStyle = '#ff4444';
-        this.ctx.beginPath();
-        this.ctx.arc(x, y, 5, 0, 2 * Math.PI);
-        this.ctx.fill();
-        
-        // Текст с размерами
-        this.ctx.font = 'bold 14px Arial';
-        this.ctx.fillStyle = '#ffffff';
-        this.ctx.strokeStyle = '#000000';
-        this.ctx.lineWidth = 3;
-        
+        this.ctx.fillText('90°', x + 30, y - 30);
+
+        // Точка на курсоре (используем новый стиль)
+        this.drawPoint(x, y);
+
         const upMm = this.pxToMmDirect(distanceUp);
         const rightMm = this.pxToMmDirect(distanceRight);
-        
-        // Размер вверх
-        this.ctx.textAlign = 'center';
+
+        // Размер вверх (плашка)
         const upTextY = y / 2;
-        this.ctx.strokeText(`${upMm} мм`, x + 30, upTextY);
-        this.ctx.fillText(`${upMm} мм`, x + 30, upTextY);
-        
-        // Размер вправо
+        this.drawMeasurementLabel(x + 40, upTextY, `↑ ${upMm} мм`);
+
+        // Размер вправо (плашка)
         const rightTextX = x + (this.canvas.width - x) / 2;
-        this.ctx.strokeText(`${rightMm} мм`, rightTextX, y - 15);
-        this.ctx.fillText(`${rightMm} мм`, rightTextX, y - 15);
+        this.drawMeasurementLabel(rightTextX, y - 20, `→ ${rightMm} мм`);
     }
     
     handleMouseLeave() {
@@ -550,21 +585,42 @@ class JewelryRuler {
     }
     
     pxToMm(px, dimension) {
+        // 📐 НОВОЕ: Приоритет калибровке из editor_data
+        if (this.calibration && this.calibration.pxPerMm) {
+            // Учитываем CSS scale для точных измерений
+            const cssScale = this.calibration.cssScale || 1;
+            const logicalPx = px / cssScale; // Переводим в логические пиксели
+            return (logicalPx / this.calibration.pxPerMm).toFixed(2);
+        }
+
+        // Fallback: старый метод через widthMm/heightMm
         if (dimension === 'width' && this.options.widthMm) {
             return ((px / this.canvas.width) * this.options.widthMm).toFixed(2);
         } else if (dimension === 'height' && this.options.heightMm) {
             return ((px / this.canvas.height) * this.options.heightMm).toFixed(2);
         }
-        return '0';
+
+        console.warn('⚠️ Нет калибровки! Показываем пиксели.');
+        return px.toFixed(0) + ' (px)';
     }
-    
+
     pxToMmDirect(px) {
-        if (!this.options.widthMm && !this.options.heightMm) {
-            return px.toFixed(0);
+        // 📐 НОВОЕ: Приоритет калибровке из editor_data
+        if (this.calibration && this.calibration.pxPerMm) {
+            // Учитываем CSS scale
+            const cssScale = this.calibration.cssScale || 1;
+            const logicalPx = px / cssScale;
+            return (logicalPx / this.calibration.pxPerMm).toFixed(2);
         }
-        
+
+        // Fallback: старый метод
+        if (!this.options.widthMm && !this.options.heightMm) {
+            console.warn('⚠️ Нет калибровки и размеров! Показываем пиксели.');
+            return px.toFixed(0) + ' (px)';
+        }
+
         let pxPerMm;
-        
+
         if (this.options.widthMm && this.options.heightMm) {
             const pxPerMmWidth = this.canvas.width / this.options.widthMm;
             const pxPerMmHeight = this.canvas.height / this.options.heightMm;
@@ -574,7 +630,7 @@ class JewelryRuler {
         } else {
             pxPerMm = this.canvas.height / this.options.heightMm;
         }
-        
+
         return (px / pxPerMm).toFixed(2);
     }
     
@@ -657,40 +713,99 @@ class JewelryRuler {
         }
     }
     
-    drawPoint(x, y) {
-        this.ctx.fillStyle = '#00ff00';
+    drawPoint(x, y, isMain = true) {
+        // 🎨 НОВЫЙ ДИЗАЙН: Современные точки с тенью
+        const radius = isMain ? 6 : 4;
+
+        // Внешнее кольцо (белое)
+        this.ctx.fillStyle = '#ffffff';
+        this.ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+        this.ctx.shadowBlur = 4;
+        this.ctx.shadowOffsetX = 0;
+        this.ctx.shadowOffsetY = 2;
         this.ctx.beginPath();
-        this.ctx.arc(x, y, 5, 0, 2 * Math.PI);
+        this.ctx.arc(x, y, radius + 2, 0, 2 * Math.PI);
         this.ctx.fill();
+
+        // Внутренняя точка (акцентный цвет)
+        this.ctx.shadowBlur = 0;
+        this.ctx.fillStyle = '#667eea'; // Современный фиолетовый
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, radius, 0, 2 * Math.PI);
+        this.ctx.fill();
+
+        // Сброс тени
+        this.ctx.shadowColor = 'transparent';
+        this.ctx.shadowBlur = 0;
+        this.ctx.shadowOffsetX = 0;
+        this.ctx.shadowOffsetY = 0;
     }
     
     drawLine(p1, p2) {
-        this.ctx.strokeStyle = '#00ff00';
-        this.ctx.lineWidth = 3;
+        // 🎨 НОВЫЙ ДИЗАЙН: Тонкая линия с градиентом
+        const gradient = this.ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
+        gradient.addColorStop(0, '#667eea');
+        gradient.addColorStop(1, '#764ba2');
+
+        this.ctx.strokeStyle = gradient;
+        this.ctx.lineWidth = 2;
         this.ctx.setLineDash([]);
+        this.ctx.shadowColor = 'rgba(102, 126, 234, 0.4)';
+        this.ctx.shadowBlur = 8;
         this.ctx.beginPath();
         this.ctx.moveTo(p1.x, p1.y);
         this.ctx.lineTo(p2.x, p2.y);
         this.ctx.stroke();
-        
+
+        // Сброс тени
+        this.ctx.shadowColor = 'transparent';
+        this.ctx.shadowBlur = 0;
+
         this.drawPoint(p1.x, p1.y);
         this.drawPoint(p2.x, p2.y);
-        
+
         const distancePx = Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
         const distanceMm = this.convertToMm(distancePx);
-        
+
         const midX = (p1.x + p2.x) / 2;
         const midY = (p1.y + p2.y) / 2;
-        
-        this.ctx.font = 'bold 16px Arial';
-        this.ctx.fillStyle = '#ffffff';
-        this.ctx.strokeStyle = '#000000';
-        this.ctx.lineWidth = 3;
+
+        // 🎨 НОВЫЙ ДИЗАЙН: Современный шрифт и плашка
+        this.drawMeasurementLabel(midX, midY - 10, `${distanceMm} мм`);
+    }
+
+    // 🎨 НОВЫЙ МЕТОД: Красивая плашка с размером
+    drawMeasurementLabel(x, y, text) {
+        this.ctx.font = '600 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
         this.ctx.textAlign = 'center';
-        
-        const text = `${distanceMm} мм`;
-        this.ctx.strokeText(text, midX, midY - 10);
-        this.ctx.fillText(text, midX, midY - 10);
+        this.ctx.textBaseline = 'middle';
+
+        // Измеряем ширину текста
+        const metrics = this.ctx.measureText(text);
+        const padding = 8;
+        const width = metrics.width + padding * 2;
+        const height = 24;
+
+        // Фон плашки с тенью
+        this.ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+        this.ctx.shadowBlur = 8;
+        this.ctx.shadowOffsetX = 0;
+        this.ctx.shadowOffsetY = 2;
+
+        this.ctx.fillStyle = '#667eea';
+        this.ctx.beginPath();
+        this.ctx.roundRect(x - width / 2, y - height / 2, width, height, 12);
+        this.ctx.fill();
+
+        // Сброс тени
+        this.ctx.shadowColor = 'transparent';
+        this.ctx.shadowBlur = 0;
+        this.ctx.shadowOffsetX = 0;
+        this.ctx.shadowOffsetY = 0;
+
+        // Текст
+        this.ctx.fillStyle = '#ffffff';
+        this.ctx.fillText(text, x, y);
     }
     
     convertToMm(distancePx) {
@@ -731,13 +846,14 @@ class JewelryRuler {
 // Инициализация
 document.addEventListener('DOMContentLoaded', function() {
     const rulerContainer = document.getElementById('jewelryRulerContainer');
-    
+
     if (rulerContainer) {
         new JewelryRuler('jewelryRulerContainer', {
             widthMm: parseFloat(rulerContainer.dataset.widthMm) || null,
             heightMm: parseFloat(rulerContainer.dataset.heightMm) || null,
             diameterMm: parseFloat(rulerContainer.dataset.diameterMm) || null,
-            referenceType: rulerContainer.dataset.referenceType || 'none'
+            referenceType: rulerContainer.dataset.referenceType || 'none',
+            editorData: rulerContainer.dataset.editorData || null // 📐 НОВОЕ: Калибровочные данные
         });
     }
 });
