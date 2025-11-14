@@ -1,14 +1,27 @@
 # catalog/views.py
-from django.shortcuts import render, get_object_or_404
-from django.db.models import Q
-from .models import Product, Category, Material, Factory, ProductImage, Favorite
+import logging
+from django.shortcuts import render, get_object_or_404, redirect
+from django.db.models import Q, F, Sum, Count
+from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import login
-from django.shortcuts import redirect
 from django.contrib import messages
-from .forms import FactoryRegistrationForm, FactoryProfileForm, ProductForm, ProductImageForm, CustomerRegistrationForm
 from django.forms import modelformset_factory
-from django.contrib.auth import logout
+from django.http import JsonResponse
+
+from .models import Product, Category, Material, Factory, ProductImage, Favorite, Theme
+from .forms import (
+    FactoryRegistrationForm,
+    FactoryProfileForm,
+    ProductForm,
+    ProductImageForm,
+    CustomerRegistrationForm
+)
+
+# Настройка логирования
+logger = logging.getLogger(__name__)
+
+# Константы
+PRODUCTS_PER_PAGE = 12
 
 def home(request):
     """Главная страница с каталогом товаров с расширенными фильтрами"""
@@ -92,8 +105,8 @@ def home(request):
     else:  # -created_at (по умолчанию - новые)
         products = products.order_by('-created_at')
 
-    # Пагинация (по 12 товаров на странице)
-    paginator = Paginator(products, 12)
+    # Пагинация
+    paginator = Paginator(products, PRODUCTS_PER_PAGE)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -103,6 +116,24 @@ def home(request):
     purities = Purity.objects.all()
     metal_colors = MetalColor.objects.all()
     styles = Style.objects.all()
+
+    # Get selected filter objects for display
+    selected_category = None
+    selected_material = None
+    selected_purity = None
+    selected_metal_color = None
+    selected_style = None
+
+    if category_slug:
+        selected_category = Category.objects.filter(slug=category_slug).first()
+    if material_id:
+        selected_material = Material.objects.filter(id=material_id).first()
+    if purity_id:
+        selected_purity = Purity.objects.filter(id=purity_id).first()
+    if metal_color_id:
+        selected_metal_color = MetalColor.objects.filter(id=metal_color_id).first()
+    if style_id:
+        selected_style = Style.objects.filter(id=style_id).first()
 
     context = {
         'page_obj': page_obj,
@@ -116,6 +147,11 @@ def home(request):
         'current_purity': purity_id,
         'current_metal_color': metal_color_id,
         'current_style': style_id,
+        'selected_category': selected_category,
+        'selected_material': selected_material,
+        'selected_purity': selected_purity,
+        'selected_metal_color': selected_metal_color,
+        'selected_style': selected_style,
         'current_has_inserts': has_inserts,
         'current_has_stamp': has_stamp,
         'search_query': search_query,
@@ -129,16 +165,20 @@ def home(request):
 
 def product_detail(request, article):
     """Страница товара"""
+    # Оптимизировано: загружаем все связанные объекты сразу (fix N+1)
     product = get_object_or_404(
-        Product.objects.select_related('factory', 'category', 'material')
-                      .prefetch_related('images'),
+        Product.objects.select_related(
+            'factory', 'category', 'material', 'purity', 'metal_color', 'style'
+        ).prefetch_related('images', 'insert_types', 'coatings'),
         article=article,
         is_active=True
     )
-    
-    # Увеличиваем счетчик просмотров
-    product.views_count += 1
-    product.save(update_fields=['views_count'])
+
+    # Оптимизировано: используем F-выражение для избежания race condition
+    from django.db.models import F
+    Product.objects.filter(article=article).update(views_count=F('views_count') + 1)
+    # Перезагружаем объект чтобы получить обновленный счетчик
+    product.refresh_from_db(fields=['views_count'])
     
     # Похожие товары (из той же категории)
     similar_products = Product.objects.filter(
@@ -197,12 +237,20 @@ def factory_dashboard(request):
     products = Product.objects.filter(factory=factory).select_related(
         'category', 'material'
     ).prefetch_related('images')
-    
-    # Статистика
-    total_products = products.count()
-    active_products = products.filter(is_active=True).count()
-    total_views = sum(p.views_count for p in products)
-    in_stock = products.filter(stock_quantity__gt=0).count()
+
+    # Оптимизировано: используем aggregate вместо загрузки всех объектов
+    from django.db.models import Sum, Count, Q
+    stats = products.aggregate(
+        total_products=Count('id'),
+        active_products=Count('id', filter=Q(is_active=True)),
+        total_views=Sum('views_count'),
+        in_stock=Count('id', filter=Q(stock_quantity__gt=0))
+    )
+
+    total_products = stats['total_products'] or 0
+    active_products = stats['active_products'] or 0
+    total_views = stats['total_views'] or 0
+    in_stock = stats['in_stock'] or 0
     
     context = {
         'factory': factory,
@@ -267,9 +315,10 @@ def product_add(request):
                         is_main=True,
                         order=0
                     )
-                    print(f"✅ Изображение из canvas сохранено: {canvas_image.name}")
+                    logger.info(f"Canvas image saved for product {product.article}: {canvas_image.name}")
                 except Exception as e:
-                    print(f"❌ Ошибка при сохранении изображения: {e}")
+                    logger.error(f"Failed to save canvas image for product {product.article}: {e}")
+                    messages.error(request, 'Ошибка при сохранении изображения')
             
             messages.success(request, f'Товар "{product.name}" успешно добавлен!')
             
@@ -533,3 +582,151 @@ def factory_characteristic_add(request):
         'form': form,
         'factory': factory
     })
+
+def theme_editor(request):
+    """Редактор цветовой схемы"""
+    # Получаем тему по умолчанию
+    default_theme = Theme.objects.filter(is_default=True).first()
+
+    # Получаем пользовательские темы
+    user_themes = []
+    if request.user.is_authenticated:
+        user_themes = Theme.objects.filter(user=request.user, is_default=False)
+
+    return render(request, 'catalog/theme_editor.html', {
+        'default_theme': default_theme,
+        'user_themes': user_themes
+    })
+
+
+@login_required
+def theme_save(request):
+    """Сохранение темы"""
+    if request.method == 'POST':
+        import json
+        data = json.loads(request.body)
+
+        theme_id = data.get('id')
+
+        # Если передан ID, обновляем существующую тему
+        if theme_id:
+            try:
+                theme = Theme.objects.get(id=theme_id)
+                # Проверяем права: либо это default тема, либо тема принадлежит пользователю
+                if not theme.is_default and theme.user != request.user:
+                    return JsonResponse({'success': False, 'error': 'Нет прав для редактирования этой темы'})
+            except Theme.DoesNotExist:
+                return JsonResponse({'success': False, 'error': 'Тема не найдена'})
+        else:
+            # Создаём новую пользовательскую тему
+            theme_name = data.get('name', 'Новая тема')
+            theme = Theme(user=request.user, name=theme_name)
+
+        # Обновляем поля темы
+        if not theme.is_default:
+            theme.name = data.get('name', theme.name)
+
+        theme.primary_color = data.get('primary_color', theme.primary_color)
+        theme.secondary_color = data.get('secondary_color', theme.secondary_color)
+        theme.gradient_enabled = data.get('gradient_enabled', theme.gradient_enabled)
+        theme.sharp_corners = data.get('sharp_corners', theme.sharp_corners)
+
+        # Цветовая схема только для default темы
+        if theme.is_default:
+            theme.color_scheme = data.get('color_scheme', theme.color_scheme)
+
+        theme.save()
+
+        return JsonResponse({
+            'success': True,
+            'theme_id': theme.id,
+            'message': f'Тема "{theme.name}" сохранена'
+        })
+
+    return JsonResponse({'success': False, 'error': 'Метод не поддерживается'})
+
+
+def theme_load(request, theme_id):
+    """Загрузка темы"""
+    try:
+        theme = Theme.objects.get(id=theme_id)
+        # Разрешаем загрузку либо default темы, либо темы текущего пользователя
+        if not theme.is_default and (not request.user.is_authenticated or theme.user != request.user):
+            return JsonResponse({'success': False, 'error': 'Нет доступа к этой теме'})
+
+        return JsonResponse({
+            'success': True,
+            'theme': {
+                'id': theme.id,
+                'name': theme.name,
+                'primary_color': theme.primary_color,
+                'secondary_color': theme.secondary_color,
+                'color_scheme': theme.color_scheme,
+                'gradient_enabled': theme.gradient_enabled,
+                'sharp_corners': theme.sharp_corners,
+                'is_default': theme.is_default,
+                'is_active': theme.is_active,
+            }
+        })
+    except Theme.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Тема не найдена'})
+
+
+@login_required
+def theme_delete(request, theme_id):
+    """Удаление темы"""
+    if request.method == 'POST':
+        try:
+            theme = Theme.objects.get(id=theme_id, user=request.user)
+
+            # Защита от удаления default темы
+            if theme.is_default:
+                return JsonResponse({'success': False, 'error': 'Нельзя удалить тему по умолчанию'})
+
+            theme_name = theme.name
+            theme.delete()
+            return JsonResponse({
+                'success': True,
+                'message': f'Тема "{theme_name}" удалена'
+            })
+        except Theme.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Тема не найдена'})
+        except ValueError as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+
+    return JsonResponse({'success': False, 'error': 'Метод не поддерживается'})
+
+
+@login_required
+def theme_activate(request, theme_id):
+    """Активация темы"""
+    if request.method == 'POST':
+        try:
+            theme = Theme.objects.get(id=theme_id)
+
+            # Проверяем права: либо это default тема, либо тема принадлежит пользователю
+            if not theme.is_default and theme.user != request.user:
+                return JsonResponse({'success': False, 'error': 'Нет прав для активации этой темы'})
+
+            theme.is_active = True
+            theme.save()  # Метод save() автоматически деактивирует другие темы
+
+            return JsonResponse({
+                'success': True,
+                'message': f'Тема "{theme.name}" активирована',
+                'theme': {
+                    'id': theme.id,
+                    'name': theme.name,
+                    'primary_color': theme.primary_color,
+                    'secondary_color': theme.secondary_color,
+                    'color_scheme': theme.color_scheme,
+                    'gradient_enabled': theme.gradient_enabled,
+                    'sharp_corners': theme.sharp_corners,
+                    'is_default': theme.is_default,
+                    'is_active': theme.is_active
+                }
+            })
+        except Theme.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Тема не найдена'})
+
+    return JsonResponse({'success': False, 'error': 'Метод не поддерживается'})

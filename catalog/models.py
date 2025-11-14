@@ -72,7 +72,13 @@ class Category(models.Model):
 
 
 class Material(models.Model):
-    """Материалы (золото, серебро и т.д.)"""
+    """
+    Материалы (золото, серебро и т.д.)
+
+    ПРИМЕЧАНИЕ: Эта модель частично дублирует функциональность Purity.
+    TODO: Рассмотреть возможность объединения с моделью Purity в будущих версиях.
+    Для этого потребуется data migration для переноса данных.
+    """
     MATERIAL_TYPES = [
         ('gold', 'Золото'),
         ('silver', 'Серебро'),
@@ -194,15 +200,21 @@ class Coating(models.Model):
         return self.name
 
 
+# Константы для типов эталонных изображений (используется в ReferenceImage и Product)
+REFERENCE_TYPES = [
+    ('ear', '👂 Ухо/Серьги'),
+    ('finger', '💍 Палец/Кольцо'),
+    ('wrist', '⌚ Запястье/Браслет'),
+    ('neck', '📿 Шея/Колье'),
+]
+
+# Для Product добавляем опцию "Без эталона"
+PRODUCT_REFERENCE_TYPES = REFERENCE_TYPES + [('none', 'Без эталона')]
+
+
 class ReferenceImage(models.Model):
     """Эталонные изображения для подгонки товаров"""
-    REFERENCE_TYPES = [
-        ('ear', '👂 Ухо'),
-        ('finger', '💍 Палец'),
-        ('wrist', '⌚ Запястье'),
-        ('neck', '📿 Шея'),
-    ]
-    
+
     reference_type = models.CharField(
         max_length=20,
         choices=REFERENCE_TYPES,
@@ -247,14 +259,6 @@ class ReferenceImage(models.Model):
 
 class Product(models.Model):
     """Модель ювелирного изделия"""
-
-    REFERENCE_TYPES = [
-        ('ear', '👂 Серьги'),
-        ('finger', '💍 Кольцо'),
-        ('wrist', '⌚ Браслет'),
-        ('neck', '📿 Колье/Подвеска'),
-        ('none', 'Без эталона'),
-    ]
 
     # Основные связи
     factory = models.ForeignKey(Factory, on_delete=models.CASCADE, related_name='products', verbose_name="Завод")
@@ -352,7 +356,7 @@ class Product(models.Model):
     # Эталонные фото и редактор
     reference_photo_type = models.CharField(
         max_length=20,
-        choices=REFERENCE_TYPES,
+        choices=PRODUCT_REFERENCE_TYPES,
         default='none',
         verbose_name="Тип изделия",
         help_text="Выберите тип для подгонки под эталон"
@@ -498,3 +502,63 @@ class Favorite(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.product.name}"
+
+
+class Theme(models.Model):
+    """Пользовательские темы оформления"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='themes', verbose_name="Пользователь", null=True, blank=True)
+    name = models.CharField(max_length=100, verbose_name="Название темы", unique=True)
+
+    # Единый primary и secondary для обоих режимов
+    primary_color = models.CharField(max_length=7, default='#6366f1', verbose_name="Primary Color")
+    secondary_color = models.CharField(max_length=7, default='#8b5cf6', verbose_name="Secondary Color")
+
+    # Флаг для темы по умолчанию (auroom)
+    is_default = models.BooleanField(default=False, verbose_name="Тема по умолчанию")
+
+    # Цветовая схема только для default темы (indigo, blue, purple, pink, green, red)
+    color_scheme = models.CharField(max_length=20, default='indigo', blank=True, verbose_name="Цветовая схема")
+
+    # Градиент
+    gradient_enabled = models.BooleanField(default=True, verbose_name="Градиент включен")
+
+    # Острые углы (отключение всех border-radius)
+    sharp_corners = models.BooleanField(default=False, verbose_name="Острые углы")
+
+    # Статус активации
+    is_active = models.BooleanField(default=False, verbose_name="Активная тема")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
+
+    class Meta:
+        verbose_name = "Тема"
+        verbose_name_plural = "Темы"
+        ordering = ['-is_default', '-created_at']
+
+    def __str__(self):
+        if self.is_default:
+            return f"{self.name} (По умолчанию)"
+        return f"{self.name}" if not self.user else f"{self.user.username} - {self.name}"
+
+    def save(self, *args, **kwargs):
+        # Если это тема по умолчанию, убедимся что она одна
+        if self.is_default:
+            Theme.objects.filter(is_default=True).exclude(pk=self.pk).update(is_default=False)
+            self.user = None  # Default тема не привязана к пользователю
+
+        # Деактивировать другие темы при активации
+        if self.is_active:
+            if self.user:
+                # Для пользовательских тем деактивируем все темы (включая default)
+                Theme.objects.filter(is_active=True).exclude(pk=self.pk).update(is_active=False)
+            else:
+                # Для default темы деактивируем все темы всех пользователей
+                Theme.objects.filter(is_active=True).exclude(pk=self.pk).update(is_active=False)
+
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        # Запретить удаление темы по умолчанию
+        if self.is_default:
+            raise ValueError("Нельзя удалить тему по умолчанию")
+        super().delete(*args, **kwargs)
