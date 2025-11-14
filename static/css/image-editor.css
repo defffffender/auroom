@@ -1,52 +1,8 @@
-/* Стили для редактора изображений с эталоном - Fonon Style */
+/* Минимальные стили для редактора изображений - работает с Tailwind/Flowbite */
 
-/* Убираем все закругления в редакторе */
-.image-editor-container *,
-.image-editor-container {
-    border-radius: 0 !important;
-}
-
-.image-editor-container {
-    background: #f9f9f9;
-    padding: 2rem;
-    margin: 2rem 0;
-    border: 2px solid var(--border-color);
-}
-
-.editor-header {
-    margin-bottom: 1.5rem;
-}
-
-.editor-header h3 {
-    color: var(--color-primary);
-    margin-bottom: 0.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.reference-info {
-    background: var(--gradient-info);
-    padding: 1rem;
-    border-radius: 0 !important;
-    margin-bottom: 1rem;
-    font-size: 0.95rem;
-    color: white;
-}
-
-.reference-info strong {
-    color: white;
-    font-weight: 700;
-}
-
-/* Canvas контейнер */
+/* Canvas контейнер - критичные стили для работы редактора */
 .canvas-container-wrapper {
     position: relative;
-    background: white;
-    border: 2px solid var(--border-color);
-    border-radius: 0 !important;
-    padding: 1rem;
-    margin-bottom: 1.5rem;
     min-height: 600px;
     min-width: 300px;
     max-height: 650px;
@@ -59,299 +15,16 @@
 .canvas-container {
     position: relative;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    max-width: 800px; /* Ограничение */
-    max-height: 600px; /* Ограничение */
+    max-width: 800px;
+    max-height: 600px;
 }
 
-/* Сам canvas */
+/* Сам canvas - критичные размеры */
 canvas#fabricCanvas {
     max-width: 100% !important;
     max-height: 100% !important;
     height: auto !important;
     width: auto !important;
-}
-
-/* Контролы редактора */
-.editor-controls {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-    margin-bottom: 1.5rem;
-}
-
-.control-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.control-group label {
-    font-weight: 500;
-    font-size: 0.9rem;
-    color: #666;
-}
-
-.control-btn {
-    padding: 10px 20px;
-    background: var(--gradient-primary);
-    color: white;
-    border: none;
-    border-radius: 0 !important;
-    cursor: pointer;
-    font-size: 0.95rem;
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    position: relative;
-    overflow: hidden;
-}
-
-/* Градиентный блик для control-btn */
-.control-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-    transition: left 0.5s ease;
-}
-
-.control-btn:hover::before {
-    left: 100%;
-}
-
-.control-btn:hover {
-    background: var(--gradient-primary-hover);
-}
-
-.control-btn:disabled {
-    background: #ccc;
-    cursor: not-allowed;
-    transform: none;
-}
-
-.control-btn-secondary {
-    background: #e0e0e0;
-    color: #333;
-}
-
-.control-btn-secondary:hover {
-    background: #d0d0d0;
-}
-
-.control-btn-danger {
-    background: #f44336;
-}
-
-.control-btn-danger:hover {
-    background: #d32f2f;
-}
-
-/* Слайдер прозрачности */
-.opacity-slider {
-    width: 200px;
-    height: 6px;
-    border-radius: 3px;
-    background: #e0e0e0;
-    outline: none;
-    appearance: none;
-}
-
-.opacity-slider::-webkit-slider-thumb {
-    appearance: none;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: var(--color-primary);
-    cursor: pointer;
-}
-
-.opacity-slider::-moz-range-thumb {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: var(--color-primary);
-    cursor: pointer;
-    border: none;
-}
-
-/* Загрузка файла */
-.file-upload {
-    position: relative;
-    display: inline-block;
-}
-
-.file-upload input[type="file"] {
-    position: absolute;
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.file-upload-btn {
-    padding: 10px 20px;
-    background: var(--gradient-success);
-    color: white;
-    border: none;
-    border-radius: 0 !important;
-    cursor: pointer;
-    font-size: 0.95rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.3s;
-    position: relative;
-    overflow: hidden;
-}
-
-/* Градиентный блик для file-upload-btn */
-.file-upload-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-    transition: left 0.5s ease;
-}
-
-.file-upload-btn:hover::before {
-    left: 100%;
-}
-
-.file-upload-btn:hover {
-    background: var(--gradient-success-hover);
-}
-
-/* Информация о размерах */
-.dimensions-display {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
-
-.dimensions-display h4 {
-    margin-bottom: 1rem;
-    color: #333;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.dimension-row {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.75rem 0;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.dimension-row:last-child {
-    border-bottom: none;
-}
-
-.dimension-label {
-    color: #666;
-    font-weight: 500;
-}
-
-.dimension-value {
-    color: var(--color-primary);
-    font-weight: 700;
-    font-size: 1.1rem;
-}
-
-.dimension-value.calculated {
-    color: #4caf50;
-}
-
-/* Инструкция */
-.editor-instructions {
-    background: #fff3cd;
-    border-left: 4px solid #ffc107;
-    padding: 1rem;
-    border-radius: 8px;
-    margin-bottom: 1.5rem;
-}
-
-.editor-instructions h4 {
-    margin-bottom: 0.5rem;
-    color: #856404;
-}
-
-.editor-instructions ul {
-    margin: 0;
-    padding-left: 1.5rem;
-}
-
-.editor-instructions li {
-    margin: 0.5rem 0;
-    color: #856404;
-}
-
-/* Статус */
-.editor-status {
-    padding: 0.75rem 1rem;
-    border-radius: 8px;
-    margin-bottom: 1rem;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.editor-status.success {
-    background: #e8f5e9;
-    color: #2e7d32;
-}
-
-.editor-status.warning {
-    background: #fff3e0;
-    color: #f57c00;
-}
-
-.editor-status.error {
-    background: #ffebee;
-    color: #c62828;
-}
-
-/* Кнопки зума */
-.zoom-controls {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-}
-
-.zoom-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: 2px solid var(--color-primary);
-    background: white;
-    color: var(--color-primary);
-    cursor: pointer;
-    font-size: 1.2rem;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s;
-}
-
-.zoom-btn:hover {
-    background: var(--color-primary);
-    color: white;
-}
-
-.zoom-level {
-    min-width: 60px;
-    text-align: center;
-    font-weight: 600;
-    color: var(--color-primary);
 }
 
 /* Анимация загрузки */
@@ -365,8 +38,11 @@ canvas#fabricCanvas {
     display: none;
     justify-content: center;
     align-items: center;
-    border-radius: 12px;
     z-index: 100;
+}
+
+.dark .loading-overlay {
+    background: rgba(31, 41, 55, 0.9);
 }
 
 .loading-overlay.active {
@@ -377,206 +53,19 @@ canvas#fabricCanvas {
     width: 50px;
     height: 50px;
     border: 5px solid #f3f3f3;
-    border-top: 5px solid var(--color-primary);
+    border-top: 5px solid #8b5cf6;
     border-radius: 50%;
     animation: spin 1s linear infinite;
+}
+
+.dark .spinner {
+    border-color: #4b5563;
+    border-top-color: #8b5cf6;
 }
 
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
-}
-
-/* Адаптивность */
-@media (max-width: 768px) {
-    .image-editor-container {
-        padding: 1rem;
-    }
-    
-    .canvas-container-wrapper {
-        min-height: 400px;
-        padding: 0.5rem;
-    }
-    
-    .editor-controls {
-        flex-direction: column;
-    }
-    
-    .control-btn,
-    .file-upload-btn {
-        width: 100%;
-        justify-content: center;
-    }
-    
-    .opacity-slider {
-        width: 100%;
-    }
-    
-    .zoom-controls {
-        justify-content: center;
-    }
-}
-
-/* Скрытие элементов */
-.hidden {
-    display: none !important;
-}
-
-.control-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    position: relative;
-}
-
-.opacity-value {
-    position: absolute;
-    right: 0;
-    top: 0;
-    font-size: 0.85rem;
-    color: var(--color-primary);
-    font-weight: 600;
-}
-
-.crop-tools {
-    display: flex;
-    gap: 1rem;
-    padding: 1rem;
-    background: #fff3cd;
-    border-radius: 8px;
-    border-left: 4px solid #ffc107;
-    width: 100%;
-}
-
-.control-btn-success {
-    background: #4caf50 !important;
-}
-
-.control-btn-success:hover {
-    background: #45a049 !important;
-}
-
-.crop-indicator {
-    background: #e8f5e9;
-    padding: 0.75rem;
-    border-radius: 8px;
-    margin-bottom: 1rem;
-    color: #2e7d32;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-/* Undo/Redo контролы */
-.undo-redo-controls {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-}
-
-.undo-redo-controls .control-btn {
-    min-width: 110px;
-    font-size: 0.95rem;
-}
-
-.undo-redo-controls .control-btn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-}
-
-.undo-redo-controls .control-btn:not(:disabled):hover {
-    background: var(--gradient-primary-hover);
-}
-
-/* 🧲 Snap контролы */
-.snap-controls {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-}
-
-.snap-controls .control-btn {
-    min-width: 140px;
-    font-size: 0.95rem;
-}
-
-.snap-controls .control-btn.active {
-    background: var(--gradient-success);
-    animation: pulse-snap 2s infinite;
-}
-
-@keyframes pulse-snap {
-    0%, 100% {
-        box-shadow: 0 0 0 0 rgba(57, 125, 84, 0.7);
-    }
-    50% {
-        box-shadow: 0 0 0 10px rgba(57, 125, 84, 0);
-    }
-}
-
-/* Undo/Redo контролы */
-.undo-redo-controls {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-}
-
-.undo-redo-controls .control-btn {
-    min-width: 110px;
-    font-size: 0.95rem;
-}
-
-.undo-redo-controls .control-btn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-}
-
-.undo-redo-controls .control-btn:not(:disabled):hover {
-    background: var(--gradient-primary-hover);
-}
-
-/* 🧲 Snap контролы */
-.snap-controls {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-}
-
-.snap-controls .control-btn {
-    min-width: 140px;
-    font-size: 0.95rem;
-}
-
-.snap-controls .control-btn.active {
-    background: var(--gradient-success);
-    animation: pulse-snap 2s infinite;
-}
-
-@keyframes pulse-snap {
-    0%, 100% {
-        box-shadow: 0 0 0 0 rgba(57, 125, 84, 0.7);
-    }
-    50% {
-        box-shadow: 0 0 0 10px rgba(57, 125, 84, 0);
-    }
-}
-
-/* 👁️ Preview контролы */
-.preview-controls {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-}
-
-.control-btn-preview {
-    min-width: 140px;
-    font-size: 0.95rem;
-    background: #ff9800;
-}
-
-.control-btn-preview:hover:not(:disabled) {
-    background: #f57c00;
 }
 
 /* Модальное окно предпросмотра */
@@ -612,12 +101,16 @@ canvas#fabricCanvas {
     position: relative;
     z-index: 1;
     background: white;
-    border-radius: 16px;
+    border-radius: 1rem;
     max-width: 900px;
     max-height: 90vh;
     overflow-y: auto;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     animation: slideUp 0.3s ease;
+}
+
+.dark .preview-modal-content {
+    background: rgb(31, 41, 55);
 }
 
 @keyframes slideUp {
@@ -639,10 +132,19 @@ canvas#fabricCanvas {
     border-bottom: 2px solid #f0f0f0;
 }
 
+.dark .preview-modal-header {
+    border-bottom-color: rgb(55, 65, 81);
+}
+
 .preview-modal-header h3 {
     margin: 0;
-    color: var(--color-primary);
+    color: #8b5cf6;
     font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.dark .preview-modal-header h3 {
+    color: #a78bfa;
 }
 
 .preview-close {
@@ -656,8 +158,13 @@ canvas#fabricCanvas {
     transition: all 0.3s;
 }
 
+.dark .preview-close {
+    background: rgb(55, 65, 81);
+    color: white;
+}
+
 .preview-close:hover {
-    background: #f44336;
+    background: #ef4444;
     color: white;
     transform: rotate(90deg);
 }
@@ -677,34 +184,51 @@ canvas#fabricCanvas {
 
 .preview-image {
     max-width: 100%;
-    border-radius: 12px;
+    border-radius: 0.75rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     margin-bottom: 1rem;
 }
 
 .preview-note {
-    color: #999;
+    color: #9ca3af;
     font-size: 0.9rem;
     text-align: center;
 }
 
+.dark .preview-note {
+    color: #6b7280;
+}
+
 .preview-info-section h4 {
     margin-bottom: 1rem;
-    color: #333;
+    color: #1f2937;
+    font-weight: 600;
+}
+
+.dark .preview-info-section h4 {
+    color: white;
 }
 
 .preview-dimensions {
-    background: #f9f9f9;
+    background: #f9fafb;
     padding: 1.5rem;
-    border-radius: 12px;
+    border-radius: 0.75rem;
     margin-bottom: 1.5rem;
+}
+
+.dark .preview-dimensions {
+    background: rgb(55, 65, 81);
 }
 
 .preview-dim-item {
     display: flex;
     justify-content: space-between;
     padding: 0.75rem 0;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.dark .preview-dim-item {
+    border-bottom-color: rgb(75, 85, 99);
 }
 
 .preview-dim-item:last-child {
@@ -712,22 +236,31 @@ canvas#fabricCanvas {
 }
 
 .preview-dim-label {
-    color: #666;
+    color: #6b7280;
     font-weight: 500;
 }
 
+.dark .preview-dim-label {
+    color: #9ca3af;
+}
+
 .preview-dim-value {
-    color: var(--color-primary);
+    color: #8b5cf6;
     font-weight: 700;
     font-size: 1.1rem;
 }
 
+.dark .preview-dim-value {
+    color: #a78bfa;
+}
+
 .preview-reference-type {
-    background: var(--gradient-info);
+    background: linear-gradient(135deg, #8b5cf6, #6366f1);
     padding: 1rem;
     margin-bottom: 1.5rem;
     color: white;
     font-weight: 600;
+    border-radius: 0.5rem;
 }
 
 .preview-actions {
@@ -740,7 +273,7 @@ canvas#fabricCanvas {
     width: 100%;
     padding: 12px;
     border: none;
-    border-radius: 8px;
+    border-radius: 0.5rem;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
@@ -748,31 +281,51 @@ canvas#fabricCanvas {
 }
 
 .btn-success {
-    background: var(--gradient-success);
+    background: linear-gradient(135deg, #10b981, #059669);
     color: white;
 }
 
 .btn-success:hover {
-    background: var(--gradient-success-hover);
+    background: linear-gradient(135deg, #059669, #047857);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
 }
 
 .btn-secondary {
-    background: #e0e0e0;
-    color: #333;
+    background: #e5e7eb;
+    color: #1f2937;
+}
+
+.dark .btn-secondary {
+    background: rgb(75, 85, 99);
+    color: white;
 }
 
 .btn-secondary:hover {
-    background: #d0d0d0;
+    background: #d1d5db;
+}
+
+.dark .btn-secondary:hover {
+    background: rgb(55, 65, 81);
 }
 
 /* Адаптивность */
 @media (max-width: 768px) {
+    .canvas-container-wrapper {
+        min-height: 400px;
+    }
+
     .preview-modal-body {
         grid-template-columns: 1fr;
     }
-    
+
     .preview-modal-content {
         max-width: 95%;
         margin: 1rem;
     }
+}
+
+/* Скрытие элементов */
+.image-editor-container .hidden {
+    display: none !important;
 }

@@ -3,159 +3,106 @@
 
 {% block title %}Добавить характеристику - {{ factory.name }}{% endblock %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% block content %}
+<div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm max-w-4xl mx-auto" x-data="characteristicForm()">
+    <div class="bg-gradient-to-r from-primary-600 to-purple-600 text-white px-6 py-4 rounded-t-lg">
+        <h2 class="text-xl font-semibold">
+            <i class="bi bi-list-stars mr-2"></i>
+            Добавить характеристику
+        </h2>
+        <p class="text-white/90 text-sm mt-1">Создайте характеристику для использования в ваших товарах</p>
+    </div>
+
+    <div class="p-8">
+        <form method="post" class="space-y-6" id="characteristic-form">
+            {% csrf_token %}
+
+            {% if form.errors %}
+            <div class="flex items-center p-4 text-sm text-red-800 dark:text-red-300 bg-red-50 dark:bg-red-900/30 rounded-lg border border-red-300 dark:border-red-800" role="alert">
+                <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                </svg>
+                <div>
+                    <strong>Пожалуйста, исправьте ошибки:</strong>
+                    {{ form.errors }}
+                </div>
+            </div>
+            {% endif %}
+
+            <div>
+                <label for="{{ form.characteristic_type.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                    {{ form.characteristic_type.label }}
+                </label>
+                {{ form.characteristic_type }}
+                <p class="mt-2 text-sm text-gray-500 dark:text-white">Выберите тип характеристики, которую хотите добавить</p>
+            </div>
+
+            <div>
+                <label for="{{ form.name.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                    {{ form.name.label }}
+                </label>
+                <input type="text" name="name" id="{{ form.name.id_for_label }}" value="{{ form.name.value|default:'' }}" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5" required>
+                <p class="mt-2 text-sm text-gray-500 dark:text-white">Например: "585", "Желтое", "Классический" и т.д.</p>
+            </div>
+
+            <div>
+                <label for="{{ form.description.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                    {{ form.description.label }}
+                </label>
+                <textarea name="description" id="{{ form.description.id_for_label }}" rows="4" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5">{{ form.description.value|default:'' }}</textarea>
+            </div>
+
+            <!-- Conditional fields for purity -->
+            <div x-show="selectedType === 'purity'" x-transition>
+                <label for="{{ form.material_type.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                    {{ form.material_type.label }}
+                </label>
+                {{ form.material_type }}
+            </div>
+
+            <div x-show="selectedType === 'purity'" x-transition>
+                <label for="{{ form.purity_system.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                    {{ form.purity_system.label }}
+                </label>
+                {{ form.purity_system }}
+            </div>
+
+            <!-- Conditional field for insert_type -->
+            <div x-show="selectedType === 'insert_type'" x-transition>
+                <label for="{{ form.insert_category.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                    {{ form.insert_category.label }}
+                </label>
+                {{ form.insert_category }}
+            </div>
+
+            <div class="flex gap-3">
+                <button type="submit" class="text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                    <i class="bi bi-check-circle mr-2"></i>
+                    Создать характеристику
+                </button>
+                <a href="{% url 'catalog:factory_dashboard' %}" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                    <i class="bi bi-x-circle mr-2"></i>
+                    Отмена
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}
 
-{% block header_title %}<i class="bi bi-list-stars"></i> Добавить характеристику{% endblock %}
-
-{% block content %}
-<div class="form-container">
-    <h2>Добавить новую характеристику</h2>
-    <p>Создайте характеристику (проба, цвет металла, стиль и т.д.) для использования в ваших товарах.</p>
-
-    <form method="post" class="product-form" id="characteristic-form">
-        {% csrf_token %}
-
-        {% if form.errors %}
-        <div class="error-message">
-            <strong>Пожалуйста, исправьте ошибки:</strong>
-            {{ form.errors }}
-        </div>
-        {% endif %}
-
-        <div class="form-group">
-            <label for="{{ form.characteristic_type.id_for_label }}">{{ form.characteristic_type.label }}</label>
-            {{ form.characteristic_type }}
-            <small class="help-text">Выберите тип характеристики, которую хотите добавить</small>
-        </div>
-
-        <div class="form-group">
-            <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
-            {{ form.name }}
-            <small class="help-text">Например: "585", "Желтое", "Классический" и т.д.</small>
-        </div>
-
-        <div class="form-group">
-            <label for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
-            {{ form.description }}
-        </div>
-
-        <!-- Дополнительные поля для проб -->
-        <div class="form-group conditional-field" data-show-for="purity">
-            <label for="{{ form.material_type.id_for_label }}">{{ form.material_type.label }}</label>
-            {{ form.material_type }}
-        </div>
-
-        <div class="form-group conditional-field" data-show-for="purity">
-            <label for="{{ form.purity_system.id_for_label }}">{{ form.purity_system.label }}</label>
-            {{ form.purity_system }}
-        </div>
-
-        <!-- Дополнительное поле для типов вставок -->
-        <div class="form-group conditional-field" data-show-for="insert_type">
-            <label for="{{ form.insert_category.id_for_label }}">{{ form.insert_category.label }}</label>
-            {{ form.insert_category }}
-        </div>
-
-        <div class="form-actions">
-            <button type="submit" class="btn btn-success">
-                <i class="bi bi-check-circle"></i> Создать характеристику
-            </button>
-            <a href="{% url 'catalog:factory_dashboard' %}" class="btn btn-secondary">
-                <i class="bi bi-x-circle"></i> Отмена
-            </a>
-        </div>
-    </form>
-</div>
-
-<style>
-.form-container {
-    max-width: 800px;
-    margin: 2rem auto;
-    padding: 2rem;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.form-group {
-    margin-bottom: 1.5rem;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-    color: #333;
-}
-
-.form-group input[type="text"],
-.form-group textarea,
-.form-group select {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 1rem;
-}
-
-.form-group textarea {
-    min-height: 100px;
-    resize: vertical;
-}
-
-.help-text {
-    display: block;
-    margin-top: 0.5rem;
-    font-size: 0.875rem;
-    color: #666;
-}
-
-.form-actions {
-    display: flex;
-    gap: 1rem;
-    margin-top: 2rem;
-}
-
-.error-message {
-    padding: 1rem;
-    margin-bottom: 1.5rem;
-    background: #fee;
-    border: 1px solid #fcc;
-    border-radius: 4px;
-    color: #c33;
-}
-
-.conditional-field {
-    display: none;
-}
-
-.conditional-field.show {
-    display: block;
-}
-</style>
-
+{% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const typeSelect = document.getElementById('{{ form.characteristic_type.id_for_label }}');
-    const conditionalFields = document.querySelectorAll('.conditional-field');
-
-    function updateFieldsVisibility() {
-        const selectedType = typeSelect.value;
-
-        conditionalFields.forEach(field => {
-            const showFor = field.getAttribute('data-show-for');
-            if (showFor === selectedType) {
-                field.classList.add('show');
-            } else {
-                field.classList.remove('show');
-            }
-        });
-    }
-
-    typeSelect.addEventListener('change', updateFieldsVisibility);
-    updateFieldsVisibility();
-});
+function characteristicForm() {
+    return {
+        selectedType: '',
+        init() {
+            const typeSelect = document.getElementById('{{ form.characteristic_type.id_for_label }}');
+            this.selectedType = typeSelect.value;
+            typeSelect.addEventListener('change', () => {
+                this.selectedType = typeSelect.value;
+            });
+        }
+    };
+}
 </script>
 {% endblock %}

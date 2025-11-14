@@ -1,0 +1,990 @@
+{% extends 'catalog/base.html' %}
+{% load static %}
+
+{% block title %}Редактор тем{% endblock %}
+
+{% block extra_head %}
+<!-- Google Fonts for Theme Editor -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&family=Lora:wght@400;500;600;700&family=Zen+Maru+Gothic:wght@300;400;500;700;900&family=Poiret+One&family=Alumni+Sans:wght@100;200;300;400;500;600;700;800;900&family=Forum&family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Cuprum:wght@400;500;600;700&family=Sofia+Sans+Condensed:wght@1;100;200;300;400;500;600;700;800;900;1000&family=Fira+Sans+Extra+Condensed:wght@100;200;300;400;500;600;700;800;900&family=Arsenal:ital,wght@0,400;0,700;1,400;1,700&family=Cousine:wght@400;700&display=swap" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto" x-data="themeEditor()">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            <i class="bi bi-palette text-primary-600 mr-2"></i>
+            Редактор тем
+        </h1>
+        <p class="text-gray-600 dark:text-gray-400">
+            Создавайте и редактируйте собственные цветовые схемы
+        </p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left Column: Theme List -->
+        <div class="lg:col-span-1">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                    Мои темы
+                </h2>
+
+                <!-- Theme List -->
+                <div class="space-y-2">
+                    <!-- Default Auroom Theme -->
+                    {% if default_theme %}
+                    <div @click="loadTheme({{ default_theme.id }})"
+                         :class="currentThemeId === {{ default_theme.id }} ? 'ring-2 ring-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'bg-gray-50 dark:bg-gray-700'"
+                         class="p-4 rounded-lg cursor-pointer hover:shadow-md transition-all">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"></div>
+                                <div>
+                                    <h3 class="font-semibold text-gray-900 dark:text-white">{{ default_theme.name }}</h3>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">По умолчанию</p>
+                                </div>
+                            </div>
+                            <div x-show="{{ default_theme.is_active|lower }}">
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                    <i class="bi bi-check-circle-fill mr-1"></i> Активна
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- User Themes -->
+                    <template x-for="theme in userThemes" :key="theme.id">
+                        <div @click="loadTheme(theme.id)"
+                             :class="currentThemeId === theme.id ? 'ring-2 ring-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'bg-gray-50 dark:bg-gray-700'"
+                             class="p-4 rounded-lg cursor-pointer hover:shadow-md transition-all">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 rounded-full"
+                                         :style="`background: linear-gradient(135deg, ${theme.primary_color}, ${theme.secondary_color})`"></div>
+                                    <div>
+                                        <h3 class="font-semibold text-gray-900 dark:text-white" x-text="theme.name"></h3>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div x-show="theme.is_active">
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                            <i class="bi bi-check-circle-fill mr-1"></i> Активна
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Create New Theme Button -->
+                <button @click="createNewTheme()"
+                        class="w-full mt-4 bg-primary-600 hover:bg-primary-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors">
+                    <i class="bi bi-plus-circle mr-2"></i>
+                    Создать новую тему
+                </button>
+            </div>
+
+            <!-- Font Selection Block -->
+            <div class="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                    <i class="bi bi-fonts text-primary-600 mr-2"></i>
+                    Шрифты
+                </h2>
+
+                <!-- Heading Font -->
+                <div class="mb-4">
+                    <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                        Шрифт заголовков
+                    </label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <select x-model="headingFont" @change="updateHeadingFontWeights()"
+                                class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg block w-full p-2.5">
+                            <option value="Inter" :style="`font-family: 'Inter', sans-serif;`">Inter</option>
+                            <option value="Playfair Display" :style="`font-family: 'Playfair Display', serif;`">Playfair Display</option>
+                            <option value="Lora" :style="`font-family: 'Lora', serif;`">Lora</option>
+                            <option value="Zen Maru Gothic" :style="`font-family: 'Zen Maru Gothic', sans-serif;`">Zen Maru Gothic</option>
+                            <option value="Poiret One" :style="`font-family: 'Poiret One', cursive;`">Poiret One</option>
+                            <option value="Alumni Sans" :style="`font-family: 'Alumni Sans', sans-serif;`">Alumni Sans</option>
+                            <option value="Forum" :style="`font-family: 'Forum', cursive;`">Forum</option>
+                            <option value="Cuprum" :style="`font-family: 'Cuprum', sans-serif;`">Cuprum</option>
+                            <option value="Sofia Sans Condensed" :style="`font-family: 'Sofia Sans Condensed', sans-serif;`">Sofia Sans Condensed</option>
+                            <option value="Fira Sans Extra Condensed" :style="`font-family: 'Fira Sans Extra Condensed', sans-serif;`">Fira Sans Extra Condensed</option>
+                            <option value="Arsenal" :style="`font-family: 'Arsenal', sans-serif;`">Arsenal</option>
+                            <option value="Cousine" :style="`font-family: 'Cousine', monospace;`">Cousine</option>
+                        </select>
+                        <select x-model="headingFontWeight"
+                                class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg block w-full p-2.5">
+                            <template x-for="weight in availableHeadingWeights" :key="weight.value">
+                                <option :value="weight.value" x-text="weight.label"></option>
+                            </template>
+                        </select>
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400" :style="`font-family: '${headingFont}', serif; font-weight: ${headingFontWeight};`">
+                        Пример заголовка: Изысканные украшения
+                    </p>
+                </div>
+
+                <!-- Body Font -->
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                        Шрифт основного текста
+                    </label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <select x-model="bodyFont" @change="updateBodyFontWeights()"
+                                class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg block w-full p-2.5">
+                            <option value="Inter" :style="`font-family: 'Inter', sans-serif;`">Inter</option>
+                            <option value="Playfair Display" :style="`font-family: 'Playfair Display', serif;`">Playfair Display</option>
+                            <option value="Lora" :style="`font-family: 'Lora', serif;`">Lora</option>
+                            <option value="Zen Maru Gothic" :style="`font-family: 'Zen Maru Gothic', sans-serif;`">Zen Maru Gothic</option>
+                            <option value="Poiret One" :style="`font-family: 'Poiret One', cursive;`">Poiret One</option>
+                            <option value="Alumni Sans" :style="`font-family: 'Alumni Sans', sans-serif;`">Alumni Sans</option>
+                            <option value="Forum" :style="`font-family: 'Forum', cursive;`">Forum</option>
+                            <option value="Cuprum" :style="`font-family: 'Cuprum', sans-serif;`">Cuprum</option>
+                            <option value="Sofia Sans Condensed" :style="`font-family: 'Sofia Sans Condensed', sans-serif;`">Sofia Sans Condensed</option>
+                            <option value="Fira Sans Extra Condensed" :style="`font-family: 'Fira Sans Extra Condensed', sans-serif;`">Fira Sans Extra Condensed</option>
+                            <option value="Arsenal" :style="`font-family: 'Arsenal', sans-serif;`">Arsenal</option>
+                            <option value="Cousine" :style="`font-family: 'Cousine', monospace;`">Cousine</option>
+                        </select>
+                        <select x-model="bodyFontWeight"
+                                class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg block w-full p-2.5">
+                            <template x-for="weight in availableBodyWeights" :key="weight.value">
+                                <option :value="weight.value" x-text="weight.label"></option>
+                            </template>
+                        </select>
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400" :style="`font-family: '${bodyFont}', sans-serif; font-weight: ${bodyFontWeight};`">
+                        Пример текста: Это обычный текст на вашем сайте
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Middle Column: Theme Editor -->
+        <div class="lg:col-span-1">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                    Редактирование темы
+                    <span x-show="!currentThemeId">Новая тема</span>
+                </h2>
+
+                <!-- Theme Name -->
+                <div class="mb-6">
+                    <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                        Название темы
+                    </label>
+                    <input type="text"
+                           x-model="themeName"
+                           :disabled="isDefaultTheme"
+                           class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg block w-full p-2.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                           placeholder="Введите название темы">
+                </div>
+
+                <!-- Color Scheme (only for default theme) -->
+                <div x-show="isDefaultTheme" class="mb-6">
+                    <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                        Цветовая схема
+                    </label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button @click="colorScheme = 'indigo'"
+                                :class="colorScheme === 'indigo' ? 'ring-2 ring-indigo-500' : ''"
+                                class="p-3 bg-indigo-600 rounded-lg hover:opacity-80 transition-all" title="Indigo">
+                        </button>
+                        <button @click="colorScheme = 'blue'"
+                                :class="colorScheme === 'blue' ? 'ring-2 ring-blue-500' : ''"
+                                class="p-3 bg-blue-600 rounded-lg hover:opacity-80 transition-all" title="Blue">
+                        </button>
+                        <button @click="colorScheme = 'purple'"
+                                :class="colorScheme === 'purple' ? 'ring-2 ring-purple-500' : ''"
+                                class="p-3 bg-purple-600 rounded-lg hover:opacity-80 transition-all" title="Purple">
+                        </button>
+                        <button @click="colorScheme = 'pink'"
+                                :class="colorScheme === 'pink' ? 'ring-2 ring-pink-500' : ''"
+                                class="p-3 bg-pink-600 rounded-lg hover:opacity-80 transition-all" title="Pink">
+                        </button>
+                        <button @click="colorScheme = 'green'"
+                                :class="colorScheme === 'green' ? 'ring-2 ring-green-500' : ''"
+                                class="p-3 bg-green-600 rounded-lg hover:opacity-80 transition-all" title="Green">
+                        </button>
+                        <button @click="colorScheme = 'red'"
+                                :class="colorScheme === 'red' ? 'ring-2 ring-red-500' : ''"
+                                class="p-3 bg-red-600 rounded-lg hover:opacity-80 transition-all" title="Red">
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Primary & Secondary Colors (only for custom themes) -->
+                <div x-show="!isDefaultTheme">
+                    <!-- Primary Color -->
+                    <div class="mb-4">
+                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                            Primary Color
+                        </label>
+                        <div class="flex gap-3">
+                            <input type="color" x-model="primaryColor" class="h-12 w-20 rounded cursor-pointer">
+                            <input type="text" x-model="primaryColor" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg block flex-1 p-2.5 font-mono">
+                        </div>
+                    </div>
+
+                    <!-- Secondary Color -->
+                    <div class="mb-4">
+                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                            Secondary Color
+                        </label>
+                        <div class="flex gap-3">
+                            <input type="color" x-model="secondaryColor" class="h-12 w-20 rounded cursor-pointer">
+                            <input type="text" x-model="secondaryColor" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg block flex-1 p-2.5 font-mono">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gradient Toggle -->
+                <div class="mb-4">
+                    <label class="flex items-center cursor-pointer">
+                        <input type="checkbox" x-model="gradientEnabled" class="sr-only peer">
+                        <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
+                        <span class="ms-3 text-sm font-medium text-gray-900 dark:text-white">Включить градиент</span>
+                    </label>
+                </div>
+
+                <!-- Sharp Corners Toggle -->
+                <div class="mb-6">
+                    <label class="flex items-center cursor-pointer">
+                        <input type="checkbox" x-model="sharpCorners" class="sr-only peer">
+                        <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
+                        <span class="ms-3 text-sm font-medium text-gray-900 dark:text-white">Острые углы</span>
+                    </label>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="space-y-3">
+                    <button @click="saveTheme()"
+                            class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors">
+                        <i class="bi bi-save mr-2"></i>
+                        <span x-text="currentThemeId ? 'Сохранить изменения' : 'Сохранить тему'"></span>
+                    </button>
+
+                    <button @click="activateTheme()"
+                            x-show="currentThemeId"
+                            class="w-full bg-primary-600 hover:bg-primary-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors">
+                        <i class="bi bi-check-circle mr-2"></i>
+                        Активировать тему
+                    </button>
+
+                    <button @click="deleteTheme()"
+                            x-show="currentThemeId && !isDefaultTheme"
+                            class="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors">
+                        <i class="bi bi-trash mr-2"></i>
+                        Удалить тему
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Preview -->
+        <div class="lg:col-span-1">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-900 dark:text-white">
+                            Предпросмотр
+                        </h2>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1" x-text="previewMode === 'light' ? 'Светлый режим' : 'Тёмный режим'"></p>
+                    </div>
+                    <!-- Preview Mode Toggle -->
+                    <div class="flex gap-2">
+                        <button @click="previewMode = 'light'; console.log('Preview mode:', previewMode)"
+                                :class="previewMode === 'light' ? 'bg-primary-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'"
+                                class="px-3 py-2 rounded-lg font-medium text-sm transition-all hover:shadow-md">
+                            <i class="bi bi-sun"></i>
+                        </button>
+                        <button @click="previewMode = 'dark'; console.log('Preview mode:', previewMode)"
+                                :class="previewMode === 'dark' ? 'bg-primary-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'"
+                                class="px-3 py-2 rounded-lg font-medium text-sm transition-all hover:shadow-md">
+                            <i class="bi bi-moon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Preview Container -->
+                <div class="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <!-- Isolated preview wrapper with explicit light/dark class and sharp corners -->
+                    <div :class="[previewMode === 'dark' ? 'dark' : 'light', sharpCorners ? 'sharp-corners' : '']" class="isolate">
+                        <div :class="previewMode === 'dark' ? 'bg-gray-900' : 'bg-gray-50'" class="p-4 space-y-4 transition-colors duration-300">
+                        <!-- Preview Navigation -->
+                        <div class="rounded-lg p-4 text-white transition-all"
+                             :style="getPreviewNavStyle()">
+                            <h3 class="font-bold text-lg mb-2" :style="`font-family: '${headingFont}', serif; font-weight: ${headingFontWeight};`">Навигационная панель</h3>
+                            <div class="flex gap-2">
+                                <button class="px-3 py-1 bg-white/20 hover:bg-white/30 rounded text-sm transition-colors" :style="`font-family: '${bodyFont}', sans-serif; font-weight: ${bodyFontWeight};`">Главная</button>
+                                <button class="px-3 py-1 bg-white/20 hover:bg-white/30 rounded text-sm transition-colors" :style="`font-family: '${bodyFont}', sans-serif; font-weight: ${bodyFontWeight};`">Каталог</button>
+                                <button class="px-3 py-1 bg-white/20 hover:bg-white/30 rounded text-sm transition-colors" :style="`font-family: '${bodyFont}', sans-serif; font-weight: ${bodyFontWeight};`">О нас</button>
+                            </div>
+                        </div>
+
+                        <!-- Preview Content -->
+                        <div :class="previewMode === 'dark' ? 'bg-gray-800' : 'bg-white'" class="rounded-lg p-4 space-y-3 transition-colors">
+                            <h4 :class="previewMode === 'dark' ? 'text-white' : 'text-gray-900'" class="font-semibold" :style="`font-family: '${headingFont}', serif; font-weight: ${headingFontWeight};`">Пример контента</h4>
+                            <p :class="previewMode === 'dark' ? 'text-gray-400' : 'text-gray-600'" class="text-sm" :style="`font-family: '${bodyFont}', sans-serif; font-weight: ${bodyFontWeight};`">
+                                Это пример того, как будет выглядеть текст на вашем сайте.
+                            </p>
+
+                            <!-- Buttons Preview -->
+                            <div class="flex gap-2 flex-wrap">
+                                <button class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors"
+                                        :style="`background-color: ${getPreviewPrimaryColor()}; font-family: '${bodyFont}', sans-serif; font-weight: ${bodyFontWeight};`">
+                                    Primary Button
+                                </button>
+                                <button class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors"
+                                        :style="`background-color: ${getPreviewSecondaryColor()}; font-family: '${bodyFont}', sans-serif; font-weight: ${bodyFontWeight};`">
+                                    Secondary Button
+                                </button>
+                            </div>
+
+                            <!-- Card Preview -->
+                            <div :class="previewMode === 'dark' ? 'border-gray-700' : 'border-gray-200'" class="border rounded-lg p-3 space-y-2">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-10 h-10 rounded-full"
+                                         :style="`background: linear-gradient(135deg, ${getPreviewPrimaryColor()}, ${getPreviewSecondaryColor()})`">
+                                    </div>
+                                    <div>
+                                        <h5 :class="previewMode === 'dark' ? 'text-white' : 'text-gray-900'" class="font-medium text-sm" :style="`font-family: '${headingFont}', serif; font-weight: ${headingFontWeight};`">Заголовок карточки</h5>
+                                        <p :class="previewMode === 'dark' ? 'text-gray-400' : 'text-gray-500'" class="text-xs" :style="`font-family: '${bodyFont}', sans-serif; font-weight: ${bodyFontWeight};`">Подзаголовок</p>
+                                    </div>
+                                </div>
+                                <p :class="previewMode === 'dark' ? 'text-gray-400' : 'text-gray-600'" class="text-sm" :style="`font-family: '${bodyFont}', sans-serif; font-weight: ${bodyFontWeight};`">
+                                    Пример текста в карточке с описанием продукта или услуги.
+                                </p>
+                            </div>
+
+                            <!-- Form Elements Preview -->
+                            <div class="space-y-2">
+                                <input type="text"
+                                       placeholder="Пример поля ввода"
+                                       :class="previewMode === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'"
+                                       :style="`font-family: '${bodyFont}', sans-serif; font-weight: ${bodyFontWeight};`"
+                                       class="w-full px-3 py-2 text-sm border rounded-lg">
+
+                                <div class="flex items-center gap-2">
+                                    <input type="checkbox" id="preview-check" class="w-4 h-4 rounded"
+                                           :style="`accent-color: ${getPreviewPrimaryColor()}`">
+                                    <label for="preview-check" :class="previewMode === 'dark' ? 'text-gray-300' : 'text-gray-700'" class="text-sm" :style="`font-family: '${bodyFont}', sans-serif; font-weight: ${bodyFontWeight};`">Checkbox пример</label>
+                                </div>
+                            </div>
+
+                            <!-- Badge Preview -->
+                            <div class="flex gap-2 flex-wrap">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white"
+                                      :style="`background-color: ${getPreviewPrimaryColor()}; font-family: '${bodyFont}', sans-serif; font-weight: ${bodyFontWeight};`">
+                                    Badge
+                                </span>
+                                <span :class="previewMode === 'dark' ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-800'" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" :style="`font-family: '${bodyFont}', sans-serif; font-weight: ${bodyFontWeight};`">
+                                    Success
+                                </span>
+                                <span :class="previewMode === 'dark' ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-800'" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" :style="`font-family: '${bodyFont}', sans-serif; font-weight: ${bodyFontWeight};`">
+                                    Error
+                                </span>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-50 space-y-3"></div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function themeEditor() {
+    return {
+        // Current theme data
+        currentThemeId: null,
+        themeName: '',
+        primaryColor: '#6366f1',
+        secondaryColor: '#8b5cf6',
+        colorScheme: 'indigo',
+        gradientEnabled: true,
+        sharpCorners: false,
+        isDefaultTheme: false,
+        previewMode: 'light',
+        headingFont: 'Playfair Display',
+        bodyFont: 'Inter',
+        headingFontWeight: '700',
+        bodyFontWeight: '400',
+        availableHeadingWeights: [],
+        availableBodyWeights: [],
+
+        // Font weights map - available weights for each font
+        fontWeights: {
+            'Inter': [
+                { value: '100', label: 'Thin 100' },
+                { value: '200', label: 'Extra Light 200' },
+                { value: '300', label: 'Light 300' },
+                { value: '400', label: 'Regular 400' },
+                { value: '500', label: 'Medium 500' },
+                { value: '600', label: 'Semi Bold 600' },
+                { value: '700', label: 'Bold 700' },
+                { value: '800', label: 'Extra Bold 800' },
+                { value: '900', label: 'Black 900' }
+            ],
+            'Playfair Display': [
+                { value: '400', label: 'Regular 400' },
+                { value: '500', label: 'Medium 500' },
+                { value: '600', label: 'Semi Bold 600' },
+                { value: '700', label: 'Bold 700' },
+                { value: '800', label: 'Extra Bold 800' },
+                { value: '900', label: 'Black 900' }
+            ],
+            'Lora': [
+                { value: '400', label: 'Regular 400' },
+                { value: '500', label: 'Medium 500' },
+                { value: '600', label: 'Semi Bold 600' },
+                { value: '700', label: 'Bold 700' }
+            ],
+            'Zen Maru Gothic': [
+                { value: '300', label: 'Light 300' },
+                { value: '400', label: 'Regular 400' },
+                { value: '500', label: 'Medium 500' },
+                { value: '700', label: 'Bold 700' },
+                { value: '900', label: 'Black 900' }
+            ],
+            'Poiret One': [
+                { value: '400', label: 'Regular 400' }
+            ],
+            'Alumni Sans': [
+                { value: '100', label: 'Thin 100' },
+                { value: '200', label: 'Extra Light 200' },
+                { value: '300', label: 'Light 300' },
+                { value: '400', label: 'Regular 400' },
+                { value: '500', label: 'Medium 500' },
+                { value: '600', label: 'Semi Bold 600' },
+                { value: '700', label: 'Bold 700' },
+                { value: '800', label: 'Extra Bold 800' },
+                { value: '900', label: 'Black 900' }
+            ],
+            'Forum': [
+                { value: '400', label: 'Regular 400' }
+            ],
+            'Cuprum': [
+                { value: '400', label: 'Regular 400' },
+                { value: '500', label: 'Medium 500' },
+                { value: '600', label: 'Semi Bold 600' },
+                { value: '700', label: 'Bold 700' }
+            ],
+            'Sofia Sans Condensed': [
+                { value: '1', label: 'Thin 1' },
+                { value: '100', label: 'Thin 100' },
+                { value: '200', label: 'Extra Light 200' },
+                { value: '300', label: 'Light 300' },
+                { value: '400', label: 'Regular 400' },
+                { value: '500', label: 'Medium 500' },
+                { value: '600', label: 'Semi Bold 600' },
+                { value: '700', label: 'Bold 700' },
+                { value: '800', label: 'Extra Bold 800' },
+                { value: '900', label: 'Black 900' },
+                { value: '1000', label: 'Extra Black 1000' }
+            ],
+            'Fira Sans Extra Condensed': [
+                { value: '100', label: 'Thin 100' },
+                { value: '200', label: 'Extra Light 200' },
+                { value: '300', label: 'Light 300' },
+                { value: '400', label: 'Regular 400' },
+                { value: '500', label: 'Medium 500' },
+                { value: '600', label: 'Semi Bold 600' },
+                { value: '700', label: 'Bold 700' },
+                { value: '800', label: 'Extra Bold 800' },
+                { value: '900', label: 'Black 900' }
+            ],
+            'Arsenal': [
+                { value: '400', label: 'Regular 400' },
+                { value: '700', label: 'Bold 700' }
+            ],
+            'Cousine': [
+                { value: '400', label: 'Regular 400' },
+                { value: '700', label: 'Bold 700' }
+            ]
+        },
+
+        // User themes list
+        userThemes: [
+            {% for theme in user_themes %}
+            {
+                id: {{ theme.id }},
+                name: "{{ theme.name|escapejs }}",
+                primary_color: "{{ theme.primary_color }}",
+                secondary_color: "{{ theme.secondary_color }}",
+                color_scheme: "{{ theme.color_scheme }}",
+                gradient_enabled: {{ theme.gradient_enabled|lower }},
+                sharp_corners: {{ theme.sharp_corners|lower }},
+                is_default: {{ theme.is_default|lower }},
+                is_active: {{ theme.is_active|lower }},
+                heading_font: "{{ theme.heading_font|default:'Playfair Display' }}",
+                body_font: "{{ theme.body_font|default:'Inter' }}",
+                heading_font_weight: "{{ theme.heading_font_weight|default:'700' }}",
+                body_font_weight: "{{ theme.body_font_weight|default:'400' }}"
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+
+        // Color scheme map
+        colorSchemeMap: {
+            'indigo': { primary: '#6366f1', secondary: '#8b5cf6' },
+            'blue': { primary: '#3b82f6', secondary: '#2563eb' },
+            'purple': { primary: '#a855f7', secondary: '#9333ea' },
+            'pink': { primary: '#ec4899', secondary: '#db2777' },
+            'green': { primary: '#22c55e', secondary: '#16a34a' },
+            'red': { primary: '#ef4444', secondary: '#dc2626' }
+        },
+
+        init() {
+            // Set preview mode based on current site dark mode
+            const darkMode = localStorage.getItem('darkMode') === 'true';
+            this.previewMode = darkMode ? 'dark' : 'light';
+
+            // Initialize font weights
+            this.updateHeadingFontWeights();
+            this.updateBodyFontWeights();
+
+            // Create dynamic style element for preview fonts
+            this.createPreviewFontStyles();
+
+            // Load active theme on page load
+            const activeThemeStr = localStorage.getItem('activeTheme');
+            if (activeThemeStr) {
+                try {
+                    const activeTheme = JSON.parse(activeThemeStr);
+                    if (activeTheme && activeTheme.id) {
+                        this.loadTheme(activeTheme.id);
+                    }
+                } catch (e) {
+                    console.error('Failed to load active theme:', e);
+                }
+            }
+
+            // Watch color scheme changes for default theme
+            this.$watch('colorScheme', (newScheme) => {
+                if (this.isDefaultTheme && this.colorSchemeMap[newScheme]) {
+                    this.primaryColor = this.colorSchemeMap[newScheme].primary;
+                    this.secondaryColor = this.colorSchemeMap[newScheme].secondary;
+                }
+            });
+
+            // Watch font changes to trigger preview update
+            this.$watch('headingFont', () => {
+                // Alpine will automatically re-render preview when this changes
+                this.$nextTick(() => {
+                    console.log('Heading font changed:', this.headingFont);
+                });
+            });
+
+            this.$watch('bodyFont', () => {
+                // Alpine will automatically re-render preview when this changes
+                this.$nextTick(() => {
+                    console.log('Body font changed:', this.bodyFont);
+                });
+            });
+
+            // Watch font weight changes to trigger preview update
+            this.$watch('headingFontWeight', () => {
+                this.$nextTick(() => {
+                    console.log('Heading font weight changed:', this.headingFontWeight);
+                    this.updatePreviewFontStyles();
+                });
+            });
+
+            this.$watch('bodyFontWeight', () => {
+                this.$nextTick(() => {
+                    console.log('Body font weight changed:', this.bodyFontWeight);
+                    this.updatePreviewFontStyles();
+                });
+            });
+        },
+
+        createPreviewFontStyles() {
+            // Create a style element for preview fonts if it doesn't exist
+            if (!document.getElementById('preview-font-styles')) {
+                const styleEl = document.createElement('style');
+                styleEl.id = 'preview-font-styles';
+                document.head.appendChild(styleEl);
+            }
+            this.updatePreviewFontStyles();
+        },
+
+        updatePreviewFontStyles() {
+            // Update the dynamic style element with current fonts
+            const styleEl = document.getElementById('preview-font-styles');
+            if (styleEl) {
+                styleEl.textContent = `
+                    [x-data] .isolate h3,
+                    [x-data] .isolate h4,
+                    [x-data] .isolate h5 {
+                        font-family: '${this.headingFont}', serif !important;
+                        font-weight: ${this.headingFontWeight} !important;
+                    }
+                    [x-data] .isolate p,
+                    [x-data] .isolate button,
+                    [x-data] .isolate input,
+                    [x-data] .isolate label,
+                    [x-data] .isolate span {
+                        font-family: '${this.bodyFont}', sans-serif !important;
+                        font-weight: ${this.bodyFontWeight} !important;
+                    }
+                `;
+            }
+        },
+
+        async loadFontDynamically(fontName) {
+            // Check if font is already loaded
+            const loadedFonts = document.querySelectorAll('link[data-dynamic-font]');
+            for (let link of loadedFonts) {
+                if (link.dataset.fontName === fontName) {
+                    // Font link exists, wait for it to be ready
+                    await document.fonts.ready;
+                    return;
+                }
+            }
+
+            // Load the font dynamically
+            const fontLink = document.createElement('link');
+            fontLink.rel = 'stylesheet';
+            fontLink.setAttribute('data-dynamic-font', 'true');
+            fontLink.setAttribute('data-font-name', fontName);
+            const fontFamily = fontName.replace(/ /g, '+');
+            fontLink.href = `https://fonts.googleapis.com/css2?family=${fontFamily}:wght@100;200;300;400;500;600;700;800;900;1000&display=swap`;
+
+            // Wait for font to load
+            return new Promise((resolve) => {
+                fontLink.onload = async () => {
+                    await document.fonts.ready;
+                    resolve();
+                };
+                fontLink.onerror = () => {
+                    console.warn(`Failed to load font: ${fontName}`);
+                    resolve(); // Resolve anyway to not block
+                };
+                document.head.appendChild(fontLink);
+            });
+        },
+
+        async updateHeadingFontWeights() {
+            // Load the selected font and wait for it
+            await this.loadFontDynamically(this.headingFont);
+
+            // Update available weights for heading font
+            this.availableHeadingWeights = this.fontWeights[this.headingFont] || [{ value: '400', label: 'Regular 400' }];
+
+            // Set default weight if current weight is not available
+            const availableValues = this.availableHeadingWeights.map(w => w.value);
+            if (!availableValues.includes(this.headingFontWeight)) {
+                this.headingFontWeight = this.availableHeadingWeights[0].value;
+            }
+
+            // Wait for font to be fully loaded and ready
+            await document.fonts.ready;
+
+            // Update preview styles immediately
+            this.updatePreviewFontStyles();
+        },
+
+        async updateBodyFontWeights() {
+            // Load the selected font and wait for it
+            await this.loadFontDynamically(this.bodyFont);
+
+            // Update available weights for body font
+            this.availableBodyWeights = this.fontWeights[this.bodyFont] || [{ value: '400', label: 'Regular 400' }];
+
+            // Set default weight if current weight is not available
+            const availableValues = this.availableBodyWeights.map(w => w.value);
+            if (!availableValues.includes(this.bodyFontWeight)) {
+                this.bodyFontWeight = this.availableBodyWeights[0].value;
+            }
+
+            // Wait for font to be fully loaded and ready
+            await document.fonts.ready;
+
+            // Update preview styles immediately
+            this.updatePreviewFontStyles();
+        },
+
+        async loadTheme(themeId) {
+            try {
+                const response = await fetch(`/theme/${themeId}/load/`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const theme = data.theme;
+                    this.currentThemeId = theme.id;
+                    this.themeName = theme.name;
+                    this.primaryColor = theme.primary_color;
+                    this.secondaryColor = theme.secondary_color;
+                    this.colorScheme = theme.color_scheme || 'indigo';
+                    this.gradientEnabled = theme.gradient_enabled;
+                    this.sharpCorners = theme.sharp_corners || false;
+                    this.isDefaultTheme = theme.is_default;
+                    this.headingFont = theme.heading_font || 'Playfair Display';
+                    this.bodyFont = theme.body_font || 'Inter';
+                    this.headingFontWeight = theme.heading_font_weight || '700';
+                    this.bodyFontWeight = theme.body_font_weight || '400';
+
+                    // Update available font weights after loading fonts
+                    await this.updateHeadingFontWeights();
+                    await this.updateBodyFontWeights();
+
+                    this.showToast(`Тема "${theme.name}" загружена`, 'success');
+                } else {
+                    this.showToast('Ошибка: ' + data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                this.showToast('Ошибка при загрузке темы', 'error');
+            }
+        },
+
+        updateFonts() {
+            // This method is called when fonts change to trigger Alpine reactivity
+            console.log('Fonts updated:', this.headingFont, this.bodyFont);
+        },
+
+        async saveTheme() {
+            if (!this.themeName && !this.isDefaultTheme) {
+                this.showToast('Пожалуйста, введите название темы', 'warning');
+                return;
+            }
+
+            const themeData = {
+                id: this.currentThemeId,
+                name: this.themeName,
+                primary_color: this.primaryColor,
+                secondary_color: this.secondaryColor,
+                color_scheme: this.isDefaultTheme ? this.colorScheme : '',
+                gradient_enabled: this.gradientEnabled,
+                sharp_corners: this.sharpCorners,
+                heading_font: this.headingFont,
+                body_font: this.bodyFont,
+                heading_font_weight: this.headingFontWeight,
+                body_font_weight: this.bodyFontWeight
+            };
+
+            try {
+                const response = await fetch('{% url "catalog:theme_save" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify(themeData)
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    this.currentThemeId = data.theme_id;
+
+                    // Check if this theme is currently active
+                    const activeThemeStr = localStorage.getItem('activeTheme');
+                    let isCurrentlyActive = false;
+                    if (activeThemeStr) {
+                        try {
+                            const activeTheme = JSON.parse(activeThemeStr);
+                            isCurrentlyActive = activeTheme && activeTheme.id === data.theme_id;
+                        } catch (e) {}
+                    }
+
+                    // Update userThemes list only for custom themes (not default theme)
+                    if (!this.isDefaultTheme) {
+                        const existingIndex = this.userThemes.findIndex(t => t.id === data.theme_id);
+                        if (existingIndex >= 0) {
+                            this.userThemes[existingIndex] = {
+                                id: data.theme_id,
+                                name: this.themeName,
+                                primary_color: this.primaryColor,
+                                secondary_color: this.secondaryColor,
+                                color_scheme: this.colorScheme,
+                                gradient_enabled: this.gradientEnabled,
+                                sharp_corners: this.sharpCorners,
+                                is_default: false,
+                                is_active: this.userThemes[existingIndex].is_active
+                            };
+                        } else {
+                            this.userThemes.push({
+                                id: data.theme_id,
+                                name: this.themeName,
+                                primary_color: this.primaryColor,
+                                secondary_color: this.secondaryColor,
+                                color_scheme: this.colorScheme,
+                                gradient_enabled: this.gradientEnabled,
+                                sharp_corners: this.sharpCorners,
+                                is_default: false,
+                                is_active: false
+                            });
+                        }
+                    }
+
+                    // If this is the active theme, reactivate it to apply changes immediately
+                    if (isCurrentlyActive) {
+                        this.showToast(data.message + ' Применяю изменения...', 'success');
+                        // Reactivate to apply changes
+                        await this.activateTheme();
+                    } else {
+                        // Not active theme, just show success message
+                        this.showToast(data.message, 'success');
+                    }
+                } else {
+                    this.showToast('Ошибка: ' + data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                this.showToast('Ошибка при сохранении темы', 'error');
+            }
+        },
+
+        async activateTheme() {
+            if (!this.currentThemeId) return;
+
+            try {
+                const response = await fetch(`/theme/${this.currentThemeId}/activate/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    // Save theme to localStorage before reloading
+                    if (data.theme) {
+                        localStorage.setItem('activeTheme', JSON.stringify(data.theme));
+                    }
+
+                    this.showToast(data.message + ' Страница будет перезагружена.', 'success');
+
+                    // Reload page to apply the theme
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    this.showToast('Ошибка: ' + data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                this.showToast('Ошибка при активации темы', 'error');
+            }
+        },
+
+        async deleteTheme() {
+            if (!this.currentThemeId || this.isDefaultTheme) return;
+
+            if (!confirm(`Вы уверены, что хотите удалить тему "${this.themeName}"?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/theme/${this.currentThemeId}/delete/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token}}'
+                    }
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    this.showToast(data.message, 'success');
+                    this.userThemes = this.userThemes.filter(t => t.id !== this.currentThemeId);
+                    this.createNewTheme();
+                } else {
+                    this.showToast('Ошибка: ' + data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                this.showToast('Ошибка при удалении темы', 'error');
+            }
+        },
+
+        createNewTheme() {
+            this.currentThemeId = null;
+            this.themeName = '';
+            this.primaryColor = '#6366f1';
+            this.secondaryColor = '#8b5cf6';
+            this.colorScheme = 'indigo';
+            this.gradientEnabled = true;
+            this.sharpCorners = false;
+            this.isDefaultTheme = false;
+            this.headingFont = 'Playfair Display';
+            this.bodyFont = 'Inter';
+            this.headingFontWeight = '700';
+            this.bodyFontWeight = '400';
+
+            // Update available font weights for default fonts
+            this.updateHeadingFontWeights();
+            this.updateBodyFontWeights();
+        },
+
+        getPreviewNavStyle() {
+            if (this.gradientEnabled) {
+                return `background: linear-gradient(135deg, ${this.primaryColor}, ${this.secondaryColor})`;
+            } else {
+                return `background-color: ${this.primaryColor}`;
+            }
+        },
+
+        getPreviewPrimaryColor() {
+            return this.primaryColor;
+        },
+
+        getPreviewSecondaryColor() {
+            return this.secondaryColor;
+        },
+
+        showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toastId = 'toast-' + Date.now();
+
+            const iconColors = {
+                success: 'text-green-500 bg-green-100',
+                error: 'text-red-500 bg-red-100',
+                warning: 'text-orange-500 bg-orange-100',
+                info: 'text-blue-500 bg-blue-100'
+            };
+
+            const icons = {
+                success: '<path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"/>',
+                error: '<path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 11.793a1 1 0 1 1-1.414 1.414L10 11.414l-2.293 2.293a1 1 0 0 1-1.414-1.414L8.586 10 6.293 7.707a1 1 0 0 1 1.414-1.414L10 8.586l2.293-2.293a1 1 0 0 1 1.414 1.414L11.414 10l2.293 2.293Z"/>',
+                warning: '<path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM10 15a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm1-4a1 1 0 0 1-2 0V6a1 1 0 0 1 2 0v5Z"/>',
+                info: '<path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>'
+            };
+
+            const toast = document.createElement('div');
+            toast.id = toastId;
+            toast.className = 'flex items-center w-full max-w-xs p-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800 transition-all';
+            toast.innerHTML = `
+                <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 ${iconColors[type]} rounded-lg">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        ${icons[type]}
+                    </svg>
+                </div>
+                <div class="ms-3 text-sm font-normal">${message}</div>
+                <button type="button" class="ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg p-1.5 hover:bg-gray-100 inline-flex h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700" onclick="document.getElementById('${toastId}').remove()">
+                    <svg class="w-3 h-3" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                </button>
+            `;
+
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
+        }
+    };
+}
+</script>
+{% endblock %}

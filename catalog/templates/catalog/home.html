@@ -3,263 +3,393 @@
 
 {% block title %}Каталог ювелирных изделий{% endblock %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/catalog.css' %}">
-{% endblock %}
-
 {% block header_title %}Ювелирный Каталог{% endblock %}
 
 {% block content %}
-<!-- Фильтры и поиск с Bootstrap и Fonon стилями -->
-<div class="card mb-4">
-    <div class="card-header bg-primary">
-        <i class="bi bi-funnel"></i> Фильтры и поиск
+<!-- Компактная система фильтров -->
+<div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-4 mb-6">
+    <!-- Заголовок и кнопка "Очистить все" -->
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+            <i class="bi bi-funnel text-primary-600 mr-2"></i>
+            Фильтры
+        </h2>
+        {% if current_category or current_material or current_purity or current_metal_color or current_style or min_price or max_price or search_query %}
+        <a href="?" class="text-sm font-medium text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 flex items-center">
+            <i class="bi bi-x-circle mr-1"></i>
+            Очистить все
+        </a>
+        {% endif %}
     </div>
-    <div class="card-body">
+
+    <!-- Строка поиска и фильтров -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-3 mb-4">
         <!-- Поиск -->
-        <form method="get" class="mb-3">
-            <div class="input-group">
-                <input type="text" name="search" class="form-control" placeholder="Поиск по названию или артикулу..." value="{{ search_query|default:'' }}">
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-search"></i> Найти
+        <div class="lg:col-span-2">
+            <form method="get" class="flex">
+                <input type="search" name="search" value="{{ search_query|default:'' }}" class="block p-2 w-full text-sm text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 rounded-l-lg border border-gray-300 dark:border-gray-600 focus:ring-primary-500 focus:border-primary-500" placeholder="Поиск по названию или артикулу...">
+                <button type="submit" class="p-2 text-sm font-medium text-white bg-primary-600 rounded-r-lg border border-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300">
+                    <i class="bi bi-search"></i>
                 </button>
-            </div>
-        </form>
+            </form>
+        </div>
 
-        <!-- Фильтр по категориям -->
-        <div class="mb-3">
-            <label class="form-label fw-bold">
-                <i class="bi bi-tag"></i> Категории:
-            </label>
-            <div class="d-flex flex-wrap gap-2">
-                <a href="?" class="badge {% if not current_category %}bg-primary{% else %}bg-secondary{% endif %} text-decoration-none">Все</a>
-                {% for category in categories %}
-                    <a href="?category={{ category.slug }}" class="badge {% if current_category == category.slug %}bg-primary{% else %}bg-secondary{% endif %} text-decoration-none">
-                        {{ category.name }}
-                    </a>
-                {% endfor %}
+        <!-- Категории -->
+        <div>
+            <button id="categoryDropdown" data-dropdown-toggle="categoryDropdownMenu" class="w-full text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-3 py-2 text-center inline-flex items-center justify-between" type="button">
+                <span class="flex items-center text-left overflow-hidden">
+                    <i class="bi bi-tag mr-2 flex-shrink-0"></i>
+                    <span class="truncate">{% if selected_category %}{{ selected_category.name }}{% else %}Категории{% endif %}</span>
+                </span>
+                <i class="bi bi-chevron-down ml-2 flex-shrink-0"></i>
+            </button>
+            <div id="categoryDropdownMenu" class="z-10 hidden bg-white dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700 rounded-lg shadow w-44 border border-gray-200 dark:border-gray-700">
+                <ul class="py-2 text-sm text-gray-700 dark:text-gray-200 max-h-60 overflow-y-auto" aria-labelledby="categoryDropdown">
+                    <li>
+                        <a href="?" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 {% if not current_category %}bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400{% endif %}">Все</a>
+                    </li>
+                    {% for category in categories %}
+                    <li>
+                        <a href="?category={{ category.slug }}{% if current_material %}&material={{ current_material }}{% endif %}{% if current_purity %}&purity={{ current_purity }}{% endif %}{% if current_metal_color %}&metal_color={{ current_metal_color }}{% endif %}{% if current_style %}&style={{ current_style }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 {% if current_category == category.slug %}bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400{% endif %}">
+                            {{ category.name }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
             </div>
         </div>
 
-        <!-- Фильтр по материалам -->
-        <div class="mb-3">
-            <label class="form-label fw-bold">
-                <i class="bi bi-gem"></i> Материалы:
-            </label>
-            <div class="d-flex flex-wrap gap-2">
-                <a href="?" class="badge {% if not current_material %}bg-primary{% else %}bg-secondary{% endif %} text-decoration-none">Все</a>
-                {% for material in materials %}
-                    <a href="?material={{ material.id }}" class="badge {% if current_material == material.id|stringformat:'s' %}bg-primary{% else %}bg-secondary{% endif %} text-decoration-none">
-                        {{ material.name }}
-                    </a>
-                {% endfor %}
+        <!-- Материалы -->
+        <div>
+            <button id="materialDropdown" data-dropdown-toggle="materialDropdownMenu" class="w-full text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-3 py-2 text-center inline-flex items-center justify-between" type="button">
+                <span class="flex items-center text-left overflow-hidden">
+                    <i class="bi bi-gem mr-2 flex-shrink-0"></i>
+                    <span class="truncate">{% if selected_material %}{{ selected_material.name }}{% else %}Материалы{% endif %}</span>
+                </span>
+                <i class="bi bi-chevron-down ml-2 flex-shrink-0"></i>
+            </button>
+            <div id="materialDropdownMenu" class="z-10 hidden bg-white dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700 rounded-lg shadow w-44 border border-gray-200 dark:border-gray-700">
+                <ul class="py-2 text-sm text-gray-700 dark:text-gray-200 max-h-60 overflow-y-auto" aria-labelledby="materialDropdown">
+                    <li>
+                        <a href="?{% if current_category %}category={{ current_category }}&{% endif %}{% if current_purity %}purity={{ current_purity }}&{% endif %}{% if current_metal_color %}metal_color={{ current_metal_color }}&{% endif %}{% if current_style %}style={{ current_style }}&{% endif %}{% if min_price %}min_price={{ min_price }}&{% endif %}{% if max_price %}max_price={{ max_price }}&{% endif %}{% if search_query %}search={{ search_query }}&{% endif %}{% if sort_by %}sort={{ sort_by }}{% endif %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 {% if not current_material %}bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400{% endif %}">Все</a>
+                    </li>
+                    {% for material in materials %}
+                    <li>
+                        <a href="?material={{ material.id }}{% if current_category %}&category={{ current_category }}{% endif %}{% if current_purity %}&purity={{ current_purity }}{% endif %}{% if current_metal_color %}&metal_color={{ current_metal_color }}{% endif %}{% if current_style %}&style={{ current_style }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 {% if current_material == material.id|stringformat:'s' %}bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400{% endif %}">
+                            {{ material.name }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
             </div>
         </div>
 
-        <!-- Фильтр по пробам -->
-        <div class="mb-3">
-            <label class="form-label fw-bold">
-                <i class="bi bi-award"></i> Пробы:
-            </label>
-            <div class="d-flex flex-wrap gap-2">
-                <a href="?" class="badge {% if not current_purity %}bg-primary{% else %}bg-secondary{% endif %} text-decoration-none">Все</a>
-                {% for purity in purities %}
-                    <a href="?purity={{ purity.id }}" class="badge {% if current_purity == purity.id|stringformat:'s' %}bg-primary{% else %}bg-secondary{% endif %} text-decoration-none">
-                        {{ purity.value }}
-                    </a>
-                {% endfor %}
+        <!-- Пробы -->
+        <div>
+            <button id="purityDropdown" data-dropdown-toggle="purityDropdownMenu" class="w-full text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-3 py-2 text-center inline-flex items-center justify-between" type="button">
+                <span class="flex items-center text-left overflow-hidden">
+                    <i class="bi bi-award mr-2 flex-shrink-0"></i>
+                    <span class="truncate">{% if selected_purity %}{{ selected_purity.value }}{% else %}Пробы{% endif %}</span>
+                </span>
+                <i class="bi bi-chevron-down ml-2 flex-shrink-0"></i>
+            </button>
+            <div id="purityDropdownMenu" class="z-10 hidden bg-white dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700 rounded-lg shadow w-44 border border-gray-200 dark:border-gray-700">
+                <ul class="py-2 text-sm text-gray-700 dark:text-gray-200 max-h-60 overflow-y-auto" aria-labelledby="purityDropdown">
+                    <li>
+                        <a href="?{% if current_category %}category={{ current_category }}&{% endif %}{% if current_material %}material={{ current_material }}&{% endif %}{% if current_metal_color %}metal_color={{ current_metal_color }}&{% endif %}{% if current_style %}style={{ current_style }}&{% endif %}{% if min_price %}min_price={{ min_price }}&{% endif %}{% if max_price %}max_price={{ max_price }}&{% endif %}{% if search_query %}search={{ search_query }}&{% endif %}{% if sort_by %}sort={{ sort_by }}{% endif %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 {% if not current_purity %}bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400{% endif %}">Все</a>
+                    </li>
+                    {% for purity in purities %}
+                    <li>
+                        <a href="?purity={{ purity.id }}{% if current_category %}&category={{ current_category }}{% endif %}{% if current_material %}&material={{ current_material }}{% endif %}{% if current_metal_color %}&metal_color={{ current_metal_color }}{% endif %}{% if current_style %}&style={{ current_style }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 {% if current_purity == purity.id|stringformat:'s' %}bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400{% endif %}">
+                            {{ purity.value }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
             </div>
         </div>
 
-        <!-- Фильтр по цветам металлов -->
-        <div class="mb-3">
-            <label class="form-label fw-bold">
-                <i class="bi bi-palette"></i> Цвета металлов:
-            </label>
-            <div class="d-flex flex-wrap gap-2">
-                <a href="?" class="badge {% if not current_metal_color %}bg-primary{% else %}bg-secondary{% endif %} text-decoration-none">Все</a>
-                {% for color in metal_colors %}
-                    <a href="?metal_color={{ color.id }}" class="badge {% if current_metal_color == color.id|stringformat:'s' %}bg-primary{% else %}bg-secondary{% endif %} text-decoration-none">
-                        {{ color.name }}
-                    </a>
-                {% endfor %}
+        <!-- Цвета металлов -->
+        <div>
+            <button id="metalColorDropdown" data-dropdown-toggle="metalColorDropdownMenu" class="w-full text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-3 py-2 text-center inline-flex items-center justify-between" type="button">
+                <span class="flex items-center text-left overflow-hidden">
+                    <i class="bi bi-palette mr-2 flex-shrink-0"></i>
+                    <span class="truncate">{% if selected_metal_color %}{{ selected_metal_color.name }}{% else %}Цвет металла{% endif %}</span>
+                </span>
+                <i class="bi bi-chevron-down ml-2 flex-shrink-0"></i>
+            </button>
+            <div id="metalColorDropdownMenu" class="z-10 hidden bg-white dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700 rounded-lg shadow w-44 border border-gray-200 dark:border-gray-700">
+                <ul class="py-2 text-sm text-gray-700 dark:text-gray-200 max-h-60 overflow-y-auto" aria-labelledby="metalColorDropdown">
+                    <li>
+                        <a href="?{% if current_category %}category={{ current_category }}&{% endif %}{% if current_material %}material={{ current_material }}&{% endif %}{% if current_purity %}purity={{ current_purity }}&{% endif %}{% if current_style %}style={{ current_style }}&{% endif %}{% if min_price %}min_price={{ min_price }}&{% endif %}{% if max_price %}max_price={{ max_price }}&{% endif %}{% if search_query %}search={{ search_query }}&{% endif %}{% if sort_by %}sort={{ sort_by }}{% endif %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 {% if not current_metal_color %}bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400{% endif %}">Все</a>
+                    </li>
+                    {% for color in metal_colors %}
+                    <li>
+                        <a href="?metal_color={{ color.id }}{% if current_category %}&category={{ current_category }}{% endif %}{% if current_material %}&material={{ current_material }}{% endif %}{% if current_purity %}&purity={{ current_purity }}{% endif %}{% if current_style %}&style={{ current_style }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 {% if current_metal_color == color.id|stringformat:'s' %}bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400{% endif %}">
+                            {{ color.name }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
             </div>
         </div>
 
-        <!-- Фильтр по стилям -->
-        <div class="mb-3">
-            <label class="form-label fw-bold">
-                <i class="bi bi-brush"></i> Стили:
-            </label>
-            <div class="d-flex flex-wrap gap-2">
-                <a href="?" class="badge {% if not current_style %}bg-primary{% else %}bg-secondary{% endif %} text-decoration-none">Все</a>
-                {% for style in styles %}
-                    <a href="?style={{ style.id }}" class="badge {% if current_style == style.id|stringformat:'s' %}bg-primary{% else %}bg-secondary{% endif %} text-decoration-none">
-                        {{ style.name }}
-                    </a>
-                {% endfor %}
+        <!-- Стили -->
+        <div>
+            <button id="styleDropdown" data-dropdown-toggle="styleDropdownMenu" class="w-full text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-3 py-2 text-center inline-flex items-center justify-between" type="button">
+                <span class="flex items-center text-left overflow-hidden">
+                    <i class="bi bi-brush mr-2 flex-shrink-0"></i>
+                    <span class="truncate">{% if selected_style %}{{ selected_style.name }}{% else %}Стили{% endif %}</span>
+                </span>
+                <i class="bi bi-chevron-down ml-2 flex-shrink-0"></i>
+            </button>
+            <div id="styleDropdownMenu" class="z-10 hidden bg-white dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700 rounded-lg shadow w-44 border border-gray-200 dark:border-gray-700">
+                <ul class="py-2 text-sm text-gray-700 dark:text-gray-200 max-h-60 overflow-y-auto" aria-labelledby="styleDropdown">
+                    <li>
+                        <a href="?{% if current_category %}category={{ current_category }}&{% endif %}{% if current_material %}material={{ current_material }}&{% endif %}{% if current_purity %}purity={{ current_purity }}&{% endif %}{% if current_metal_color %}metal_color={{ current_metal_color }}&{% endif %}{% if min_price %}min_price={{ min_price }}&{% endif %}{% if max_price %}max_price={{ max_price }}&{% endif %}{% if search_query %}search={{ search_query }}&{% endif %}{% if sort_by %}sort={{ sort_by }}{% endif %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 {% if not current_style %}bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400{% endif %}">Все</a>
+                    </li>
+                    {% for style in styles %}
+                    <li>
+                        <a href="?style={{ style.id }}{% if current_category %}&category={{ current_category }}{% endif %}{% if current_material %}&material={{ current_material }}{% endif %}{% if current_purity %}&purity={{ current_purity }}{% endif %}{% if current_metal_color %}&metal_color={{ current_metal_color }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 {% if current_style == style.id|stringformat:'s' %}bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400{% endif %}">
+                            {{ style.name }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
             </div>
         </div>
-
-        <!-- Сортировка и фильтр по цене -->
-        <form method="get" class="row g-3">
-            <!-- Сохраняем текущие фильтры -->
-            {% if current_category %}<input type="hidden" name="category" value="{{ current_category }}">{% endif %}
-            {% if current_material %}<input type="hidden" name="material" value="{{ current_material }}">{% endif %}
-            {% if search_query %}<input type="hidden" name="search" value="{{ search_query }}">{% endif %}
-
-            <div class="col-md-4">
-                <label class="form-label">
-                    <i class="bi bi-sort-down"></i> Сортировка:
-                </label>
-                <select name="sort" class="form-select" onchange="this.form.submit()">
-                    <option value="-created_at" {% if sort_by == '-created_at' %}selected{% endif %}>Новые</option>
-                    <option value="price_asc" {% if sort_by == 'price_asc' %}selected{% endif %}>Цена: по возрастанию</option>
-                    <option value="price_desc" {% if sort_by == 'price_desc' %}selected{% endif %}>Цена: по убыванию</option>
-                    <option value="popular" {% if sort_by == 'popular' %}selected{% endif %}>Популярные</option>
-                    <option value="name" {% if sort_by == 'name' %}selected{% endif %}>По алфавиту</option>
-                </select>
-            </div>
-
-            <div class="col-md-3">
-                <label class="form-label">
-                    <i class="bi bi-currency-dollar"></i> Цена от ($):
-                </label>
-                <input type="number" name="min_price" class="form-control" placeholder="Мин" value="{{ min_price|default:'' }}">
-            </div>
-
-            <div class="col-md-3">
-                <label class="form-label">
-                    <i class="bi bi-currency-dollar"></i> Цена до ($):
-                </label>
-                <input type="number" name="max_price" class="form-control" placeholder="Макс" value="{{ max_price|default:'' }}">
-            </div>
-
-            <div class="col-md-2 d-flex align-items-end">
-                <button type="submit" class="btn btn-success w-100">
-                    <i class="bi bi-check-circle"></i> Применить
-                </button>
-            </div>
-        </form>
     </div>
+
+    <!-- Вторая строка: Цена и Сортировка -->
+    <form method="get" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+        <!-- Сохраняем текущие фильтры -->
+        {% if current_category %}<input type="hidden" name="category" value="{{ current_category }}">{% endif %}
+        {% if current_material %}<input type="hidden" name="material" value="{{ current_material }}">{% endif %}
+        {% if current_purity %}<input type="hidden" name="purity" value="{{ current_purity }}">{% endif %}
+        {% if current_metal_color %}<input type="hidden" name="metal_color" value="{{ current_metal_color }}">{% endif %}
+        {% if current_style %}<input type="hidden" name="style" value="{{ current_style }}">{% endif %}
+        {% if search_query %}<input type="hidden" name="search" value="{{ search_query }}">{% endif %}
+
+        <div class="lg:col-span-2">
+            <select name="sort" onchange="this.form.submit()" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2">
+                <option value="-created_at" {% if sort_by == '-created_at' %}selected{% endif %}>Сортировка: Новые</option>
+                <option value="price_asc" {% if sort_by == 'price_asc' %}selected{% endif %}>Цена: по возрастанию</option>
+                <option value="price_desc" {% if sort_by == 'price_desc' %}selected{% endif %}>Цена: по убыванию</option>
+                <option value="popular" {% if sort_by == 'popular' %}selected{% endif %}>Популярные</option>
+                <option value="name" {% if sort_by == 'name' %}selected{% endif %}>По алфавиту</option>
+            </select>
+        </div>
+
+        <div>
+            <input type="number" name="min_price" value="{{ min_price|default:'' }}" placeholder="Цена от ($)" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2">
+        </div>
+
+        <div>
+            <input type="number" name="max_price" value="{{ max_price|default:'' }}" placeholder="Цена до ($)" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2">
+        </div>
+
+        <div>
+            <button type="submit" class="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-4 py-2">
+                <i class="bi bi-check-circle mr-1"></i> Применить
+            </button>
+        </div>
+    </form>
+
+    <!-- Активные фильтры (теги) -->
+    {% if current_category or current_material or current_purity or current_metal_color or current_style or min_price or max_price %}
+    <div class="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <span class="text-sm text-gray-600 dark:text-gray-400 flex items-center mr-2">
+            Активные фильтры:
+        </span>
+
+        {% if selected_category %}
+        <a href="?{% if current_material %}material={{ current_material }}&{% endif %}{% if current_purity %}purity={{ current_purity }}&{% endif %}{% if current_metal_color %}metal_color={{ current_metal_color }}&{% endif %}{% if current_style %}style={{ current_style }}&{% endif %}{% if min_price %}min_price={{ min_price }}&{% endif %}{% if max_price %}max_price={{ max_price }}&{% endif %}{% if search_query %}search={{ search_query }}&{% endif %}{% if sort_by %}sort={{ sort_by }}{% endif %}" class="inline-flex items-center px-3 py-1 text-sm font-medium text-primary-800 dark:text-primary-300 bg-primary-100 dark:bg-primary-900/30 rounded-full hover:bg-primary-200 dark:hover:bg-primary-900/50">
+            <i class="bi bi-tag mr-1"></i>
+            {{ selected_category.name }}
+            <i class="bi bi-x ml-1"></i>
+        </a>
+        {% endif %}
+
+        {% if selected_material %}
+        <a href="?{% if current_category %}category={{ current_category }}&{% endif %}{% if current_purity %}purity={{ current_purity }}&{% endif %}{% if current_metal_color %}metal_color={{ current_metal_color }}&{% endif %}{% if current_style %}style={{ current_style }}&{% endif %}{% if min_price %}min_price={{ min_price }}&{% endif %}{% if max_price %}max_price={{ max_price }}&{% endif %}{% if search_query %}search={{ search_query }}&{% endif %}{% if sort_by %}sort={{ sort_by }}{% endif %}" class="inline-flex items-center px-3 py-1 text-sm font-medium text-blue-800 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/30 rounded-full hover:bg-blue-200 dark:hover:bg-blue-900/50">
+            <i class="bi bi-gem mr-1"></i>
+            {{ selected_material.name }}
+            <i class="bi bi-x ml-1"></i>
+        </a>
+        {% endif %}
+
+        {% if selected_purity %}
+        <a href="?{% if current_category %}category={{ current_category }}&{% endif %}{% if current_material %}material={{ current_material }}&{% endif %}{% if current_metal_color %}metal_color={{ current_metal_color }}&{% endif %}{% if current_style %}style={{ current_style }}&{% endif %}{% if min_price %}min_price={{ min_price }}&{% endif %}{% if max_price %}max_price={{ max_price }}&{% endif %}{% if search_query %}search={{ search_query }}&{% endif %}{% if sort_by %}sort={{ sort_by }}{% endif %}" class="inline-flex items-center px-3 py-1 text-sm font-medium text-green-800 dark:text-green-300 bg-green-100 dark:bg-green-900/30 rounded-full hover:bg-green-200 dark:hover:bg-green-900/50">
+            <i class="bi bi-award mr-1"></i>
+            {{ selected_purity.value }}
+            <i class="bi bi-x ml-1"></i>
+        </a>
+        {% endif %}
+
+        {% if selected_metal_color %}
+        <a href="?{% if current_category %}category={{ current_category }}&{% endif %}{% if current_material %}material={{ current_material }}&{% endif %}{% if current_purity %}purity={{ current_purity }}&{% endif %}{% if current_style %}style={{ current_style }}&{% endif %}{% if min_price %}min_price={{ min_price }}&{% endif %}{% if max_price %}max_price={{ max_price }}&{% endif %}{% if search_query %}search={{ search_query }}&{% endif %}{% if sort_by %}sort={{ sort_by }}{% endif %}" class="inline-flex items-center px-3 py-1 text-sm font-medium text-purple-800 dark:text-purple-300 bg-purple-100 dark:bg-purple-900/30 rounded-full hover:bg-purple-200 dark:hover:bg-purple-900/50">
+            <i class="bi bi-palette mr-1"></i>
+            {{ selected_metal_color.name }}
+            <i class="bi bi-x ml-1"></i>
+        </a>
+        {% endif %}
+
+        {% if selected_style %}
+        <a href="?{% if current_category %}category={{ current_category }}&{% endif %}{% if current_material %}material={{ current_material }}&{% endif %}{% if current_purity %}purity={{ current_purity }}&{% endif %}{% if current_metal_color %}metal_color={{ current_metal_color }}&{% endif %}{% if min_price %}min_price={{ min_price }}&{% endif %}{% if max_price %}max_price={{ max_price }}&{% endif %}{% if search_query %}search={{ search_query }}&{% endif %}{% if sort_by %}sort={{ sort_by }}{% endif %}" class="inline-flex items-center px-3 py-1 text-sm font-medium text-orange-800 dark:text-orange-300 bg-orange-100 dark:bg-orange-900/30 rounded-full hover:bg-orange-200 dark:hover:bg-orange-900/50">
+            <i class="bi bi-brush mr-1"></i>
+            {{ selected_style.name }}
+            <i class="bi bi-x ml-1"></i>
+        </a>
+        {% endif %}
+
+        {% if min_price %}
+        <a href="?{% if current_category %}category={{ current_category }}&{% endif %}{% if current_material %}material={{ current_material }}&{% endif %}{% if current_purity %}purity={{ current_purity }}&{% endif %}{% if current_metal_color %}metal_color={{ current_metal_color }}&{% endif %}{% if current_style %}style={{ current_style }}&{% endif %}{% if max_price %}max_price={{ max_price }}&{% endif %}{% if search_query %}search={{ search_query }}&{% endif %}{% if sort_by %}sort={{ sort_by }}{% endif %}" class="inline-flex items-center px-3 py-1 text-sm font-medium text-gray-800 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600">
+            <i class="bi bi-currency-dollar mr-1"></i>
+            От ${{ min_price }}
+            <i class="bi bi-x ml-1"></i>
+        </a>
+        {% endif %}
+
+        {% if max_price %}
+        <a href="?{% if current_category %}category={{ current_category }}&{% endif %}{% if current_material %}material={{ current_material }}&{% endif %}{% if current_purity %}purity={{ current_purity }}&{% endif %}{% if current_metal_color %}metal_color={{ current_metal_color }}&{% endif %}{% if current_style %}style={{ current_style }}&{% endif %}{% if min_price %}min_price={{ min_price }}&{% endif %}{% if search_query %}search={{ search_query }}&{% endif %}{% if sort_by %}sort={{ sort_by }}{% endif %}" class="inline-flex items-center px-3 py-1 text-sm font-medium text-gray-800 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600">
+            <i class="bi bi-currency-dollar mr-1"></i>
+            До ${{ max_price }}
+            <i class="bi bi-x ml-1"></i>
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
 </div>
 
 <!-- Каталог товаров -->
 {% if page_obj %}
     <!-- Информация о результатах -->
-    <div class="alert alert-info mb-3">
-        <i class="bi bi-info-circle"></i> Показано {{ page_obj.start_index }}–{{ page_obj.end_index }} из {{ page_obj.paginator.count }} товаров
+    <div class="flex items-center p-4 mb-4 text-sm text-blue-800 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-300 dark:border-blue-800" role="alert">
+        <i class="bi bi-info-circle mr-2"></i>
+        <span>Показано {{ page_obj.start_index }}–{{ page_obj.end_index }} из {{ page_obj.paginator.count }} товаров</span>
     </div>
 
-    <!-- Сетка товаров -->
-    <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4 mb-4">
+    <!-- Сетка товаров с Flowbite Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
         {% for product in page_obj %}
-            <div class="col">
-                <div class="card h-100 shadow-sm">
-                    {% if product.images.all.0 %}
-                        <img src="{{ product.images.all.0.image.url }}" alt="{{ product.name }}" class="card-img-top" style="height: 250px; object-fit: contain; background-color: #f8f9fa;">
-                    {% else %}
-                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 250px;">
-                            <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
-                        </div>
-                    {% endif %}
+        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow hover:shadow-lg transition-shadow">
+            {% if product.images.all.0 %}
+            <a href="{% url 'catalog:product_detail' product.article %}">
+                <img class="rounded-t-lg h-64 w-full object-contain bg-gray-50 dark:bg-gray-700" src="{{ product.images.all.0.image.url }}" alt="{{ product.name }}" />
+            </a>
+            {% else %}
+            <div class="rounded-t-lg h-64 bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                <i class="bi bi-image text-gray-400 dark:text-gray-500" style="font-size: 3rem;"></i>
+            </div>
+            {% endif %}
 
-                    <div class="card-body d-flex flex-column">
-                        <span class="badge bg-info mb-2 align-self-start">{{ product.category.name }}</span>
-                        <h5 class="card-title">{{ product.name }}</h5>
-                        <p class="card-text text-muted small">
-                            <i class="bi bi-hash"></i> Арт: {{ product.article }}<br>
-                            <i class="bi bi-gem"></i> {{ product.material.name }} • {{ product.metal_weight|default:"—" }} г
-                        </p>
+            <div class="p-5">
+                <span class="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300 text-xs font-medium px-2.5 py-0.5 rounded">{{ product.category.name }}</span>
 
-                        {% if product.in_stock %}
-                            <span class="badge bg-success mb-2">
-                                <i class="bi bi-check-circle"></i> В наличии
-                            </span>
-                        {% else %}
-                            <span class="badge bg-secondary mb-2">
-                                <i class="bi bi-x-circle"></i> Нет в наличии
-                            </span>
-                        {% endif %}
+                <a href="{% url 'catalog:product_detail' product.article %}">
+                    <h5 class="mt-2 mb-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white hover:text-primary-600">{{ product.name }}</h5>
+                </a>
 
-                        <div class="mt-auto">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h4 class="text-primary mb-0">${{ product.price }}</h4>
-                            </div>
-                            <p class="text-muted small mb-2">
-                                <i class="bi bi-building"></i> {{ product.factory.name }}
-                            </p>
-                            <a href="{% url 'catalog:product_detail' product.article %}" class="btn btn-primary w-100">
-                                <i class="bi bi-eye"></i> Подробнее
-                            </a>
-                        </div>
-                    </div>
+                <p class="mb-3 text-sm text-gray-700 dark:text-gray-300">
+                    <i class="bi bi-hash"></i> Арт: {{ product.article }}<br>
+                    <i class="bi bi-gem"></i> {{ product.material.name }} • {{ product.metal_weight|default:"—" }} г
+                </p>
+
+                {% if product.in_stock %}
+                <span class="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300 text-xs font-medium px-2.5 py-0.5 rounded">
+                    <i class="bi bi-check-circle"></i> В наличии
+                </span>
+                {% else %}
+                <span class="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 text-xs font-medium px-2.5 py-0.5 rounded">
+                    <i class="bi bi-x-circle"></i> Нет в наличии
+                </span>
+                {% endif %}
+
+                <div class="mt-4">
+                    <p class="text-2xl font-bold text-primary-600">${{ product.price }}</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                        <i class="bi bi-building"></i> {{ product.factory.name }}
+                    </p>
+                    <a href="{% url 'catalog:product_detail' product.article %}" class="inline-flex items-center w-full justify-center px-3 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300">
+                        <i class="bi bi-eye mr-2"></i>
+                        Подробнее
+                    </a>
                 </div>
             </div>
+        </div>
         {% endfor %}
     </div>
 
-    <!-- Пагинация с Bootstrap -->
+    <!-- Пагинация с Flowbite -->
     {% if page_obj.has_other_pages %}
-    <nav aria-label="Навигация по страницам">
-        <ul class="pagination justify-content-center">
+    <nav class="flex items-center justify-center" aria-label="Page navigation">
+        <ul class="inline-flex -space-x-px text-sm">
             {% if page_obj.has_previous %}
-                <li class="page-item">
-                    <a class="page-link" href="?page=1{% if current_category %}&category={{ current_category }}{% endif %}{% if current_material %}&material={{ current_material }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}">
-                        <i class="bi bi-chevron-double-left"></i> Первая
-                    </a>
-                </li>
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}{% if current_material %}&material={{ current_material }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}">
-                        <i class="bi bi-chevron-left"></i> Назад
-                    </a>
-                </li>
+            <li>
+                <a href="?page=1{% if current_category %}&category={{ current_category }}{% endif %}{% if current_material %}&material={{ current_material }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}" class="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-e-0 border-gray-300 dark:border-gray-700 rounded-s-lg hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-white">
+                    <i class="bi bi-chevron-double-left"></i>
+                </a>
+            </li>
+            <li>
+                <a href="?page={{ page_obj.previous_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}{% if current_material %}&material={{ current_material }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}" class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-white">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            </li>
             {% else %}
-                <li class="page-item disabled">
-                    <span class="page-link"><i class="bi bi-chevron-double-left"></i> Первая</span>
-                </li>
-                <li class="page-item disabled">
-                    <span class="page-link"><i class="bi bi-chevron-left"></i> Назад</span>
-                </li>
+            <li>
+                <span class="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-300 dark:text-gray-600 bg-white dark:bg-gray-800 border border-e-0 border-gray-300 dark:border-gray-700 rounded-s-lg">
+                    <i class="bi bi-chevron-double-left"></i>
+                </span>
+            </li>
+            <li>
+                <span class="flex items-center justify-center px-3 h-8 leading-tight text-gray-300 dark:text-gray-600 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700">
+                    <i class="bi bi-chevron-left"></i>
+                </span>
+            </li>
             {% endif %}
 
-            <li class="page-item active">
-                <span class="page-link">Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+            <li>
+                <span class="flex items-center justify-center px-3 h-8 text-primary-600 dark:text-primary-400 border border-gray-300 dark:border-gray-700 bg-primary-50 dark:bg-primary-900/30">
+                    Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
+                </span>
             </li>
 
             {% if page_obj.has_next %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}{% if current_material %}&material={{ current_material }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}">
-                        Вперёд <i class="bi bi-chevron-right"></i>
-                    </a>
-                </li>
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if current_category %}&category={{ current_category }}{% endif %}{% if current_material %}&material={{ current_material }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}">
-                        Последняя <i class="bi bi-chevron-double-right"></i>
-                    </a>
-                </li>
+            <li>
+                <a href="?page={{ page_obj.next_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}{% if current_material %}&material={{ current_material }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}" class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-white">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+            <li>
+                <a href="?page={{ page_obj.paginator.num_pages }}{% if current_category %}&category={{ current_category }}{% endif %}{% if current_material %}&material={{ current_material }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}" class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-e-lg hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-white">
+                    <i class="bi bi-chevron-double-right"></i>
+                </a>
+            </li>
             {% else %}
-                <li class="page-item disabled">
-                    <span class="page-link">Вперёд <i class="bi bi-chevron-right"></i></span>
-                </li>
-                <li class="page-item disabled">
-                    <span class="page-link">Последняя <i class="bi bi-chevron-double-right"></i></span>
-                </li>
+            <li>
+                <span class="flex items-center justify-center px-3 h-8 leading-tight text-gray-300 dark:text-gray-600 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700">
+                    <i class="bi bi-chevron-right"></i>
+                </span>
+            </li>
+            <li>
+                <span class="flex items-center justify-center px-3 h-8 leading-tight text-gray-300 dark:text-gray-600 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-e-lg">
+                    <i class="bi bi-chevron-double-right"></i>
+                </span>
+            </li>
             {% endif %}
         </ul>
     </nav>
     {% endif %}
 {% else %}
     <!-- Пустое состояние -->
-    <div class="card text-center">
-        <div class="card-body py-5">
-            <i class="bi bi-inbox" style="font-size: 4rem; color: var(--color-primary);"></i>
-            <h2 class="mt-3">Товары не найдены</h2>
-            <p class="text-muted">Попробуйте изменить фильтры или поисковый запрос</p>
-            <a href="{% url 'catalog:home' %}" class="btn btn-primary mt-3">
-                <i class="bi bi-arrow-clockwise"></i> Сбросить фильтры
-            </a>
-        </div>
+    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-12 text-center">
+        <i class="bi bi-inbox text-primary-600" style="font-size: 4rem;"></i>
+        <h2 class="mt-4 text-2xl font-bold text-gray-900 dark:text-white">Товары не найдены</h2>
+        <p class="mt-2 text-gray-600 dark:text-gray-400">Попробуйте изменить фильтры или поисковый запрос</p>
+        <a href="{% url 'catalog:home' %}" class="mt-4 inline-flex items-center px-5 py-3 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300">
+            <i class="bi bi-arrow-clockwise mr-2"></i>
+            Сбросить фильтры
+        </a>
     </div>
 {% endif %}
 {% endblock %}

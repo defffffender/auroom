@@ -3,119 +3,76 @@
 
 {% block title %}Добавить категорию - {{ factory.name }}{% endblock %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
-{% endblock %}
-
-{% block header_title %}<i class="bi bi-tag-fill"></i> Добавить категорию{% endblock %}
-
 {% block content %}
-<div class="form-container">
-    <h2>Создать новую категорию/подкатегорию</h2>
-    <p>Добавьте собственную категорию для ваших товаров. Она будет доступна всем пользователям каталога.</p>
+<div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm max-w-4xl mx-auto">
+    <div class="bg-gradient-to-r from-primary-600 to-purple-600 text-white px-6 py-4 rounded-t-lg">
+        <h2 class="text-xl font-semibold">
+            <i class="bi bi-tag-fill mr-2"></i>
+            Добавить категорию
+        </h2>
+        <p class="text-white/90 text-sm mt-1">Создайте собственную категорию для ваших товаров</p>
+    </div>
 
-    <form method="post" enctype="multipart/form-data" class="product-form">
-        {% csrf_token %}
+    <div class="p-8">
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
 
-        {% if form.errors %}
-        <div class="error-message">
-            <strong>Пожалуйста, исправьте ошибки:</strong>
-            {{ form.errors }}
-        </div>
-        {% endif %}
-
-        <div class="form-group">
-            <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
-            {{ form.name }}
-            {% if form.name.help_text %}
-            <small class="help-text">{{ form.name.help_text }}</small>
+            {% if form.errors %}
+            <div class="flex items-center p-4 text-sm text-red-800 dark:text-red-300 bg-red-50 dark:bg-red-900/30 rounded-lg border border-red-300 dark:border-red-800" role="alert">
+                <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                </svg>
+                <div>
+                    <strong>Пожалуйста, исправьте ошибки:</strong>
+                    {{ form.errors }}
+                </div>
+            </div>
             {% endif %}
-        </div>
 
-        <div class="form-group">
-            <label for="{{ form.parent.id_for_label }}">{{ form.parent.label }}</label>
-            {{ form.parent }}
-            <small class="help-text">Если выберете родительскую категорию, создастся подкатегория. Оставьте пустым для главной категории.</small>
-        </div>
+            <div>
+                <label for="{{ form.name.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                    {{ form.name.label }}
+                </label>
+                <input type="text" name="name" id="{{ form.name.id_for_label }}" value="{{ form.name.value|default:'' }}" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5" required>
+                {% if form.name.help_text %}
+                <p class="mt-2 text-sm text-gray-500 dark:text-white">{{ form.name.help_text }}</p>
+                {% endif %}
+            </div>
 
-        <div class="form-group">
-            <label for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
-            {{ form.description }}
-        </div>
+            <div>
+                <label for="{{ form.parent.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                    {{ form.parent.label }}
+                </label>
+                {{ form.parent }}
+                <p class="mt-2 text-sm text-gray-500 dark:text-white">Если выберете родительскую категорию, создастся подкатегория. Оставьте пустым для главной категории.</p>
+            </div>
 
-        <div class="form-group">
-            <label for="{{ form.image.id_for_label }}">{{ form.image.label }}</label>
-            {{ form.image }}
-            <small class="help-text">Изображение для категории (необязательно)</small>
-        </div>
+            <div>
+                <label for="{{ form.description.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                    {{ form.description.label }}
+                </label>
+                <textarea name="description" id="{{ form.description.id_for_label }}" rows="4" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5">{{ form.description.value|default:'' }}</textarea>
+            </div>
 
-        <div class="form-actions">
-            <button type="submit" class="btn btn-success">
-                <i class="bi bi-check-circle"></i> Создать категорию
-            </button>
-            <a href="{% url 'catalog:factory_dashboard' %}" class="btn btn-secondary">
-                <i class="bi bi-x-circle"></i> Отмена
-            </a>
-        </div>
-    </form>
+            <div>
+                <label for="{{ form.image.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                    {{ form.image.label }}
+                </label>
+                <input type="file" name="image" id="{{ form.image.id_for_label }}" class="block w-full text-sm text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700 focus:outline-none">
+                <p class="mt-2 text-sm text-gray-500 dark:text-white">Изображение для категории (необязательно)</p>
+            </div>
+
+            <div class="flex gap-3">
+                <button type="submit" class="text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                    <i class="bi bi-check-circle mr-2"></i>
+                    Создать категорию
+                </button>
+                <a href="{% url 'catalog:factory_dashboard' %}" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                    <i class="bi bi-x-circle mr-2"></i>
+                    Отмена
+                </a>
+            </div>
+        </form>
+    </div>
 </div>
-
-<style>
-.form-container {
-    max-width: 800px;
-    margin: 2rem auto;
-    padding: 2rem;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.form-group {
-    margin-bottom: 1.5rem;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-    color: #333;
-}
-
-.form-group input[type="text"],
-.form-group textarea,
-.form-group select {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 1rem;
-}
-
-.form-group textarea {
-    min-height: 100px;
-    resize: vertical;
-}
-
-.help-text {
-    display: block;
-    margin-top: 0.5rem;
-    font-size: 0.875rem;
-    color: #666;
-}
-
-.form-actions {
-    display: flex;
-    gap: 1rem;
-    margin-top: 2rem;
-}
-
-.error-message {
-    padding: 1rem;
-    margin-bottom: 1.5rem;
-    background: #fee;
-    border: 1px solid #fcc;
-    border-radius: 4px;
-    color: #c33;
-}
-</style>
 {% endblock %}

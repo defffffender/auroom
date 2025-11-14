@@ -3,32 +3,76 @@
 
 {% block title %}Редактировать товар{% endblock %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
-{% endblock %}
-
-{% block header_title %}✏️ Редактировать: {{ product.name }}{% endblock %}
-
 {% block content %}
-<div class="form-box">
-    <h2>Информация о товаре</h2>
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form.as_p }}
-        
-        <h3>📸 Фотографии товара</h3>
-        {{ formset.management_form }}
-        {% for form in formset %}
-            <div class="image-form">
-                {% if form.instance.image %}
-                    <img src="{{ form.instance.image.url }}" class="current-image" alt="Текущее фото">
-                {% endif %}
-                {{ form.as_p }}
+<div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm max-w-6xl mx-auto">
+    <div class="bg-gradient-to-r from-primary-600 to-purple-600 text-white px-6 py-4 rounded-t-lg">
+        <h2 class="text-xl font-semibold">
+            <i class="bi bi-pencil mr-2"></i>
+            Редактировать: {{ product.name }}
+        </h2>
+    </div>
+
+    <div class="p-8">
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    <i class="bi bi-info-circle mr-2"></i>
+                    Информация о товаре
+                </h3>
+                {% for field in form %}
+                <div class="mb-4">
+                    <label for="{{ field.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                        {{ field.label }}
+                    </label>
+                    {% if field.field.widget.input_type == 'file' %}
+                    <input type="file" name="{{ field.name }}" id="{{ field.id_for_label }}" class="block w-full text-sm text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700 focus:outline-none">
+                    {% elif field.field.widget.input_type == 'textarea' %}
+                    <textarea name="{{ field.name }}" id="{{ field.id_for_label }}" rows="4" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5">{{ field.value|default:'' }}</textarea>
+                    {% elif field.field.widget.input_type == 'checkbox' %}
+                    <input type="checkbox" name="{{ field.name }}" id="{{ field.id_for_label }}" {% if field.value %}checked{% endif %} class="w-4 h-4 text-primary-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500">
+                    {% elif field.field.widget.input_type == 'select' %}
+                    {{ field }}
+                    {% else %}
+                    <input type="text" name="{{ field.name }}" id="{{ field.id_for_label }}" value="{{ field.value|default:'' }}" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5">
+                    {% endif %}
+                    {% if field.help_text %}
+                    <p class="mt-2 text-sm text-gray-500 dark:text-white">{{ field.help_text }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
             </div>
-        {% endfor %}
-        
-        <button type="submit" class="btn">💾 Сохранить изменения</button>
-    </form>
-    <a href="{% url 'catalog:factory_dashboard' %}" class="back-link">← Назад в кабинет</a>
+
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    <i class="bi bi-image mr-2"></i>
+                    Фотографии товара
+                </h3>
+                {{ formset.management_form }}
+                <div class="grid md:grid-cols-2 gap-4">
+                    {% for form in formset %}
+                    <div class="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-4">
+                        {% if form.instance.image %}
+                        <img src="{{ form.instance.image.url }}" class="w-full h-48 object-contain bg-white dark:bg-gray-800 rounded-lg mb-3" alt="Текущее фото">
+                        {% endif %}
+                        {{ form.as_p }}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <button type="submit" class="text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                    <i class="bi bi-save mr-2"></i>
+                    Сохранить изменения
+                </button>
+                <a href="{% url 'catalog:factory_dashboard' %}" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                    <i class="bi bi-arrow-left mr-2"></i>
+                    Назад в кабинет
+                </a>
+            </div>
+        </form>
+    </div>
 </div>
 {% endblock %}

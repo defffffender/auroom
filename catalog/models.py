@@ -525,6 +525,32 @@ class Theme(models.Model):
     # Острые углы (отключение всех border-radius)
     sharp_corners = models.BooleanField(default=False, verbose_name="Острые углы")
 
+    # Шрифты
+    heading_font = models.CharField(
+        max_length=50,
+        default='Playfair Display',
+        verbose_name="Шрифт заголовков",
+        help_text="Шрифт для h1, h2, h3, h4, h5, h6"
+    )
+    heading_font_weight = models.CharField(
+        max_length=4,
+        default='700',
+        verbose_name="Толщина шрифта заголовков",
+        help_text="Например: 400, 700, 900"
+    )
+    body_font = models.CharField(
+        max_length=50,
+        default='Inter',
+        verbose_name="Шрифт основного текста",
+        help_text="Шрифт для обычного текста"
+    )
+    body_font_weight = models.CharField(
+        max_length=4,
+        default='400',
+        verbose_name="Толщина шрифта текста",
+        help_text="Например: 400, 500, 600"
+    )
+
     # Статус активации
     is_active = models.BooleanField(default=False, verbose_name="Активная тема")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")

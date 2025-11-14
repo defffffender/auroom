@@ -630,6 +630,10 @@ def theme_save(request):
         theme.secondary_color = data.get('secondary_color', theme.secondary_color)
         theme.gradient_enabled = data.get('gradient_enabled', theme.gradient_enabled)
         theme.sharp_corners = data.get('sharp_corners', theme.sharp_corners)
+        theme.heading_font = data.get('heading_font', theme.heading_font)
+        theme.body_font = data.get('body_font', theme.body_font)
+        theme.heading_font_weight = data.get('heading_font_weight', theme.heading_font_weight)
+        theme.body_font_weight = data.get('body_font_weight', theme.body_font_weight)
 
         # Цветовая схема только для default темы
         if theme.is_default:
@@ -666,6 +670,10 @@ def theme_load(request, theme_id):
                 'sharp_corners': theme.sharp_corners,
                 'is_default': theme.is_default,
                 'is_active': theme.is_active,
+                'heading_font': theme.heading_font,
+                'body_font': theme.body_font,
+                'heading_font_weight': theme.heading_font_weight,
+                'body_font_weight': theme.body_font_weight,
             }
         })
     except Theme.DoesNotExist:
@@ -723,7 +731,9 @@ def theme_activate(request, theme_id):
                     'gradient_enabled': theme.gradient_enabled,
                     'sharp_corners': theme.sharp_corners,
                     'is_default': theme.is_default,
-                    'is_active': theme.is_active
+                    'is_active': theme.is_active,
+                    'heading_font': theme.heading_font,
+                    'body_font': theme.body_font
                 }
             })
         except Theme.DoesNotExist:

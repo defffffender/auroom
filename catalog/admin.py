@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import (
     Factory, Category, Material, Product, ProductImage, Favorite,
-    Purity, MetalColor, Style, InsertType, Coating, ReferenceImage
+    Purity, MetalColor, Style, InsertType, Coating, ReferenceImage, Theme
 )
 
 
@@ -135,3 +135,28 @@ class ReferenceImageAdmin(admin.ModelAdmin):
     list_display = ['reference_type', 'width_mm', 'height_mm', 'is_active', 'created_at']
     list_filter = ['reference_type', 'is_active']
     list_editable = ['is_active']
+
+
+@admin.register(Theme)
+class ThemeAdmin(admin.ModelAdmin):
+    list_display = ['name', 'user', 'is_default', 'is_active', 'gradient_enabled', 'sharp_corners', 'color_scheme', 'created_at']
+    list_filter = ['is_default', 'is_active', 'gradient_enabled', 'sharp_corners', 'created_at']
+    search_fields = ['name', 'user__username']
+    list_editable = ['is_active']
+    readonly_fields = ['created_at', 'updated_at']
+
+    fieldsets = (
+        ('Основная информация', {
+            'fields': ('name', 'user', 'is_default', 'is_active')
+        }),
+        ('Цвета', {
+            'fields': ('primary_color', 'secondary_color', 'color_scheme'),
+            'description': 'color_scheme используется только для default темы'
+        }),
+        ('Настройки внешнего вида', {
+            'fields': ('gradient_enabled', 'sharp_corners')
+        }),
+        ('Даты', {
+            'fields': ('created_at', 'updated_at')
+        }),
+    )

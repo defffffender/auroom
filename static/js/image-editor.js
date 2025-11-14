@@ -37,6 +37,17 @@ class JewelryImageEditor {
         this.snapEnabled = true;
         this.snapThreshold = 15; // пиксели
 
+        // 📏 Measurement tools
+        this.measurementMode = null; // 'line', 'grid', 'perpendicular'
+        this.measurementCanvas = null;
+        this.measurementCtx = null;
+        this.measurementLines = [];
+        this.currentMeasurementPoints = [];
+        this.maxMeasurementLines = 2;
+
+        // 📐 Calibration for measurements
+        this.calibration = null;
+
         this.init();
     }
     
@@ -147,10 +158,277 @@ class JewelryImageEditor {
     this.canvasLogicalHeight = FIXED_CANVAS_HEIGHT;
     this.canvasCSSScale = cssScale;
 
+    // 📏 Создаем canvas для сетки и координат
+    this.createGridCanvas(canvasContainer, displayWidth, displayHeight);
+
     console.log(`✅ Canvas создан: ${FIXED_CANVAS_WIDTH}×${FIXED_CANVAS_HEIGHT}px (логический)`);
     console.log(`📐 CSS масштаб: ${(cssScale * 100).toFixed(1)}% (отображение: ${displayWidth.toFixed(0)}×${displayHeight.toFixed(0)}px)`);
 }
-    
+
+createGridCanvas(container, width, height) {
+    // Создаем canvas для сетки поверх Fabric canvas
+    const gridCanvas = document.createElement('canvas');
+    gridCanvas.id = 'gridCanvas';
+    gridCanvas.width = this.canvasLogicalWidth;
+    gridCanvas.height = this.canvasLogicalHeight;
+    gridCanvas.style.position = 'absolute';
+    gridCanvas.style.top = '0';
+    gridCanvas.style.left = '0';
+    gridCanvas.style.width = `${width}px`;
+    gridCanvas.style.height = `${height}px`;
+    gridCanvas.style.pointerEvents = 'none';
+    gridCanvas.style.zIndex = '1';
+
+    container.appendChild(gridCanvas);
+
+    this.gridCanvas = gridCanvas;
+    this.gridCtx = gridCanvas.getContext('2d');
+
+    // Рисуем сетку
+    this.drawGrid();
+
+    // Добавляем отслеживание мыши на основном canvas
+    const fabricCanvasEl = document.getElementById('fabricCanvas');
+    if (fabricCanvasEl) {
+        fabricCanvasEl.addEventListener('mousemove', this.handleMouseMove.bind(this));
+        fabricCanvasEl.addEventListener('mouseleave', this.handleMouseLeave.bind(this));
+    }
+}
+
+drawGrid() {
+    if (!this.gridCtx) return;
+
+    const width = this.canvasLogicalWidth;
+    const height = this.canvasLogicalHeight;
+
+    // Очищаем
+    this.gridCtx.clearRect(0, 0, width, height);
+
+    // Рисуем тонкую сетку
+    this.gridCtx.strokeStyle = 'rgba(139, 92, 246, 0.08)';
+    this.gridCtx.lineWidth = 1;
+
+    const gridSize = 50; // 50px
+
+    // Вертикальные линии
+    for (let x = 0; x <= width; x += gridSize) {
+        this.gridCtx.beginPath();
+        this.gridCtx.moveTo(x, 0);
+        this.gridCtx.lineTo(x, height);
+        this.gridCtx.stroke();
+    }
+
+    // Горизонтальные линии
+    for (let y = 0; y <= height; y += gridSize) {
+        this.gridCtx.beginPath();
+        this.gridCtx.moveTo(0, y);
+        this.gridCtx.lineTo(width, y);
+        this.gridCtx.stroke();
+    }
+
+    // 📏 Рисуем оси с метками в мм (если калибровка доступна)
+    if (this.calibration && this.calibration.pxPerMm) {
+        this.drawAxisLabels();
+    }
+}
+
+drawAxisLabels() {
+    if (!this.calibration || !this.calibration.pxPerMm) return;
+
+    const width = this.canvasLogicalWidth;
+    const height = this.canvasLogicalHeight;
+    const pxPerMm = this.calibration.pxPerMm;
+
+    const rulerWidth = 30; // Ширина линейки
+    const mmTickLength = 5; // Длина засечки для мм
+    const cmTickLength = 10; // Длина засечки для см
+
+    // 📏 X-ось (горизонтальная, внизу)
+    const totalWidthMm = width / pxPerMm;
+
+    // Рисуем фон линейки X
+    this.gridCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    this.gridCtx.fillRect(0, height - rulerWidth, width, rulerWidth);
+
+    // Рисуем линию границы
+    this.gridCtx.strokeStyle = '#8b5cf6';
+    this.gridCtx.lineWidth = 2;
+    this.gridCtx.beginPath();
+    this.gridCtx.moveTo(0, height - rulerWidth);
+    this.gridCtx.lineTo(width, height - rulerWidth);
+    this.gridCtx.stroke();
+
+    // Рисуем деления по мм
+    this.gridCtx.strokeStyle = '#8b5cf6';
+    this.gridCtx.lineWidth = 1;
+    this.gridCtx.font = '9px monospace';
+    this.gridCtx.fillStyle = '#8b5cf6';
+    this.gridCtx.textAlign = 'center';
+    this.gridCtx.textBaseline = 'top';
+
+    for (let mm = 0; mm <= totalWidthMm; mm++) {
+        const x = mm * pxPerMm;
+        const isCm = mm % 10 === 0;
+        const tickLen = isCm ? cmTickLength : mmTickLength;
+
+        // Рисуем засечку
+        this.gridCtx.beginPath();
+        this.gridCtx.moveTo(x, height - rulerWidth);
+        this.gridCtx.lineTo(x, height - rulerWidth + tickLen);
+        this.gridCtx.stroke();
+
+        // Рисуем метку для см
+        if (isCm) {
+            const cm = mm / 10;
+            this.gridCtx.fillText(`${cm}`, x, height - rulerWidth + cmTickLength + 2);
+        }
+    }
+
+    // 📏 Y-ось (вертикальная, слева)
+    const totalHeightMm = height / pxPerMm;
+
+    // Рисуем фон линейки Y
+    this.gridCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    this.gridCtx.fillRect(0, 0, rulerWidth, height);
+
+    // Рисуем линию границы
+    this.gridCtx.strokeStyle = '#8b5cf6';
+    this.gridCtx.lineWidth = 2;
+    this.gridCtx.beginPath();
+    this.gridCtx.moveTo(rulerWidth, 0);
+    this.gridCtx.lineTo(rulerWidth, height);
+    this.gridCtx.stroke();
+
+    // Рисуем деления по мм
+    this.gridCtx.strokeStyle = '#8b5cf6';
+    this.gridCtx.lineWidth = 1;
+    this.gridCtx.textAlign = 'center';
+    this.gridCtx.textBaseline = 'middle';
+
+    for (let mm = 0; mm <= totalHeightMm; mm++) {
+        const y = height - (mm * pxPerMm); // Инвертируем Y
+        const isCm = mm % 10 === 0;
+        const tickLen = isCm ? cmTickLength : mmTickLength;
+
+        // Рисуем засечку
+        this.gridCtx.beginPath();
+        this.gridCtx.moveTo(rulerWidth - tickLen, y);
+        this.gridCtx.lineTo(rulerWidth, y);
+        this.gridCtx.stroke();
+
+        // Рисуем метку для см
+        if (isCm) {
+            const cm = mm / 10;
+            this.gridCtx.save();
+            this.gridCtx.translate(rulerWidth - cmTickLength - 8, y);
+            this.gridCtx.rotate(-Math.PI / 2);
+            this.gridCtx.fillText(`${cm}`, 0, 0);
+            this.gridCtx.restore();
+        }
+    }
+
+    // Рисуем надпись "см" внизу X-оси
+    this.gridCtx.font = 'bold 10px monospace';
+    this.gridCtx.fillStyle = '#8b5cf6';
+    this.gridCtx.textAlign = 'right';
+    this.gridCtx.fillText('см', width - 5, height - 5);
+
+    // Рисуем надпись "см" на Y-оси
+    this.gridCtx.save();
+    this.gridCtx.translate(8, 15);
+    this.gridCtx.rotate(-Math.PI / 2);
+    this.gridCtx.textAlign = 'left';
+    this.gridCtx.fillText('см', 0, 0);
+    this.gridCtx.restore();
+}
+
+handleMouseMove(event) {
+    // Проверяем что все необходимое загружено
+    if (!this.productImg || !this.calibration || !this.calibration.pxPerMm) {
+        return;
+    }
+
+    const rect = event.target.getBoundingClientRect();
+    const x = (event.clientX - rect.left) / this.canvasCSSScale;
+    const y = (event.clientY - rect.top) / this.canvasCSSScale;
+
+    // Конвертируем в мм
+    const xMm = (x / this.calibration.pxPerMm).toFixed(2);
+    const yMm = ((this.canvasLogicalHeight - y) / this.calibration.pxPerMm).toFixed(2);
+
+    // Обновляем отображение
+    const cursorX = document.getElementById('cursorX');
+    const cursorY = document.getElementById('cursorY');
+
+    if (cursorX && cursorY) {
+        cursorX.textContent = xMm;
+        cursorY.textContent = yMm;
+    }
+
+    // Рисуем крестик
+    this.drawCrosshair(x, y);
+}
+
+handleMouseLeave() {
+    // Убираем крестик
+    this.drawGrid();
+}
+
+drawCrosshair(x, y) {
+    if (!this.gridCtx) return;
+
+    // Перерисовываем сетку
+    this.drawGrid();
+
+    const width = this.canvasLogicalWidth;
+    const height = this.canvasLogicalHeight;
+
+    // Рисуем крестик
+    this.gridCtx.strokeStyle = 'rgba(139, 92, 246, 0.4)';
+    this.gridCtx.lineWidth = 1;
+    this.gridCtx.setLineDash([4, 4]);
+
+    // Вертикальная линия
+    this.gridCtx.beginPath();
+    this.gridCtx.moveTo(x, 0);
+    this.gridCtx.lineTo(x, height);
+    this.gridCtx.stroke();
+
+    // Горизонтальная линия
+    this.gridCtx.beginPath();
+    this.gridCtx.moveTo(0, y);
+    this.gridCtx.lineTo(width, y);
+    this.gridCtx.stroke();
+
+    this.gridCtx.setLineDash([]);
+}
+
+updateCalibration() {
+    // Устанавливаем калибровку на основе текущего эталона
+    if (!this.referenceImg) return;
+
+    const refScaledWidth = this.referenceImg.width * this.referenceImg.scaleX;
+    const refScaledHeight = this.referenceImg.height * this.referenceImg.scaleY;
+
+    const pxPerMmWidth = refScaledWidth / this.options.referenceWidth;
+    const pxPerMmHeight = refScaledHeight / this.options.referenceHeight;
+    const pxPerMm = (pxPerMmWidth + pxPerMmHeight) / 2;
+
+    this.calibration = {
+        canvasWidth: this.canvasLogicalWidth,
+        canvasHeight: this.canvasLogicalHeight,
+        pxPerMm: pxPerMm,
+        cssScale: this.canvasCSSScale,
+        referenceWidth: this.options.referenceWidth,
+        referenceHeight: this.options.referenceHeight
+    };
+
+    console.log('📐 Калибровка установлена:', this.calibration);
+
+    // Перерисовываем сетку с линейками
+    this.drawGrid();
+}
+
     loadReferenceImage() {
         const loadingOverlay = this.container.querySelector('.loading-overlay');
         if (loadingOverlay) loadingOverlay.classList.add('active');
@@ -182,9 +460,12 @@ class JewelryImageEditor {
             this.canvas.add(img);
             this.canvas.sendToBack(img);
             this.canvas.renderAll();
-            
+
+            // 📐 Инициализируем калибровку сразу после загрузки эталона
+            this.updateCalibration();
+
             if (loadingOverlay) loadingOverlay.classList.remove('active');
-            
+
             this.showStatus('✓ Эталон загружен. Теперь загрузите фото изделия.', 'success');
         }, {
             crossOrigin: 'anonymous'
@@ -877,22 +1158,32 @@ enableControls() {
             editorDataInput.value = JSON.stringify(editorData);
         }
 
+        // 📐 Сохраняем калибровку как свойство для measurement tools
+        this.calibration = editorData.calibration;
+
         console.log('💾 Калибровочные данные сохранены:', editorData.calibration);
     }
     
     showStatus(message, type = 'info') {
         let statusEl = this.container.querySelector('.editor-status');
-        
+
         if (!statusEl) {
             statusEl = document.createElement('div');
-            statusEl.className = 'editor-status';
             this.container.insertBefore(statusEl, this.container.firstChild);
         }
-        
-        statusEl.className = `editor-status ${type}`;
+
+        // Tailwind классы для разных типов сообщений
+        const typeClasses = {
+            'success': 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 border-green-200 dark:border-green-800',
+            'warning': 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 border-yellow-200 dark:border-yellow-800',
+            'error': 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 border-red-200 dark:border-red-800',
+            'info': 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 border-blue-200 dark:border-blue-800'
+        };
+
+        statusEl.className = `editor-status p-4 mb-4 rounded-lg border flex items-center gap-2 font-medium transition-opacity duration-300 ${typeClasses[type] || typeClasses.info}`;
         statusEl.textContent = message;
         statusEl.style.opacity = '1';
-        
+
         setTimeout(() => {
             statusEl.style.opacity = '0';
             setTimeout(() => {
@@ -925,57 +1216,53 @@ enableControls() {
 
     this.canvas.renderAll();
 
-    // 🆕 НОВОЕ: Получаем ПОЛНЫЕ размеры изделия (даже если за границами canvas)
+    // 🔧 ПРОСТОЙ И НАДЕЖНЫЙ ПОДХОД: Рендерим изделие напрямую на временный canvas
     const img = this.productImg;
+
+    // Получаем реальные размеры с учетом масштаба
     const imgWidth = img.width * img.scaleX;
     const imgHeight = img.height * img.scaleY;
 
-    // Вычисляем реальные границы изделия (могут быть за пределами canvas)
-    const imgLeft = img.left - (imgWidth / 2);
-    const imgTop = img.top - (imgHeight / 2);
-    const imgRight = img.left + (imgWidth / 2);
-    const imgBottom = img.top + (imgHeight / 2);
+    // Отступ 10%
+    const padding = Math.max(imgWidth, imgHeight) * 0.1;
 
-    // Добавляем отступ 5%
-    const padding = Math.max(imgWidth, imgHeight) * 0.05;
+    // Размеры итогового изображения
+    const exportWidth = imgWidth + padding * 2;
+    const exportHeight = imgHeight + padding * 2;
 
-    // Границы с отступом (могут быть отрицательными или больше canvas)
-    const cropX = imgLeft - padding;
-    const cropY = imgTop - padding;
-    const cropWidth = imgWidth + padding * 2;
-    const cropHeight = imgHeight + padding * 2;
-
-    // 🎨 Создаём временный canvas для ПОЛНОГО изделия
+    // 🎨 Создаём временный canvas
     const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = cropWidth;
-    tempCanvas.height = cropHeight;
+    tempCanvas.width = exportWidth;
+    tempCanvas.height = exportHeight;
     const tempCtx = tempCanvas.getContext('2d');
 
-    // Заливаем белым фоном
+    // Белый фон
     tempCtx.fillStyle = '#ffffff';
-    tempCtx.fillRect(0, 0, cropWidth, cropHeight);
+    tempCtx.fillRect(0, 0, exportWidth, exportHeight);
 
-    // 🔧 НОВОЕ: Рисуем изделие полностью
-    // Вычисляем смещение если изделие частично за пределами canvas
-    const offsetX = cropX < 0 ? -cropX : 0;
-    const offsetY = cropY < 0 ? -cropY : 0;
+    // 🔧 КЛЮЧЕВОЙ МОМЕНТ: Рисуем изображение напрямую из _element (оригинальный img элемент)
+    // Сохраняем контекст
+    tempCtx.save();
 
-    // Вычисляем какая часть canvas нужна
-    const sourceX = Math.max(0, cropX);
-    const sourceY = Math.max(0, cropY);
-    const sourceWidth = Math.min(cropWidth - offsetX, this.canvas.width - sourceX);
-    const sourceHeight = Math.min(cropHeight - offsetY, this.canvas.height - sourceY);
+    // Перемещаем origin в центр canvas
+    tempCtx.translate(exportWidth / 2, exportHeight / 2);
 
-    // Копируем видимую часть с canvas
-    if (sourceWidth > 0 && sourceHeight > 0) {
-        tempCtx.drawImage(
-            this.canvas.lowerCanvasEl,
-            sourceX, sourceY, sourceWidth, sourceHeight,
-            offsetX, offsetY, sourceWidth, sourceHeight
-        );
+    // Применяем угол поворота если есть
+    if (img.angle) {
+        tempCtx.rotate((img.angle * Math.PI) / 180);
     }
 
-    // Получаем dataURL из временного canvas
+    // Рисуем изображение в центре с учетом scale
+    tempCtx.drawImage(
+        img._element,  // Оригинальный HTMLImageElement
+        -imgWidth / 2, -imgHeight / 2,  // Рисуем от центра
+        imgWidth, imgHeight  // Размеры с учетом scale
+    );
+
+    // Восстанавливаем контекст
+    tempCtx.restore();
+
+    // Получаем dataURL
     const dataURL = tempCanvas.toDataURL('image/png', 1.0);
 
     // Восстанавливаем состояние
@@ -988,7 +1275,7 @@ enableControls() {
     this.canvas.setActiveObject(this.productImg);
     this.canvas.renderAll();
 
-    console.log(`✂️ Изделие экспортировано: ${cropWidth.toFixed(0)}×${cropHeight.toFixed(0)}px (полное изображение)`);
+    console.log(`✂️ Изделие экспортировано: ${exportWidth.toFixed(0)}×${exportHeight.toFixed(0)}px (${imgWidth.toFixed(0)}×${imgHeight.toFixed(0)} + padding ${padding.toFixed(0)})`);
 
     return dataURL;
 }

@@ -33,4 +33,11 @@ urlpatterns = [
 
     # Регистрация завода
     path('factory/register/', views.factory_register, name='factory_register'),
+
+    # Редактор темы
+    path('theme-editor/', views.theme_editor, name='theme_editor'),
+    path('theme/save/', views.theme_save, name='theme_save'),
+    path('theme/<int:theme_id>/load/', views.theme_load, name='theme_load'),
+    path('theme/<int:theme_id>/delete/', views.theme_delete, name='theme_delete'),
+    path('theme/<int:theme_id>/activate/', views.theme_activate, name='theme_activate'),
 ]

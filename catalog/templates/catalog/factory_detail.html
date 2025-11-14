@@ -3,82 +3,112 @@
 
 {% block title %}{{ factory.name }} - Каталог товаров{% endblock %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
-<link rel="stylesheet" href="{% static 'css/catalog.css' %}">
-{% endblock %}
-
 {% block content %}
-<!-- Информация о заводе -->
-<div class="factory-detail-header">
-    {% if factory.logo %}
-        <img src="{{ factory.logo.url }}" alt="{{ factory.name }}" class="factory-logo-large">
-    {% else %}
-        <div class="factory-logo-large"></div>
-    {% endif %}
-    
-    <div class="factory-details">
-        <h1>{{ factory.name }}</h1>
-        
-        {% if factory.is_verified %}
-            <span class="verified-badge">✓ Проверенный производитель</span>
-        {% endif %}
-        
-        {% if factory.description %}
-            <p class="factory-description">{{ factory.description }}</p>
-        {% endif %}
-        
-        <div class="factory-contacts">
-            <div class="contact-item">
-                📍 {{ factory.address }}
+<!-- Factory Information -->
+<div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-8 mb-6">
+    <div class="flex flex-col md:flex-row gap-6">
+        {% if factory.logo %}
+            <img src="{{ factory.logo.url }}" alt="{{ factory.name }}" class="w-32 h-32 object-contain bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+        {% else %}
+            <div class="w-32 h-32 bg-gray-100 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 flex items-center justify-center">
+                <i class="bi bi-building text-gray-400 dark:text-gray-500 text-5xl"></i>
             </div>
-            <div class="contact-item">
-                📞 {{ factory.phone }}
+        {% endif %}
+
+        <div class="flex-1">
+            <div class="flex items-center gap-3 mb-3">
+                <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ factory.name }}</h1>
+                {% if factory.is_verified %}
+                    <span class="bg-green-100 text-green-800 text-sm font-medium px-3 py-1 rounded-full flex items-center">
+                        <i class="bi bi-check-circle-fill mr-1"></i>
+                        Проверенный производитель
+                    </span>
+                {% endif %}
             </div>
-            <div class="contact-item">
-                ✉️ {{ factory.email }}
+
+            {% if factory.description %}
+                <p class="text-gray-600 dark:text-white mb-4">{{ factory.description }}</p>
+            {% endif %}
+
+            <div class="grid md:grid-cols-3 gap-4 text-sm">
+                <div class="flex items-center text-gray-700 dark:text-white">
+                    <i class="bi bi-geo-alt-fill text-primary-600 mr-2"></i>
+                    <span>{{ factory.address }}</span>
+                </div>
+                <div class="flex items-center text-gray-700 dark:text-white">
+                    <i class="bi bi-telephone-fill text-primary-600 mr-2"></i>
+                    <span>{{ factory.phone }}</span>
+                </div>
+                <div class="flex items-center text-gray-700 dark:text-white">
+                    <i class="bi bi-envelope-fill text-primary-600 mr-2"></i>
+                    <span>{{ factory.email }}</span>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Товары завода -->
-<div class="products-section">
-    <h2>Товары производителя ({{ products.count }})</h2>
-    
+<!-- Factory Products -->
+<div class="mb-6">
+    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+        Товары производителя
+        <span class="text-primary-600">({{ products.count }})</span>
+    </h2>
+
     {% if products %}
-        <div class="products-grid">
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {% for product in products %}
-                <a href="{% url 'catalog:product_detail' product.article %}" class="product-card">
-                    {% if product.images.all.0 %}
-                        <img src="{{ product.images.all.0.image.url }}" alt="{{ product.name }}" class="product-image">
-                    {% else %}
-                        <div class="product-image"></div>
-                    {% endif %}
-                    
-                    <div class="product-info">
-                        <div class="product-category">{{ product.category.name }}</div>
-                        <h3 class="product-name">{{ product.name }}</h3>
-                        <div class="product-article">Арт: {{ product.article }}</div>
-                        <div class="product-material">{{ product.material.name }} • {{ product.weight }} г</div>
-                        
-                        {% if product.in_stock %}
-                            <span class="stock-badge in-stock">✓ В наличии</span>
+                <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow hover:shadow-lg transition-shadow">
+                    <a href="{% url 'catalog:product_detail' product.article %}" class="block">
+                        {% if product.images.all.0 %}
+                            <img src="{{ product.images.all.0.image.url }}"
+                                 alt="{{ product.name }}"
+                                 class="w-full h-64 object-contain bg-gray-50 dark:bg-gray-700 rounded-t-lg">
                         {% else %}
-                            <span class="stock-badge out-stock">Нет в наличии</span>
+                            <div class="w-full h-64 bg-gray-50 dark:bg-gray-700 flex items-center justify-center rounded-t-lg">
+                                <i class="bi bi-image text-gray-400 dark:text-gray-500 text-5xl"></i>
+                            </div>
                         {% endif %}
-                        
-                        <div class="product-footer">
-                            <div class="product-price">{{ product.price }} $</div>
+                    </a>
+
+                    <div class="p-5">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded mb-2 inline-block">
+                            {{ product.category.name }}
+                        </span>
+                        <a href="{% url 'catalog:product_detail' product.article %}">
+                            <h5 class="text-xl font-semibold tracking-tight text-gray-900 dark:text-white hover:text-primary-600 mb-2">
+                                {{ product.name }}
+                            </h5>
+                        </a>
+                        <div class="text-sm text-gray-600 dark:text-white mb-3 space-y-1">
+                            <p><i class="bi bi-hash"></i> Арт: {{ product.article }}</p>
+                            <p><i class="bi bi-gem"></i> {{ product.material.name }} • {{ product.metal_weight|default:"—" }} г</p>
+                        </div>
+
+                        {% if product.in_stock %}
+                            <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded inline-flex items-center mb-3">
+                                <i class="bi bi-check-circle mr-1"></i>
+                                В наличии
+                            </span>
+                        {% else %}
+                            <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded inline-flex items-center mb-3">
+                                <i class="bi bi-x-circle mr-1"></i>
+                                Нет в наличии
+                            </span>
+                        {% endif %}
+
+                        <div class="flex items-center justify-between">
+                            <span class="text-2xl font-bold text-primary-600">${{ product.price }}</span>
                         </div>
                     </div>
-                </a>
+                </div>
             {% endfor %}
         </div>
     {% else %}
-        <div class="empty-state">
-            <h3>У производителя пока нет товаров в каталоге</h3>
-            <p>Заходите позже, товары скоро появятся</p>
+        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm text-center p-12">
+            <i class="bi bi-inbox text-primary-600" style="font-size: 4rem;"></i>
+            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mt-4">У производителя пока нет товаров в каталоге</h3>
+            <p class="text-gray-600 dark:text-white mt-2">Заходите позже, товары скоро появятся</p>
         </div>
     {% endif %}
 </div>

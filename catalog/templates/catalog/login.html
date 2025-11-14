@@ -3,43 +3,51 @@
 
 {% block title %}Вход - Ювелирный Каталог{% endblock %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/auth.css' %}">
-{% endblock %}
-
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6 col-lg-4">
-        <div class="card shadow">
-            <div class="card-body text-center">
-                <div class="mb-4">
-                    <i class="bi bi-person-circle" style="font-size: 5rem; color: var(--color-primary);"></i>
-                    <h2 class="mt-3">Вход в аккаунт</h2>
+<div class="flex justify-center items-center min-h-[60vh]">
+    <div class="w-full max-w-md">
+        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-8">
+            <div class="text-center mb-6">
+                <i class="bi bi-person-circle text-primary-600" style="font-size: 5rem;"></i>
+                <h2 class="mt-4 text-2xl font-bold text-gray-900 dark:text-white">Вход в аккаунт</h2>
+            </div>
+
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+
+                <div>
+                    <label for="username" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                        <i class="bi bi-person mr-1"></i> Имя пользователя
+                    </label>
+                    <input type="text" name="username" id="username" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5" placeholder="Введите имя пользователя" required>
                 </div>
-                <form method="post">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label class="form-label">
-                            <i class="bi bi-person"></i> Имя пользователя:
-                        </label>
-                        <input type="text" name="username" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">
-                            <i class="bi bi-lock"></i> Пароль:
-                        </label>
-                        <input type="password" name="password" class="form-control" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-box-arrow-in-right"></i> Войти
-                    </button>
-                </form>
-                <div class="mt-3 text-center">
-                    <a href="{% url 'catalog:home' %}" class="text-decoration-none">
-                        <i class="bi bi-arrow-left"></i> На главную
+
+                <div>
+                    <label for="password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                        <i class="bi bi-lock mr-1"></i> Пароль
+                    </label>
+                    <input type="password" name="password" id="password" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5" placeholder="Введите пароль" required>
+                </div>
+
+                <button type="submit" class="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                    <i class="bi bi-box-arrow-in-right mr-2"></i>
+                    Войти
+                </button>
+
+                <div class="text-center">
+                    <a href="{% url 'catalog:home' %}" class="text-sm text-primary-600 dark:text-primary-400 hover:underline">
+                        <i class="bi bi-arrow-left mr-1"></i>
+                        На главную
                     </a>
                 </div>
-            </div>
+
+                <div class="text-sm text-center text-gray-500 dark:text-white">
+                    Нет аккаунта?
+                    <a href="{% url 'catalog:customer_register' %}" class="font-medium text-primary-600 dark:text-primary-400 hover:underline">
+                        Зарегистрироваться
+                    </a>
+                </div>
+            </form>
         </div>
     </div>
 </div>

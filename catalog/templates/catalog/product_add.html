@@ -4,356 +4,448 @@
 {% block title %}Добавить товар{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
 <link rel="stylesheet" href="{% static 'css/image-editor.css' %}">
 {% endblock %}
 
-{% block header_title %}<i class="bi bi-plus-circle-fill"></i> Добавить новый товар{% endblock %}
-
 {% block content %}
-<div class="form-box">
-    <h2>Добавление товара</h2>
-    
-    <form method="post" enctype="multipart/form-data" data-editor-form>
-        {% csrf_token %}
-        
-        <!-- Основная информация -->
-        <h3>Основная информация</h3>
-        {{ form.category.label_tag }} {{ form.category }}
-        {{ form.material.label_tag }} {{ form.material }}
-        {{ form.name.label_tag }} {{ form.name }}
-        {{ form.article.label_tag }} {{ form.article }}
-        {{ form.description.label_tag }} {{ form.description }}
-        
-        <!-- Характеристики -->
-        <h3>Характеристики металла</h3>
-        {{ form.purity.label_tag }} {{ form.purity }}
-        {{ form.metal_color.label_tag }} {{ form.metal_color }}
-        {{ form.style.label_tag }} {{ form.style }}
-
-        <h3>Вес и размеры</h3>
-        {{ form.metal_weight.label_tag }} {{ form.metal_weight }}
-        <span class="help-text">{{ form.metal_weight.help_text }}</span>
-
-        {{ form.total_weight.label_tag }} {{ form.total_weight }}
-        <span class="help-text">{{ form.total_weight.help_text }}</span>
-
-        {{ form.size.label_tag }} {{ form.size }}
-
-        <h3>Вставки и покрытия</h3>
-        {{ form.has_inserts.label_tag }} {{ form.has_inserts }}
-
-        <div id="insertTypesSection" style="display:none;">
-            {{ form.insert_types.label_tag }}
-            {{ form.insert_types }}
-        </div>
-
-        {{ form.insert_description.label_tag }} {{ form.insert_description }}
-
-        {{ form.coatings.label_tag }} {{ form.coatings }}
-
-        {{ form.has_stamp.label_tag }} {{ form.has_stamp }}
-
-        <div id="stampDescSection" style="display:none;">
-            {{ form.stamp_description.label_tag }} {{ form.stamp_description }}
-        </div>
-        
-        <!-- Выбор типа изделия -->
-        <h3><i class="bi bi-rulers"></i> Тип изделия</h3>
-        <div class="form-group">
-            {{ form.reference_photo_type.label_tag }}
-            {{ form.reference_photo_type }}
-            <p class="help-text">Выберите тип для автоматического расчёта размеров</p>
-        </div>
-        
-        <!-- Редактор изображений (показывается только если выбран тип) -->
-        <div id="editorSection" class="hidden">
-            <h3><i class="bi bi-bounding-box"></i> Подгонка изделия под эталон</h3>
-            
-            <div class="image-editor-container" 
-                 id="imageEditorContainer"
-                 data-reference-image=""
-                 data-reference-width="50"
-                 data-reference-height="60">
-                
-                <!-- Инструкция -->
-                <div class="editor-instructions">
-                    <h4>Как подогнать изделие:</h4>
-                    <ul>
-                        <li>Загрузите фото вашего изделия</li>
-                        <li>Перетаскивайте и масштабируйте его мышкой</li>
-                        <li>Подгоните под эталон для точных размеров</li>
-                        <li>Размеры рассчитаются автоматически</li>
-                    </ul>
-                </div>
-                
-                <!-- Информация об эталоне -->
-                <div class="reference-info" id="referenceInfo" style="display:none;">
-                    <strong>Эталон:</strong> <span id="referenceTypeText"></span><br>
-                    <strong>Размеры эталона:</strong> <span id="referenceSizeText"></span>
-                </div>
-                
-                <!-- Контролы -->
-                <div class="editor-controls">
-    <!-- Загрузка изделия -->
-    <div class="file-upload">
-        <input type="file" id="productImageInput" accept="image/*">
-        <label for="productImageInput" class="file-upload-btn">
-            <i class="bi bi-upload"></i> Загрузить фото изделия
-        </label>
+<div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm max-w-6xl mx-auto">
+    <div class="bg-gradient-to-r from-primary-600 to-purple-600 text-white px-6 py-4 rounded-t-lg">
+        <h2 class="text-xl font-semibold">
+            <i class="bi bi-plus-circle-fill mr-2"></i>
+            Добавить новый товар
+        </h2>
     </div>
-    
-    <!-- Прозрачность эталона -->
-    <div class="control-group">
-        <label for="referenceOpacity">Прозрачность эталона:</label>
-        <input type="range" 
-               id="referenceOpacity" 
-               class="opacity-slider"
-               min="0" 
-               max="1" 
-               step="0.1" 
-               value="0.5">
-    </div>
-    
-    <!-- НОВЫЙ: Прозрачность изделия -->
-    <div class="control-group">
-        <label for="productOpacity">Прозрачность изделия:</label>
-        <input type="range" 
-               id="productOpacity" 
-               class="opacity-slider"
-               min="0" 
-               max="1" 
-               step="0.1" 
-               value="1"
-               disabled>
-        <span class="opacity-value">100%</span>
-    </div>
-    
-    <!-- Zoom контролы -->
-    <div class="zoom-controls">
-        <button type="button" class="zoom-btn" id="zoomOut" disabled>−</button>
-        <span class="zoom-level">100%</span>
-        <button type="button" class="zoom-btn" id="zoomIn" disabled>+</button>
-    </div>
-    <div class="crop-tools" id="cropTools" style="display:none;">
-        <button type="button" class="control-btn" id="startCropBtn" disabled>
-            <i class="bi bi-scissors"></i> Выделить область изделия
-        </button>
-        <button type="button" class="control-btn control-btn-success" id="applyCropBtn" style="display:none;">
-            <i class="bi bi-check-lg"></i> Применить выделение
-        </button>
-        <button type="button" class="control-btn control-btn-secondary" id="cancelCropBtn" style="display:none;">
-            <i class="bi bi-x-lg"></i> Отменить
-        </button>
-    </div>
-    <!-- Сброс -->
-    <button type="button" class="control-btn control-btn-secondary" id="resetPosition" disabled>
-        <i class="bi bi-arrow-counterclockwise"></i> Сбросить позицию
-    </button>
-</div>
-<!-- Undo/Redo контролы -->
-<div class="undo-redo-controls">
-    <button type="button" class="control-btn" id="undoBtn" disabled title="Отменить (Ctrl+Z)">
-        <i class="bi bi-arrow-counterclockwise"></i> Отменить
-    </button>
-    <button type="button" class="control-btn" id="redoBtn" disabled title="Вернуть (Ctrl+Shift+Z)">
-        <i class="bi bi-arrow-clockwise"></i> Вернуть
-    </button>
-</div>
 
-<!-- Кнопка магнитного прилипания -->
-<div class="snap-controls">
-    <button type="button" class="control-btn active" id="toggleSnapBtn" title="Магнитное прилипание к эталону">
-        <i class="bi bi-magnet"></i> Магнит: ВКЛ
-    </button>
-</div>
+    <div class="p-8">
+        <form method="post" enctype="multipart/form-data" data-editor-form class="space-y-8">
+            {% csrf_token %}
 
-<!-- Кнопка предпросмотра -->
-<div class="preview-controls">
-    <button type="button" class="control-btn control-btn-preview" id="previewBtn" disabled title="Посмотреть финальный результат">
-        <i class="bi bi-eye"></i> Предпросмотр
-    </button>
-</div>
-                <!-- Canvas контейнер -->
-                <div class="canvas-container-wrapper">
-                    <!-- Canvas будет создан через JavaScript -->
-                    <div class="loading-overlay">
-                        <div class="spinner"></div>
+            <!-- Main Information -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                    <i class="bi bi-info-circle mr-2"></i>
+                    Основная информация
+                </h3>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="{{ form.category.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ form.category.label }}</label>
+                        {{ form.category }}
                     </div>
-                </div>
-                
-                <!-- Рассчитанные размеры -->
-                <div class="dimensions-display">
-                    <h4><i class="bi bi-calculator"></i> Рассчитанные размеры изделия</h4>
-                    <div class="dimension-row">
-                        <span class="dimension-label">Ширина:</span>
-                        <span class="dimension-value calculated" id="calculatedWidth">— мм</span>
+                    <div>
+                        <label for="{{ form.material.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ form.material.label }}</label>
+                        {{ form.material }}
                     </div>
-                    <div class="dimension-row">
-                        <span class="dimension-label">Высота:</span>
-                        <span class="dimension-value calculated" id="calculatedHeight">— мм</span>
+                    <div class="md:col-span-2">
+                        <label for="{{ form.name.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ form.name.label }}</label>
+                        <input type="text" name="name" id="{{ form.name.id_for_label }}" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5" required>
+                    </div>
+                    <div>
+                        <label for="{{ form.article.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ form.article.label }}</label>
+                        <input type="text" name="article" id="{{ form.article.id_for_label }}" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5" required>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="{{ form.description.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ form.description.label }}</label>
+                        <textarea name="description" id="{{ form.description.id_for_label }}" rows="4" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5"></textarea>
                     </div>
                 </div>
             </div>
-        </div>
-        
-        <!-- Скрытые поля для размеров -->
-        <input type="hidden" id="id_width_mm" name="width_mm">
-        <input type="hidden" id="id_height_mm" name="height_mm">
-        <input type="hidden" id="id_diameter_mm" name="diameter_mm">
-        <input type="hidden" id="id_editor_data" name="editor_data">
-        
-        <!-- Цена и склад -->
-        <h3>Цена и склад</h3>
-        {{ form.price.label_tag }} {{ form.price }}
-        {{ form.stock_quantity.label_tag }} {{ form.stock_quantity }}
-        
-        <!-- Статус -->
-        <h3>Статус</h3>
-        {{ form.is_active.label_tag }} {{ form.is_active }}
-        {{ form.show_ruler }} {{ form.show_ruler.label_tag }}
-        
-        <button type="submit" class="btn btn-primary">
-            <i class="bi bi-save"></i> Добавить товар
-        </button>
-    </form>
 
-    <a href="{% url 'catalog:factory_dashboard' %}" class="back-link">
-        <i class="bi bi-arrow-left"></i> Назад в кабинет
-    </a>
+            <!-- Metal Characteristics -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                    <i class="bi bi-gem mr-2"></i>
+                    Характеристики металла
+                </h3>
+                <div class="grid md:grid-cols-3 gap-4">
+                    <div>
+                        <label for="{{ form.purity.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ form.purity.label }}</label>
+                        {{ form.purity }}
+                    </div>
+                    <div>
+                        <label for="{{ form.metal_color.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ form.metal_color.label }}</label>
+                        {{ form.metal_color }}
+                    </div>
+                    <div>
+                        <label for="{{ form.style.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ form.style.label }}</label>
+                        {{ form.style }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weight and Size -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                    <i class="bi bi-rulers mr-2"></i>
+                    Вес и размеры
+                </h3>
+                <div class="grid md:grid-cols-3 gap-4">
+                    <div>
+                        <label for="{{ form.metal_weight.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ form.metal_weight.label }}</label>
+                        <input type="number" step="0.01" name="metal_weight" id="{{ form.metal_weight.id_for_label }}" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5">
+                        {% if form.metal_weight.help_text %}
+                        <p class="mt-1 text-xs text-gray-500 dark:text-white">{{ form.metal_weight.help_text }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.total_weight.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ form.total_weight.label }}</label>
+                        <input type="number" step="0.01" name="total_weight" id="{{ form.total_weight.id_for_label }}" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5">
+                        {% if form.total_weight.help_text %}
+                        <p class="mt-1 text-xs text-gray-500 dark:text-white">{{ form.total_weight.help_text }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.size.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ form.size.label }}</label>
+                        <input type="text" name="size" id="{{ form.size.id_for_label }}" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inserts and Coatings -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                    <i class="bi bi-asterisk mr-2"></i>
+                    Вставки и покрытия
+                </h3>
+                <div class="space-y-4">
+                    <div class="flex items-center">
+                        {{ form.has_inserts }}
+                        <label for="{{ form.has_inserts.id_for_label }}" class="ml-2 text-sm font-medium text-gray-900 dark:text-white">{{ form.has_inserts.label }}</label>
+                    </div>
+
+                    <div id="insertTypesSection" style="display:none;">
+                        <label for="{{ form.insert_types.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ form.insert_types.label }}</label>
+                        {{ form.insert_types }}
+                    </div>
+
+                    <div>
+                        <label for="{{ form.insert_description.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ form.insert_description.label }}</label>
+                        <textarea name="insert_description" id="{{ form.insert_description.id_for_label }}" rows="2" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5"></textarea>
+                    </div>
+
+                    <div>
+                        <label for="{{ form.coatings.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ form.coatings.label }}</label>
+                        {{ form.coatings }}
+                    </div>
+
+                    <div class="flex items-center">
+                        {{ form.has_stamp }}
+                        <label for="{{ form.has_stamp.id_for_label }}" class="ml-2 text-sm font-medium text-gray-900 dark:text-white">{{ form.has_stamp.label }}</label>
+                    </div>
+
+                    <div id="stampDescSection" style="display:none;">
+                        <label for="{{ form.stamp_description.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ form.stamp_description.label }}</label>
+                        <textarea name="stamp_description" id="{{ form.stamp_description.id_for_label }}" rows="2" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reference Photo Type -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                    <i class="bi bi-rulers mr-2"></i>
+                    Тип изделия
+                </h3>
+                <div>
+                    <label for="{{ form.reference_photo_type.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ form.reference_photo_type.label }}</label>
+                    {{ form.reference_photo_type }}
+                    <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Выберите тип для автоматического расчёта размеров</p>
+                </div>
+            </div>
+
+            <!-- Image Editor Section -->
+            <div id="editorSection" class="hidden">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                    <i class="bi bi-bounding-box mr-2"></i>
+                    Подгонка изделия под эталон
+                </h3>
+
+                <div class="image-editor-container bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-6"
+                     id="imageEditorContainer"
+                     data-reference-image=""
+                     data-reference-width="50"
+                     data-reference-height="60">
+
+                    <!-- Instructions -->
+                    <div class="editor-instructions bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
+                        <h4 class="font-semibold text-gray-900 dark:text-white mb-2">Как подогнать изделие:</h4>
+                        <ul class="text-sm text-gray-700 dark:text-white space-y-1 list-disc list-inside">
+                            <li>Загрузите фото вашего изделия</li>
+                            <li>Перетаскивайте и масштабируйте его мышкой</li>
+                            <li>Подгоните под эталон для точных размеров</li>
+                            <li>Размеры рассчитаются автоматически</li>
+                        </ul>
+                    </div>
+
+                    <!-- Reference Info -->
+                    <div class="reference-info bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-4" id="referenceInfo" style="display:none;">
+                        <p class="text-sm text-gray-700 dark:text-white"><strong>Эталон:</strong> <span id="referenceTypeText"></span></p>
+                        <p class="text-sm text-gray-700 dark:text-white"><strong>Размеры эталона:</strong> <span id="referenceSizeText"></span></p>
+                    </div>
+
+                    <!-- Editor Controls -->
+                    <div class="editor-controls space-y-4 mb-4">
+                        <div class="file-upload">
+                            <input type="file" id="productImageInput" accept="image/*" class="hidden">
+                            <label for="productImageInput" class="text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center cursor-pointer">
+                                <i class="bi bi-upload mr-2"></i> Загрузить фото изделия
+                            </label>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="referenceOpacity" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Прозрачность эталона:</label>
+                                <input type="range" id="referenceOpacity" class="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer" min="0" max="1" step="0.1" value="0.5">
+                            </div>
+
+                            <div>
+                                <label for="productOpacity" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Прозрачность изделия:</label>
+                                <input type="range" id="productOpacity" class="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer" min="0" max="1" step="0.1" value="1" disabled>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2 flex-wrap">
+                            <div class="zoom-controls inline-flex rounded-md shadow-sm" role="group">
+                                <button type="button" class="zoom-btn px-4 py-2 text-sm font-medium text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-l-lg hover:bg-gray-100 dark:hover:bg-gray-600" id="zoomOut" disabled>−</button>
+                                <span class="zoom-level px-4 py-2 text-sm font-medium text-gray-900 dark:text-white bg-white dark:bg-gray-700 border-t border-b border-gray-200 dark:border-gray-600">100%</span>
+                                <button type="button" class="zoom-btn px-4 py-2 text-sm font-medium text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-r-lg hover:bg-gray-100 dark:hover:bg-gray-600" id="zoomIn" disabled>+</button>
+                            </div>
+
+                            <button type="button" class="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600" id="resetPosition" disabled>
+                                <i class="bi bi-arrow-counterclockwise mr-1"></i> Сбросить
+                            </button>
+
+                            <button type="button" class="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-green-600 rounded-lg hover:bg-green-700 active" id="toggleSnapBtn" title="Магнитное прилипание">
+                                <i class="bi bi-magnet mr-1"></i> Магнит: ВКЛ
+                            </button>
+                        </div>
+
+                        <div id="cropTools" class="flex gap-2" style="display:none;">
+                            <button type="button" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-lg hover:bg-blue-700" id="startCropBtn" disabled>
+                                <i class="bi bi-scissors mr-1"></i> Выделить область
+                            </button>
+                            <button type="button" class="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-green-600 rounded-lg hover:bg-green-700" id="applyCropBtn" style="display:none;">
+                                <i class="bi bi-check-lg mr-1"></i> Применить
+                            </button>
+                            <button type="button" class="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-lg hover:bg-gray-100" id="cancelCropBtn" style="display:none;">
+                                <i class="bi bi-x-lg mr-1"></i> Отменить
+                            </button>
+                        </div>
+
+                        <!-- Undo/Redo Controls -->
+                        <div class="flex gap-2">
+                            <button type="button" class="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600" id="undoBtn" disabled title="Отменить (Ctrl+Z)">
+                                <i class="bi bi-arrow-counterclockwise mr-1"></i> Отменить
+                            </button>
+                            <button type="button" class="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600" id="redoBtn" disabled title="Вернуть (Ctrl+Shift+Z)">
+                                <i class="bi bi-arrow-clockwise mr-1"></i> Вернуть
+                            </button>
+                        </div>
+
+                        <!-- Preview Button -->
+                        <div>
+                            <button type="button" class="px-4 py-2 text-sm font-medium text-white bg-purple-600 border border-purple-600 rounded-lg hover:bg-purple-700" id="previewBtn" disabled title="Посмотреть финальный результат">
+                                <i class="bi bi-eye mr-1"></i> Предпросмотр
+                            </button>
+                        </div>
+
+                    </div>
+
+                    <!-- Coordinates Display - Always Visible -->
+                    <div id="coordinatesDisplay" class="hidden bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/30 dark:to-blue-900/30 border border-purple-200 dark:border-purple-800 rounded-lg p-4 mt-4">
+                        <div class="flex items-center gap-6">
+                            <div class="flex items-center gap-2">
+                                <i class="bi bi-cursor text-purple-600 dark:text-purple-400"></i>
+                                <span class="text-sm font-medium text-gray-700 dark:text-white">Координаты курсора:</span>
+                            </div>
+                            <div class="flex gap-6 text-sm font-bold">
+                                <span class="text-purple-700 dark:text-purple-300">X: <span id="cursorX" class="font-mono">0.00</span> мм</span>
+                                <span class="text-blue-700 dark:text-blue-300">Y: <span id="cursorY" class="font-mono">0.00</span> мм</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Canvas Container -->
+                    <div class="canvas-container-wrapper bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
+                        <div class="loading-overlay">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+
+                    <!-- Calculated Dimensions -->
+                    <div class="dimensions-display bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mt-4">
+                        <h4 class="font-semibold text-gray-900 dark:text-white mb-3"><i class="bi bi-calculator mr-2"></i>Рассчитанные размеры изделия</h4>
+                        <div class="grid md:grid-cols-2 gap-3">
+                            <div class="flex justify-between border-b border-gray-200 dark:border-gray-600 pb-2">
+                                <span class="text-gray-600 dark:text-white">Ширина:</span>
+                                <span class="font-semibold text-gray-900 dark:text-white calculated" id="calculatedWidth">— мм</span>
+                            </div>
+                            <div class="flex justify-between border-b border-gray-200 dark:border-gray-600 pb-2">
+                                <span class="text-gray-600 dark:text-white">Высота:</span>
+                                <span class="font-semibold text-gray-900 dark:text-white calculated" id="calculatedHeight">— мм</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hidden fields -->
+            <input type="hidden" id="id_width_mm" name="width_mm">
+            <input type="hidden" id="id_height_mm" name="height_mm">
+            <input type="hidden" id="id_diameter_mm" name="diameter_mm">
+            <input type="hidden" id="id_editor_data" name="editor_data">
+            <input type="hidden" name="show_ruler" value="on">
+
+            <!-- Price and Stock -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                    <i class="bi bi-currency-dollar mr-2"></i>
+                    Цена и наличие
+                </h3>
+                <div class="grid md:grid-cols-3 gap-4">
+                    <div>
+                        <label for="{{ form.price.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ form.price.label }}</label>
+                        <input type="number" step="0.01" name="price" id="{{ form.price.id_for_label }}" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5" required>
+                    </div>
+                    <div>
+                        <label for="{{ form.stock_quantity.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ form.stock_quantity.label }}</label>
+                        <input type="number" name="stock_quantity" id="{{ form.stock_quantity.id_for_label }}" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5" required>
+                    </div>
+                    <div class="flex items-center pt-8">
+                        {{ form.is_active }}
+                        <label for="{{ form.is_active.id_for_label }}" class="ml-2 text-sm font-medium text-gray-900 dark:text-white">{{ form.is_active.label }}</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Images -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                    <i class="bi bi-images mr-2"></i>
+                    Фотографии товара
+                </h3>
+                {{ formset.management_form }}
+                <div class="space-y-4">
+                    {% for form in formset %}
+                    <div class="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-4">
+                        {{ form.as_p }}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="flex gap-3">
+                <button type="submit" class="text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                    <i class="bi bi-save mr-2"></i>
+                    Сохранить товар
+                </button>
+                <a href="{% url 'catalog:factory_dashboard' %}" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                    <i class="bi bi-arrow-left mr-2"></i>
+                    Отмена
+                </a>
+            </div>
+        </form>
+    </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<!-- Fabric.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
-<!-- Редактор изображений -->
+<!-- Fabric.js already loaded in base.html -->
 <script src="{% static 'js/image-editor.js' %}"></script>
 <script>
-// Показ/скрытие редактора при выборе типа
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Ювелирный Каталог загружен! 💎');
-
-    // 🔧 НОВОЕ: Показ/скрытие секции вставок
-    const hasInsertsCheckbox = document.querySelector('[name="has_inserts"]');
+    // Toggle insert types section
+    const hasInsertsCheckbox = document.getElementById('{{ form.has_inserts.id_for_label }}');
     const insertTypesSection = document.getElementById('insertTypesSection');
 
-    if (hasInsertsCheckbox && insertTypesSection) {
+    if (hasInsertsCheckbox) {
         hasInsertsCheckbox.addEventListener('change', function() {
             insertTypesSection.style.display = this.checked ? 'block' : 'none';
         });
-        // Инициализация при загрузке
-        insertTypesSection.style.display = hasInsertsCheckbox.checked ? 'block' : 'none';
     }
 
-    // 🔧 НОВОЕ: Показ/скрытие описания клейма
-    const hasStampCheckbox = document.querySelector('[name="has_stamp"]');
+    // Toggle stamp description section
+    const hasStampCheckbox = document.getElementById('{{ form.has_stamp.id_for_label }}');
     const stampDescSection = document.getElementById('stampDescSection');
 
-    if (hasStampCheckbox && stampDescSection) {
+    if (hasStampCheckbox) {
         hasStampCheckbox.addEventListener('change', function() {
             stampDescSection.style.display = this.checked ? 'block' : 'none';
         });
-        // Инициализация при загрузке
-        stampDescSection.style.display = hasStampCheckbox.checked ? 'block' : 'none';
     }
 
-    const referenceTypeSelect = document.querySelector('[name="reference_photo_type"]');
+    // Reference photo type handling
+    const referenceTypeSelect = document.getElementById('{{ form.reference_photo_type.id_for_label }}');
     const editorSection = document.getElementById('editorSection');
     const referenceInfo = document.getElementById('referenceInfo');
-    
-    // Эталонные изображения и их размеры
+
     const referenceData = {
         'ear': {
-            name: '👂 Ухо',
+            name: 'Ухо',
             image: '{% static "images/references/ear.png" %}',
-            width: 50,
-            height: 60,
-            description: 'Эталонное ухо (50×60 мм)'
+            width: 20,
+            height: 50,
+            description: '20×50 мм'
         },
         'finger': {
-            name: '💍 Палец',
+            name: 'Палец',
             image: '{% static "images/references/finger.png" %}',
             width: 17,
-            height: 50,
-            description: 'Эталонный палец (диаметр 17 мм, длина 50 мм)'
+            height: 60,
+            description: '17×60 мм'
         },
         'wrist': {
-            name: '⌚ Запястье',
+            name: 'Запястье',
             image: '{% static "images/references/wrist.png" %}',
-            width: 160,
-            height: 60,
-            description: 'Эталонное запястье (обхват 160 мм)'
+            width: 50,
+            height: 50,
+            description: '50×50 мм'
         },
         'neck': {
-            name: '📿 Шея',
+            name: 'Шея',
             image: '{% static "images/references/neck.png" %}',
-            width: 360,
-            height: 100,
-            description: 'Эталонная шея (обхват 360 мм)'
+            width: 100,
+            height: 120,
+            description: '100×120 мм'
         }
     };
-    
-    // 🔧 ФИКС: Функция полного удаления редактора
+
     function destroyEditor() {
         if (window.jewelryEditor) {
-            console.log('🗑️ Удаляем старый редактор...');
-            
-            // Удаляем canvas instance
             if (window.jewelryEditor.canvas) {
                 try {
                     window.jewelryEditor.canvas.dispose();
                     window.jewelryEditor.canvas = null;
                 } catch (e) {
-                    console.warn('Ошибка при удалении canvas:', e);
+                    console.warn('Error disposing canvas:', e);
                 }
             }
-            
-            // Удаляем DOM элементы
+
             const canvasContainer = document.querySelector('.canvas-container');
-            if (canvasContainer) {
-                canvasContainer.remove();
-            }
-            
+            if (canvasContainer) canvasContainer.remove();
+
             const oldCanvas = document.getElementById('fabricCanvas');
-            if (oldCanvas) {
-                oldCanvas.remove();
-            }
-            
-            // Очищаем все ссылки
-            window.jewelryEditor.referenceImg = null;
-            window.jewelryEditor.productImg = null;
-            window.jewelryEditor.cropRect = null;
-            window.jewelryEditor.history = [];
-            window.jewelryEditor.historyStep = -1;
+            if (oldCanvas) oldCanvas.remove();
+
             window.jewelryEditor = null;
-            
-            console.log('✅ Редактор удалён');
         }
     }
-    
+
     if (referenceTypeSelect) {
         referenceTypeSelect.addEventListener('change', function() {
             const selectedType = this.value;
-            
+
             if (selectedType && selectedType !== 'none' && referenceData[selectedType]) {
-                // Удаляем старый редактор
                 destroyEditor();
-                
-                // Показываем редактор
+
                 editorSection.classList.remove('hidden');
                 referenceInfo.style.display = 'block';
-                
-                // Обновляем информацию об эталоне
+
                 const ref = referenceData[selectedType];
                 document.getElementById('referenceTypeText').textContent = ref.name;
                 document.getElementById('referenceSizeText').textContent = ref.description;
-                
-                // 🔧 ФИКС: Ждём пока секция станет видимой
+
                 setTimeout(() => {
-                    console.log('🆕 Создаём новый редактор для типа:', selectedType);
-                    
-                    // Проверяем что контейнер видим
                     const container = document.getElementById('imageEditorContainer');
                     if (container && container.offsetWidth > 0) {
                         window.jewelryEditor = new JewelryImageEditor('imageEditorContainer', {
@@ -361,31 +453,26 @@ document.addEventListener('DOMContentLoaded', function() {
                             referenceWidth: ref.width,
                             referenceHeight: ref.height
                         });
-                        
-                        // 🔧 Подключаем обработчик загрузки файла для включения crop кнопки
+
                         const originalLoadProductImage = window.jewelryEditor.loadProductImage.bind(window.jewelryEditor);
                         window.jewelryEditor.loadProductImage = function(file) {
                             originalLoadProductImage(file);
-                            
-                            // Включаем crop кнопку после загрузки
+
                             const cropTools = document.getElementById('cropTools');
                             const startCropBtn = document.getElementById('startCropBtn');
                             if (cropTools) cropTools.style.display = 'flex';
                             if (startCropBtn) startCropBtn.disabled = false;
+
+                            // Show coordinates display
+                            const coordsDisplay = document.getElementById('coordinatesDisplay');
+                            if (coordsDisplay) coordsDisplay.classList.remove('hidden');
                         };
-                        
-                        console.log('✅ Новый редактор создан');
-                    } else {
-                        console.error('❌ Контейнер редактора не виден или не найден');
                     }
-                }, 300); // Увеличенная задержка для надёжности
-                
+                }, 300);
+
             } else {
-                // Скрываем редактор
                 editorSection.classList.add('hidden');
                 referenceInfo.style.display = 'none';
-                
-                // Удаляем редактор
                 destroyEditor();
             }
         });

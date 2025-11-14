@@ -9,124 +9,413 @@
     <!-- Fabric.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
 
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Prevent FOUC (Flash of Unstyled Content) -->
+    <style>
+        /* Hide page until theme AND Tailwind are loaded */
+        html body {
+            opacity: 0;
+            visibility: hidden;
+        }
+        html.theme-loaded.tailwind-loaded body {
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.15s ease-in;
+        }
+
+        /* Preloader */
+        #preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.3s ease-out, visibility 0.3s ease-out;
+        }
+
+        html.theme-loaded.tailwind-loaded #preloader {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        /* Spinner animation */
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid rgba(255, 255, 255, 0.2);
+            border-top: 6px solid white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Loading text */
+        .loading-text {
+            position: absolute;
+            margin-top: 100px;
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+
+    <!-- Load Dark Mode and Theme IMMEDIATELY (before page renders) -->
+    <script>
+        // This runs BEFORE the page renders to prevent flash
+        (function() {
+            const darkMode = localStorage.getItem('darkMode') === 'true';
+            if (darkMode) {
+                document.documentElement.classList.add('dark');
+            }
+
+            // Load active theme from localStorage
+            const activeThemeStr = localStorage.getItem('activeTheme');
+            let activeTheme = null;
+
+            if (activeThemeStr) {
+                try {
+                    activeTheme = JSON.parse(activeThemeStr);
+
+                    // Apply sharp corners class if enabled
+                    if (activeTheme && activeTheme.sharp_corners) {
+                        document.documentElement.classList.add('sharp-corners');
+                    }
+                } catch (e) {
+                    console.error('Failed to parse active theme:', e);
+                }
+            }
+
+            // Helper functions
+            function lighten(hex, percent) {
+                const num = parseInt(hex.replace('#', ''), 16);
+                const amt = Math.round(2.55 * percent);
+                const R = Math.min(255, (num >> 16) + amt);
+                const G = Math.min(255, (num >> 8 & 0x00FF) + amt);
+                const B = Math.min(255, (num & 0x0000FF) + amt);
+                return '#' + (0x1000000 + (R << 16) + (G << 8) + B).toString(16).slice(1);
+            }
+
+            function darken(hex, percent) {
+                const num = parseInt(hex.replace('#', ''), 16);
+                const amt = Math.round(2.55 * percent);
+                const R = Math.max(0, (num >> 16) - amt);
+                const G = Math.max(0, (num >> 8 & 0x00FF) - amt);
+                const B = Math.max(0, (num & 0x0000FF) - amt);
+                return '#' + (0x1000000 + (R << 16) + (G << 8) + B).toString(16).slice(1);
+            }
+
+            // Color scheme presets
+            const colorSchemes = {
+                'indigo': { 50: '#eef2ff', 100: '#e0e7ff', 200: '#c7d2fe', 300: '#a5b4fc', 400: '#818cf8', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca', 800: '#3730a3', 900: '#312e81', 950: '#1e1b4b' },
+                'blue': { 50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd', 400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a', 950: '#172554' },
+                'purple': { 50: '#faf5ff', 100: '#f3e8ff', 200: '#e9d5ff', 300: '#d8b4fe', 400: '#c084fc', 500: '#a855f7', 600: '#9333ea', 700: '#7e22ce', 800: '#6b21a8', 900: '#581c87', 950: '#3b0764' },
+                'pink': { 50: '#fdf2f8', 100: '#fce7f3', 200: '#fbcfe8', 300: '#f9a8d4', 400: '#f472b6', 500: '#ec4899', 600: '#db2777', 700: '#be185d', 800: '#9f1239', 900: '#831843', 950: '#500724' },
+                'green': { 50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0', 300: '#86efac', 400: '#4ade80', 500: '#22c55e', 600: '#16a34a', 700: '#15803d', 800: '#166534', 900: '#14532d', 950: '#052e16' },
+                'red': { 50: '#fef2f2', 100: '#fee2e2', 200: '#fecaca', 300: '#fca5a5', 400: '#f87171', 500: '#ef4444', 600: '#dc2626', 700: '#b91c1c', 800: '#991b1b', 900: '#7f1d1d', 950: '#450a0a' }
+            };
+
+            // Determine theme colors
+            if (activeTheme) {
+                let primaryColor = activeTheme.primary_color || '#6366f1';
+
+                // Если это default тема с цветовой схемой, используем палитру Flowbite
+                if (activeTheme.is_default && activeTheme.color_scheme && colorSchemes[activeTheme.color_scheme]) {
+                    window.__savedThemeColor = colorSchemes[activeTheme.color_scheme];
+                } else {
+                    // Для кастомных тем генерируем палитру из primary color
+                    window.__savedThemeColor = {
+                        50: lighten(primaryColor, 45),
+                        100: lighten(primaryColor, 40),
+                        200: lighten(primaryColor, 30),
+                        300: lighten(primaryColor, 20),
+                        400: lighten(primaryColor, 10),
+                        500: primaryColor,
+                        600: darken(primaryColor, 10),
+                        700: darken(primaryColor, 20),
+                        800: darken(primaryColor, 30),
+                        900: darken(primaryColor, 40),
+                        950: darken(primaryColor, 50)
+                    };
+                }
+
+                // Store theme settings globally
+                window.__activeTheme = activeTheme;
+
+                // Load Google Fonts dynamically based on theme
+                const headingFont = activeTheme.heading_font || 'Playfair Display';
+                const bodyFont = activeTheme.body_font || 'Inter';
+                const headingFontWeight = activeTheme.heading_font_weight || '700';
+                const bodyFontWeight = activeTheme.body_font_weight || '400';
+
+                // Only load fonts if they're not default system fonts
+                const fontsToLoad = [];
+                if (headingFont !== 'Inter') fontsToLoad.push(headingFont);
+                if (bodyFont !== 'Inter' && !fontsToLoad.includes(bodyFont)) fontsToLoad.push(bodyFont);
+                if (!fontsToLoad.includes('Inter')) fontsToLoad.push('Inter'); // Always include Inter as fallback
+
+                if (fontsToLoad.length > 0) {
+                    const fontFamilies = fontsToLoad.map(font => font.replace(/ /g, '+') + ':wght@100;200;300;400;500;600;700;800;900;1000').join('&family=');
+                    const fontLink = document.createElement('link');
+                    fontLink.rel = 'stylesheet';
+                    fontLink.href = `https://fonts.googleapis.com/css2?family=${fontFamilies}&display=swap`;
+                    document.head.appendChild(fontLink);
+
+                    // Apply fonts and font weights to document
+                    const style = document.createElement('style');
+                    style.textContent = `
+                        h1, h2, h3, h4, h5, h6 {
+                            font-family: '${headingFont}', serif !important;
+                            font-weight: ${headingFontWeight} !important;
+                        }
+                        body, p, span, div, a, button, input, textarea, select {
+                            font-family: '${bodyFont}', sans-serif !important;
+                            font-weight: ${bodyFontWeight} !important;
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+            } else {
+                // Default: indigo
+                window.__savedThemeColor = colorSchemes['indigo'];
+            }
+
+            // Mark theme as loaded to prevent FOUC
+            document.documentElement.classList.add('theme-loaded');
+        })();
+    </script>
+
+    <!-- Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: window.__savedThemeColor || {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            200: '#c7d2fe',
+                            300: '#a5b4fc',
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            800: '#3730a3',
+                            900: '#312e81',
+                            950: '#1e1b4b',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Flowbite CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.1/dist/flowbite.min.css" rel="stylesheet" />
 
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 
-    <!-- Fonon Design System CSS -->
-    <link rel="stylesheet" href="{% static 'css/fonon-styles.css' %}">
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-    <!-- Базовые стили (переопределения если нужны) -->
+    <!-- Sharp Corners CSS - Remove all border-radius when enabled -->
+    <style>
+        .sharp-corners *,
+        .sharp-corners *::before,
+        .sharp-corners *::after {
+            border-radius: 0 !important;
+        }
+    </style>
+
+    <!-- Custom CSS (minimal) -->
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
 
     <!-- Дополнительные стили для конкретных страниц -->
     {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+    <!-- Preloader -->
+    <div id="preloader">
+        <div style="text-align: center;">
+            <div class="spinner" style="margin: 0 auto;"></div>
+            <div class="loading-text">Загрузка...</div>
+        </div>
+    </div>
+
+    <!-- Apply theme colors to preloader after DOM loads -->
+    <script>
+        (function() {
+            const activeTheme = window.__activeTheme;
+            if (activeTheme) {
+                const preloader = document.getElementById('preloader');
+                if (preloader) {
+                    const primaryColor = activeTheme.primary_color || '#6366f1';
+                    const secondaryColor = activeTheme.secondary_color || '#8b5cf6';
+
+                    if (activeTheme.gradient_enabled) {
+                        preloader.style.background = `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`;
+                    } else {
+                        preloader.style.background = primaryColor;
+                    }
+                }
+            }
+        })();
+    </script>
+
     {% block body_content %}
-    <!-- Навигационная панель с Fonon Design System -->
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'catalog:home' %}">
-                <i class="bi bi-gem"></i> {% block header_title %}Ювелирный Каталог{% endblock %}
+    <!-- Навигационная панель с Flowbite -->
+    <nav id="mainNav" class="border-gray-200">
+        <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
+            <!-- Логотип -->
+            <a href="{% url 'catalog:home' %}" class="flex items-center space-x-3 rtl:space-x-reverse">
+                <i class="bi bi-gem text-white text-2xl"></i>
+                <span class="self-center text-2xl font-semibold whitespace-nowrap text-white">{% block header_title %}Ювелирный Каталог{% endblock %}</span>
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
+
+            <!-- Mobile menu button -->
+            <button data-collapse-toggle="navbar-default" type="button" class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-white rounded-lg md:hidden hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/50" aria-controls="navbar-default" aria-expanded="false">
+                <span class="sr-only">Open main menu</span>
+                <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h15M1 7h15M1 13h15"/>
+                </svg>
             </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+
+            <!-- Navigation Menu -->
+            <div class="hidden w-full md:block md:w-auto" id="navbar-default">
+                <ul class="font-medium flex flex-col p-4 md:p-0 mt-4 border border-white/20 rounded-lg bg-white/10 md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0 md:bg-transparent">
                     {% block header_nav %}
-                    <li class="nav-item">
-                        <a class="nav-link text-center" href="{% url 'catalog:home' %}">
-                            <div><i class="bi bi-house" style="font-size: 1.5rem; display: block;"></i></div>
-                            <small>Главная</small>
+                    <!-- Главная -->
+                    <li>
+                        <a href="{% url 'catalog:home' %}" class="flex items-center py-2 px-3 text-white rounded hover:bg-white/20 md:hover:bg-transparent md:border-0 md:hover:text-white/80 md:p-0">
+                            <i class="bi bi-house text-xl mr-2"></i>
+                            Главная
                         </a>
                     </li>
 
                     {% if user.is_authenticated %}
-                        <!-- Для покупателей -->
-                        <li class="nav-item">
-                            <a class="nav-link text-center" href="{% url 'catalog:favorites_list' %}">
-                                <div><i class="bi bi-heart" style="font-size: 1.5rem; display: block;"></i></div>
-                                <small>Избранное</small>
+                        <!-- Избранное -->
+                        <li>
+                            <a href="{% url 'catalog:favorites_list' %}" class="flex items-center py-2 px-3 text-white rounded hover:bg-white/20 md:hover:bg-transparent md:border-0 md:hover:text-white/80 md:p-0">
+                                <i class="bi bi-heart text-xl mr-2"></i>
+                                Избранное
                             </a>
                         </li>
 
-                        <!-- Для заводов -->
+                        <!-- Dropdown для завода -->
                         {% if user.factory %}
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle text-center" href="#" role="button" data-bs-toggle="dropdown">
-                                    <div><i class="bi bi-building" style="font-size: 1.5rem; display: block;"></i></div>
-                                    <small>Завод</small>
-                                </a>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="{% url 'catalog:factory_dashboard' %}">
-                                        <i class="bi bi-speedometer2"></i> Личный кабинет
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="{% url 'catalog:product_add' %}">
-                                        <i class="bi bi-plus-circle"></i> Добавить товар
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'catalog:factory_category_add' %}">
-                                        <i class="bi bi-tag"></i> Добавить категорию
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'catalog:factory_characteristic_add' %}">
-                                        <i class="bi bi-list-stars"></i> Добавить характеристику
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="{% url 'catalog:factory_profile_edit' %}">
-                                        <i class="bi bi-pencil-square"></i> Редактировать профиль
-                                    </a></li>
+                        <li>
+                            <button id="dropdownNavbarLink" data-dropdown-toggle="dropdownNavbar" class="flex items-center justify-between w-full py-2 px-3 text-white rounded hover:bg-white/20 md:hover:bg-transparent md:border-0 md:hover:text-white/80 md:p-0 md:w-auto">
+                                <i class="bi bi-building text-xl mr-2"></i>
+                                Завод
+                                <svg class="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
+                                </svg>
+                            </button>
+                            <!-- Dropdown menu -->
+                            <div id="dropdownNavbar" class="z-10 hidden font-normal bg-white divide-y divide-gray-100 rounded-lg shadow w-56">
+                                <ul class="py-2 text-sm text-gray-700" aria-labelledby="dropdownNavbarLink">
+                                    <li>
+                                        <a href="{% url 'catalog:factory_dashboard' %}" class="block px-4 py-2 hover:bg-gray-100">
+                                            <i class="bi bi-speedometer2 mr-2"></i>Личный кабинет
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{% url 'catalog:product_add' %}" class="block px-4 py-2 hover:bg-gray-100">
+                                            <i class="bi bi-plus-circle mr-2"></i>Добавить товар
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{% url 'catalog:factory_category_add' %}" class="block px-4 py-2 hover:bg-gray-100">
+                                            <i class="bi bi-tag mr-2"></i>Добавить категорию
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{% url 'catalog:factory_characteristic_add' %}" class="block px-4 py-2 hover:bg-gray-100">
+                                            <i class="bi bi-list-stars mr-2"></i>Добавить характеристику
+                                        </a>
+                                    </li>
                                 </ul>
-                            </li>
+                                <div class="py-1">
+                                    <a href="{% url 'catalog:factory_profile_edit' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <i class="bi bi-pencil-square mr-2"></i>Редактировать профиль
+                                    </a>
+                                </div>
+                            </div>
+                        </li>
                         {% endif %}
 
-                        <!-- Админка для staff -->
+                        <!-- Админка -->
                         {% if user.is_staff %}
-                            <li class="nav-item">
-                                <a class="nav-link text-center" href="/admin/">
-                                    <div><i class="bi bi-gear" style="font-size: 1.5rem; display: block;"></i></div>
-                                    <small>Админка</small>
-                                </a>
-                            </li>
+                        <li>
+                            <a href="/admin/" class="flex items-center py-2 px-3 text-white rounded hover:bg-white/20 md:hover:bg-transparent md:border-0 md:hover:text-white/80 md:p-0">
+                                <i class="bi bi-gear text-xl mr-2"></i>
+                                Админка
+                            </a>
+                        </li>
                         {% endif %}
 
-                        <!-- Пользователь -->
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle text-center" href="#" role="button" data-bs-toggle="dropdown">
-                                <div><i class="bi bi-person-circle" style="font-size: 1.5rem; display: block;"></i></div>
-                                <small>{{ user.username }}</small>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="{% url 'catalog:logout' %}">
-                                    <i class="bi bi-box-arrow-right"></i> Выход
-                                </a></li>
-                            </ul>
+                        <!-- Dropdown пользователя -->
+                        <li>
+                            <button id="dropdownUserLink" data-dropdown-toggle="dropdownUser" class="flex items-center justify-between w-full py-2 px-3 text-white rounded hover:bg-white/20 md:hover:bg-transparent md:border-0 md:hover:text-white/80 md:p-0 md:w-auto">
+                                <i class="bi bi-person-circle text-xl mr-2"></i>
+                                {{ user.username }}
+                                <svg class="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
+                                </svg>
+                            </button>
+                            <!-- Dropdown menu -->
+                            <div id="dropdownUser" class="z-10 hidden font-normal bg-white divide-y divide-gray-100 rounded-lg shadow w-44">
+                                <ul class="py-2 text-sm text-gray-700">
+                                    <li>
+                                        <a href="{% url 'catalog:logout' %}" class="block px-4 py-2 hover:bg-gray-100">
+                                            <i class="bi bi-box-arrow-right mr-2"></i>Выход
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
                         </li>
                     {% else %}
-                        <!-- Для неавторизованных -->
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle text-center" href="#" role="button" data-bs-toggle="dropdown">
-                                <div><i class="bi bi-person-plus" style="font-size: 1.5rem; display: block;"></i></div>
-                                <small>Регистрация</small>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="{% url 'catalog:customer_register' %}">
-                                    <i class="bi bi-person"></i> Регистрация покупателя
-                                </a></li>
-                                {% comment %}
-                                <li><a class="dropdown-item" href="{% url 'catalog:factory_register' %}">
-                                    <i class="bi bi-building"></i> Регистрация завода
-                                </a></li>
-                                {% endcomment %}
-                            </ul>
+                        <!-- Регистрация -->
+                        <li>
+                            <button id="dropdownRegisterLink" data-dropdown-toggle="dropdownRegister" class="flex items-center justify-between w-full py-2 px-3 text-white rounded hover:bg-white/20 md:hover:bg-transparent md:border-0 md:hover:text-white/80 md:p-0 md:w-auto">
+                                <i class="bi bi-person-plus text-xl mr-2"></i>
+                                Регистрация
+                                <svg class="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
+                                </svg>
+                            </button>
+                            <!-- Dropdown menu -->
+                            <div id="dropdownRegister" class="z-10 hidden font-normal bg-white divide-y divide-gray-100 rounded-lg shadow w-56">
+                                <ul class="py-2 text-sm text-gray-700">
+                                    <li>
+                                        <a href="{% url 'catalog:customer_register' %}" class="block px-4 py-2 hover:bg-gray-100">
+                                            <i class="bi bi-person mr-2"></i>Регистрация покупателя
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-center" href="{% url 'catalog:login' %}">
-                                <div><i class="bi bi-box-arrow-in-right" style="font-size: 1.5rem; display: block;"></i></div>
-                                <small>Вход</small>
+
+                        <!-- Вход -->
+                        <li>
+                            <a href="{% url 'catalog:login' %}" class="flex items-center py-2 px-3 text-white rounded hover:bg-white/20 md:hover:bg-transparent md:border-0 md:hover:text-white/80 md:p-0">
+                                <i class="bi bi-box-arrow-in-right text-xl mr-2"></i>
+                                Вход
                             </a>
                         </li>
                     {% endif %}
@@ -137,50 +426,223 @@
     </nav>
 
     <!-- Контент страницы -->
-    <main class="container my-4">
-        <!-- Сообщения с Bootstrap и Fonon стилями -->
+    <main class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Сообщения с Flowbite Alerts -->
         {% if messages %}
-        <div class="messages mb-4">
+        <div class="mb-6 space-y-3">
             {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                {% if message.tags == 'success' %}
-                    <i class="bi bi-check-circle"></i>
-                {% elif message.tags == 'error' or message.tags == 'danger' %}
-                    <i class="bi bi-x-circle"></i>
-                {% elif message.tags == 'warning' %}
-                    <i class="bi bi-exclamation-triangle"></i>
-                {% else %}
-                    <i class="bi bi-info-circle"></i>
-                {% endif %}
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <div class="flex items-center p-4 mb-4 text-sm rounded-lg {% if message.tags == 'success' %}text-green-800 bg-green-50 border border-green-300{% elif message.tags == 'error' or message.tags == 'danger' %}text-red-800 bg-red-50 border border-red-300{% elif message.tags == 'warning' %}text-yellow-800 bg-yellow-50 border border-yellow-300{% else %}text-blue-800 bg-blue-50 border border-blue-300{% endif %}" role="alert">
+                <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                    {% if message.tags == 'success' %}
+                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                    {% else %}
+                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                    {% endif %}
+                </svg>
+                <span class="sr-only">Info</span>
+                <div>
+                    <span class="font-medium">{{ message.tags|title }}!</span> {{ message }}
+                </div>
+                <button type="button" class="ms-auto -mx-1.5 -my-1.5 rounded-lg focus:ring-2 p-1.5 inline-flex items-center justify-center h-8 w-8 {% if message.tags == 'success' %}bg-green-50 text-green-500 focus:ring-green-400 hover:bg-green-200{% elif message.tags == 'error' or message.tags == 'danger' %}bg-red-50 text-red-500 focus:ring-red-400 hover:bg-red-200{% elif message.tags == 'warning' %}bg-yellow-50 text-yellow-500 focus:ring-yellow-400 hover:bg-yellow-200{% else %}bg-blue-50 text-blue-500 focus:ring-blue-400 hover:bg-blue-200{% endif %}" data-dismiss-target="#alert-{{ forloop.counter }}" aria-label="Close">
+                    <span class="sr-only">Close</span>
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                </button>
             </div>
             {% endfor %}
         </div>
         {% endif %}
 
         <!-- Основной контент -->
-        {% block content %}{% endblock %}
+        <div id="app">
+            {% block content %}{% endblock %}
+        </div>
     </main>
 
-    <!-- Футер с Fonon стилями -->
+    <!-- Футер -->
     {% block footer %}
-    <footer class="bg-dark text-light mt-5 py-4">
-        <div class="container text-center">
-            <p class="mb-0">
-                <i class="bi bi-gem"></i> &copy; 2025 Ювелирный Каталог.
-                Платформа для производителей ювелирных изделий
-            </p>
+    <footer class="bg-gray-800">
+        <div class="w-full max-w-screen-xl mx-auto p-4 md:py-8">
+            <div class="sm:flex sm:items-center sm:justify-between">
+                <a href="{% url 'catalog:home' %}" class="flex items-center mb-4 sm:mb-0 space-x-3 rtl:space-x-reverse">
+                    <i class="bi bi-gem text-white text-2xl"></i>
+                    <span class="self-center text-2xl font-semibold whitespace-nowrap text-white">Ювелирный Каталог</span>
+                </a>
+                <ul class="flex flex-wrap items-center mb-6 text-sm font-medium text-gray-400 sm:mb-0">
+                    <li>
+                        <a href="#" class="hover:underline me-4 md:me-6">О нас</a>
+                    </li>
+                    <li>
+                        <a href="#" class="hover:underline me-4 md:me-6">Контакты</a>
+                    </li>
+                </ul>
+            </div>
+            <hr class="my-6 border-gray-700 sm:mx-auto lg:my-8" />
+            <span class="block text-sm text-gray-400 sm:text-center">© 2025 <a href="{% url 'catalog:home' %}" class="hover:underline">Ювелирный Каталог</a>. Платформа для производителей ювелирных изделий.</span>
         </div>
     </footer>
     {% endblock %}
+
+    <!-- Floating Widget in Bottom Right Corner -->
+    <div class="fixed bottom-6 right-6 z-50" x-data="{ open: false, darkMode: false }">
+        <!-- Main Button -->
+        <button id="floatingBtn" @click="open = !open" type="button" class="flex items-center justify-center w-14 h-14 text-white rounded-full hover:opacity-90 focus:ring-4 focus:ring-primary-300 focus:outline-none shadow-lg transition-all">
+            <svg x-show="!open" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+            </svg>
+            <svg x-show="open" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+
+        <!-- Widget Panel -->
+        <div x-show="open"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 transform scale-95"
+             x-transition:enter-end="opacity-100 transform scale-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 transform scale-100"
+             x-transition:leave-end="opacity-0 transform scale-95"
+             class="absolute bottom-16 right-0 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
+             style="display: none;">
+
+            <!-- Header -->
+            <div id="floatingPanelHeader" class="text-white p-4">
+                <h3 class="text-lg font-semibold">Настройки</h3>
+            </div>
+
+            <!-- Content -->
+            <div class="p-4 space-y-4 max-h-96 overflow-y-auto">
+
+                <!-- Theme Switcher -->
+                <div class="space-y-3">
+                    <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-200">Тема оформления</h4>
+
+                    <!-- Dark/Light Mode Toggle -->
+                    <label class="relative inline-flex items-center cursor-pointer w-full">
+                        <input type="checkbox" id="darkModeToggle" class="sr-only peer" onchange="toggleDarkMode()">
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
+                        <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">Тёмная тема</span>
+                    </label>
+
+                    <!-- Link to Theme Editor -->
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'catalog:theme_editor' %}" class="block text-sm text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300 font-medium mt-3">
+                        <i class="bi bi-palette mr-1"></i> Открыть редактор темы
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
     {% endblock body_content %}
 
-    <!-- Bootstrap JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Flowbite JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.1/dist/flowbite.min.js"></script>
 
-    <!-- JavaScript -->
+    <!-- Vue.js 3 for reactive components -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+
+    <!-- Custom JavaScript -->
     <script src="{% static 'js/main.js' %}"></script>
+
+    <!-- Theme Switching Functions -->
+    <script>
+        // Color definitions
+        const colorMap = {
+            'indigo': { 50: '#eef2ff', 100: '#e0e7ff', 200: '#c7d2fe', 300: '#a5b4fc', 400: '#818cf8', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca', 800: '#3730a3', 900: '#312e81', 950: '#1e1b4b' },
+            'blue': { 50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd', 400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a', 950: '#172554' },
+            'purple': { 50: '#faf5ff', 100: '#f3e8ff', 200: '#e9d5ff', 300: '#d8b4fe', 400: '#c084fc', 500: '#a855f7', 600: '#9333ea', 700: '#7e22ce', 800: '#6b21a8', 900: '#581c87', 950: '#3b0764' },
+            'pink': { 50: '#fdf2f8', 100: '#fce7f3', 200: '#fbcfe8', 300: '#f9a8d4', 400: '#f472b6', 500: '#ec4899', 600: '#db2777', 700: '#be185d', 800: '#9f1239', 900: '#831843', 950: '#500724' },
+            'green': { 50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0', 300: '#86efac', 400: '#4ade80', 500: '#22c55e', 600: '#16a34a', 700: '#15803d', 800: '#166534', 900: '#14532d', 950: '#052e16' },
+            'red': { 50: '#fef2f2', 100: '#fee2e2', 200: '#fecaca', 300: '#fca5a5', 400: '#f87171', 500: '#ef4444', 600: '#dc2626', 700: '#b91c1c', 800: '#991b1b', 900: '#7f1d1d', 950: '#450a0a' }
+        };
+
+        // Toggle Dark Mode
+        function toggleDarkMode() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('darkMode', isDark);
+
+            // Update checkbox state
+            const checkbox = document.getElementById('darkModeToggle');
+            if (checkbox) {
+                checkbox.checked = isDark;
+            }
+        }
+
+
+        // Update checkbox state on page load (theme already applied in <head>)
+        document.addEventListener('DOMContentLoaded', function() {
+            const darkMode = localStorage.getItem('darkMode') === 'true';
+            const checkbox = document.getElementById('darkModeToggle');
+            if (checkbox) {
+                checkbox.checked = darkMode;
+            }
+
+            // Apply active theme to all themed elements
+            const activeTheme = window.__activeTheme;
+            if (activeTheme) {
+                const primaryColor = activeTheme.primary_color || '#6366f1';
+                const secondaryColor = activeTheme.secondary_color || '#8b5cf6';
+
+                // Apply to navigation
+                const nav = document.getElementById('mainNav');
+                if (nav) {
+                    if (activeTheme.gradient_enabled) {
+                        nav.style.background = `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`;
+                    } else {
+                        nav.style.background = primaryColor;
+                    }
+
+                    // Apply border radius based on sharp_corners setting
+                    if (activeTheme.sharp_corners) {
+                        nav.style.borderRadius = '0';
+                    } else {
+                        nav.style.borderRadius = '0.5rem 0.5rem 0 0';
+                    }
+                }
+
+                // Apply to floating button
+                const floatingBtn = document.getElementById('floatingBtn');
+                if (floatingBtn) {
+                    if (activeTheme.gradient_enabled) {
+                        floatingBtn.style.background = `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`;
+                    } else {
+                        floatingBtn.style.background = primaryColor;
+                    }
+                }
+
+                // Apply to floating panel header
+                const panelHeader = document.getElementById('floatingPanelHeader');
+                if (panelHeader) {
+                    if (activeTheme.gradient_enabled) {
+                        panelHeader.style.background = `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`;
+                    } else {
+                        panelHeader.style.background = primaryColor;
+                    }
+                }
+
+                // Apply to all page headers with gradient
+                const headers = document.querySelectorAll('.bg-gradient-to-r.from-primary-600.to-purple-600');
+                headers.forEach(header => {
+                    if (activeTheme.gradient_enabled) {
+                        header.style.background = `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`;
+                    } else {
+                        header.style.background = primaryColor;
+                    }
+                });
+            }
+
+            // Mark Tailwind as loaded and show page
+            // Give Tailwind a tiny moment to apply all classes
+            setTimeout(() => {
+                document.documentElement.classList.add('tailwind-loaded');
+            }, 50);
+        });
+    </script>
+
+    <!-- Vue.js initialization for specific components -->
     {% block extra_js %}{% endblock %}
 </body>
 </html>

@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python manage.py makemigrations:*)",
+      "Bash(venv\\Scripts\\python.exe:*)",
+      "Bash(./venv/Scripts/python.exe manage.py makemigrations:*)",
+      "Bash(./venv/Scripts/python.exe manage.py migrate:*)",
+      "Bash(./venv/Scripts/python.exe:*)",
+      "Bash(find:*)",
+      "Bash(python manage.py shell:*)",
+      "Bash(venvScriptspython.exe manage.py makemigrations)",
+      "Bash(dir /s /b *.py)",
+      "Bash(NUL)",
+      "Bash(del /f catalogcontext_processors.py)",
+      "Bash(git rm:*)",
+      "Bash(python -m pip freeze:*)",
+      "Bash(requirements.txt)",
+      "Bash(echo:*)",
+      "Bash(CHANGELOG_AUDIT_FIXES.md)",
+      "Bash(git add:*)",
+      "Bash(curl:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

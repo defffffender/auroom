@@ -3,24 +3,40 @@
 
 {% block title %}Удалить товар{% endblock %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
-{% endblock %}
-
-{% block body_content %}
-<div style="background: #f5f5f5; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px;">
-    <div class="delete-box">
-        <h2>⚠️ Удалить товар?</h2>
-        <p><strong>{{ product.name }}</strong><br>Артикул: {{ product.article }}</p>
-        <p>Это действие нельзя отменить. Товар будет удалён навсегда.</p>
-        
-        <form method="post">
-            {% csrf_token %}
-            <div class="buttons">
-                <button type="submit" class="btn btn-danger">🗑️ Удалить</button>
-                <a href="{% url 'catalog:factory_dashboard' %}" class="btn btn-secondary">❌ Отмена</a>
+{% block content %}
+<div class="flex justify-center items-center min-h-[60vh]">
+    <div class="w-full max-w-md">
+        <div class="bg-white dark:bg-gray-800 border border-red-200 dark:border-red-800 rounded-lg shadow-lg p-8">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="bi bi-exclamation-triangle text-red-600 dark:text-red-400" style="font-size: 2rem;"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Удалить товар?</h2>
+                <p class="text-gray-600 dark:text-white">
+                    <strong class="text-gray-900 dark:text-white">{{ product.name }}</strong><br>
+                    <span class="text-sm">Артикул: {{ product.article }}</span>
+                </p>
             </div>
-        </form>
+
+            <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
+                <p class="text-sm text-red-800 dark:text-red-300">
+                    <i class="bi bi-info-circle mr-1"></i>
+                    Это действие нельзя отменить. Товар будет удалён навсегда.
+                </p>
+            </div>
+
+            <form method="post" class="space-y-3">
+                {% csrf_token %}
+                <button type="submit" class="w-full text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center justify-center">
+                    <i class="bi bi-trash mr-2"></i>
+                    Удалить товар
+                </button>
+                <a href="{% url 'catalog:factory_dashboard' %}" class="w-full text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center justify-center">
+                    <i class="bi bi-x-circle mr-2"></i>
+                    Отмена
+                </a>
+            </form>
+        </div>
     </div>
 </div>
 {% endblock %}

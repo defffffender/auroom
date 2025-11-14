@@ -4,30 +4,44 @@
 {% block title %}{{ product.name }} - {{ product.article }}{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/product.css' %}">
 <link rel="stylesheet" href="{% static 'css/ruler.css' %}">
 {% endblock %}
 
 {% block content %}
-<!-- Хлебные крошки -->
-<div class="breadcrumbs">
-    <a href="{% url 'catalog:home' %}">
-        <i class="bi bi-house"></i> Главная
-    </a> /
-    <a href="{% url 'catalog:home' %}?category={{ product.category.slug }}">
-        {{ product.category.name }}
-    </a> /
-    {{ product.name }}
-</div>
+<!-- Breadcrumbs -->
+<nav class="flex mb-6" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+        <li class="inline-flex items-center">
+            <a href="{% url 'catalog:home' %}" class="inline-flex items-center text-sm font-medium text-gray-700 dark:text-white hover:text-primary-600">
+                <i class="bi bi-house mr-2"></i>
+                Главная
+            </a>
+        </li>
+        <li>
+            <div class="flex items-center">
+                <i class="bi bi-chevron-right text-gray-400 dark:text-white mx-1"></i>
+                <a href="{% url 'catalog:home' %}?category={{ product.category.slug }}" class="text-sm font-medium text-gray-700 dark:text-white hover:text-primary-600">
+                    {{ product.category.name }}
+                </a>
+            </div>
+        </li>
+        <li aria-current="page">
+            <div class="flex items-center">
+                <i class="bi bi-chevron-right text-gray-400 dark:text-white mx-1"></i>
+                <span class="text-sm font-medium text-gray-500 dark:text-white">{{ product.name }}</span>
+            </div>
+        </li>
+    </ol>
+</nav>
 
-<!-- Основная информация о товаре -->
-<div class="product-main">
-    <!-- Галерея -->
-    <div class="gallery">
+<!-- Product Main Section -->
+<div class="grid md:grid-cols-2 gap-8 mb-8">
+    <!-- Gallery -->
+    <div>
         {% if product.images.all %}
             {% if product.show_ruler and product.has_dimensions %}
-                <!-- Контейнер для линейки -->
-                <div id="jewelryRulerContainer" class="ruler-container"
+                <!-- Ruler Container -->
+                <div id="jewelryRulerContainer" class="ruler-container bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4"
                      data-width-mm="{{ product.width_mm }}"
                      data-height-mm="{{ product.height_mm }}"
                      data-diameter-mm="{{ product.diameter_mm }}"
@@ -35,186 +49,192 @@
                      data-editor-data="{{ product.editor_data|escapejs }}">
 
                     {% if product.reference_photo_type != 'none' %}
-                        <div class="alert alert-info d-flex align-items-center gap-2 mb-2">
-                            <i class="bi bi-rulers"></i> Эталонное фото для точных размеров
+                        <div class="flex items-center p-4 mb-4 text-sm text-blue-800 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-300 dark:border-blue-800" role="alert">
+                            <i class="bi bi-rulers mr-2"></i>
+                            <span>Эталонное фото для точных размеров</span>
                         </div>
                     {% endif %}
 
                     <div class="ruler-image-wrapper">
                         <img src="{{ product.images.all.0.image.url }}"
                              alt="{{ product.name }}"
-                             class="ruler-image"
+                             class="ruler-image w-full rounded-lg"
                              id="mainImage">
                     </div>
                 </div>
             {% else %}
-                <!-- Обычная галерея без линейки -->
+                <!-- Regular Gallery -->
                 <img src="{{ product.images.all.0.image.url }}"
                      alt="{{ product.name }}"
-                     class="main-image"
+                     class="w-full h-auto object-contain bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600"
                      id="mainImage">
             {% endif %}
 
             {% if product.images.all|length > 1 %}
-            <div class="thumbnails">
+            <div class="grid grid-cols-4 gap-2 mt-4">
                 {% for image in product.images.all %}
                     <img src="{{ image.image.url }}"
                          alt="{{ product.name }}"
-                         class="thumbnail {% if forloop.first %}active{% endif %}"
+                         class="w-full h-24 object-contain bg-gray-50 dark:bg-gray-700 rounded-lg border-2 cursor-pointer hover:border-primary-600 {% if forloop.first %}border-primary-600{% else %}border-gray-200 dark:border-gray-600{% endif %}"
                          onclick="changeImage('{{ image.image.url }}', this)"
                          {% if image.is_reference %}title="Эталонное фото"{% endif %}>
                 {% endfor %}
             </div>
             {% endif %}
         {% else %}
-            <div class="main-image bg-light d-flex align-items-center justify-content-center">
-                <i class="bi bi-image" style="font-size: 4rem; color: #ccc;"></i>
+            <div class="w-full h-96 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg flex items-center justify-center">
+                <i class="bi bi-image text-gray-400 dark:text-white text-6xl"></i>
             </div>
         {% endif %}
     </div>
 
-    <!-- Информация -->
-    <div class="product-detail-info">
-        <h1>{{ product.name }}</h1>
+    <!-- Product Info -->
+    <div>
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">{{ product.name }}</h1>
 
-        <div class="product-meta">
-            <span class="category-badge">{{ product.category.name }}</span>
-            <span class="meta-item">
+        <div class="flex flex-wrap gap-2 mb-4">
+            <span class="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded">{{ product.category.name }}</span>
+            <span class="text-sm text-gray-600 dark:text-white">
                 <i class="bi bi-hash"></i> Артикул: <strong>{{ product.article }}</strong>
             </span>
-            <span class="meta-item">
+            <span class="text-sm text-gray-600 dark:text-white">
                 <i class="bi bi-eye"></i> Просмотров: {{ product.views_count }}
             </span>
         </div>
 
-        <div class="price">${{ product.price }}</div>
+        <div class="text-4xl font-bold text-primary-600 mb-6">${{ product.price }}</div>
 
-        <!-- Кнопка избранного -->
+        <!-- Favorite Button -->
         {% if user.is_authenticated %}
-            <form action="{% url 'catalog:toggle_favorite' product.article %}" method="post">
+            <form action="{% url 'catalog:toggle_favorite' product.article %}" method="post" class="mb-4">
                 {% csrf_token %}
                 {% if product in user.favorites.all %}
-                    <button type="submit" class="btn btn-danger favorite-btn">
-                        <i class="bi bi-heart-fill"></i> Удалить из избранного
+                    <button type="submit" class="w-full text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center justify-center">
+                        <i class="bi bi-heart-fill mr-2"></i> Удалить из избранного
                     </button>
                 {% else %}
-                    <button type="submit" class="btn btn-success favorite-btn">
-                        <i class="bi bi-heart"></i> Добавить в избранное
+                    <button type="submit" class="w-full text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center justify-center">
+                        <i class="bi bi-heart mr-2"></i> Добавить в избранное
                     </button>
                 {% endif %}
             </form>
         {% else %}
-            <a href="{% url 'catalog:login' %}" class="btn btn-secondary favorite-btn">
-                <i class="bi bi-box-arrow-in-right"></i> Войдите, чтобы добавить в избранное
+            <a href="{% url 'catalog:login' %}" class="w-full text-white bg-gray-600 hover:bg-gray-700 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center justify-center mb-4">
+                <i class="bi bi-box-arrow-in-right mr-2"></i> Войдите, чтобы добавить в избранное
             </a>
         {% endif %}
 
         {% if product.in_stock %}
-            <div class="stock-status in-stock">
-                <i class="bi bi-check-circle"></i> В наличии ({{ product.stock_quantity }} шт)
+            <div class="flex items-center p-4 mb-4 text-sm text-green-800 dark:text-green-300 bg-green-50 dark:bg-green-900/30 rounded-lg border border-green-300 dark:border-green-800" role="alert">
+                <i class="bi bi-check-circle mr-2"></i>
+                <span>В наличии ({{ product.stock_quantity }} шт)</span>
             </div>
         {% else %}
-            <div class="stock-status out-stock">
-                <i class="bi bi-x-circle"></i> Нет в наличии
+            <div class="flex items-center p-4 mb-4 text-sm text-red-800 dark:text-red-300 bg-red-50 dark:bg-red-900/30 rounded-lg border border-red-300 dark:border-red-800" role="alert">
+                <i class="bi bi-x-circle mr-2"></i>
+                <span>Нет в наличии</span>
             </div>
         {% endif %}
 
-        <div class="description">
-            <p>{{ product.description }}</p>
+        <div class="mb-6">
+            <p class="text-gray-700 dark:text-white">{{ product.description }}</p>
         </div>
 
-        <!-- Характеристики -->
-        <div class="specs">
-            <h3><i class="bi bi-list-ul"></i> Характеристики</h3>
-            <div class="spec-row">
-                <span class="spec-label"><i class="bi bi-gem"></i> Материал</span>
-                <span class="spec-value">{{ product.material.name }}</span>
-            </div>
-            <div class="spec-row">
-                <span class="spec-label"><i class="bi bi-box"></i> Вес металла</span>
-                <span class="spec-value">{{ product.metal_weight }} г</span>
-            </div>
-            {% if product.total_weight %}
-            <div class="spec-row">
-                <span class="spec-label"><i class="bi bi-layers"></i> Общий вес</span>
-                <span class="spec-value">{{ product.total_weight }} г</span>
-            </div>
-            {% endif %}
-            {% if product.size %}
-            <div class="spec-row">
-                <span class="spec-label"><i class="bi bi-arrows-angle-expand"></i> Размер</span>
-                <span class="spec-value">{{ product.size }}</span>
-            </div>
-            {% endif %}
-
-            <!-- Точные размеры -->
-            {% if product.has_dimensions %}
-            <div class="spec-row">
-                <span class="spec-label"><i class="bi bi-rulers"></i> Размеры</span>
-                <span class="spec-value">{{ product.dimensions_text }}</span>
-            </div>
-            {% endif %}
-
-            {% if product.has_inserts %}
-            <div class="spec-row">
-                <span class="spec-label"><i class="bi bi-asterisk"></i> Вставки</span>
-                <span class="spec-value">{{ product.insert_description|default:"Есть" }}</span>
-            </div>
-            {% endif %}
-            <div class="spec-row">
-                <span class="spec-label"><i class="bi bi-tag"></i> Категория</span>
-                <span class="spec-value">{{ product.category.name }}</span>
+        <!-- Specifications -->
+        <div class="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-6 mb-6">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                <i class="bi bi-list-ul mr-2"></i>Характеристики
+            </h3>
+            <div class="space-y-3">
+                <div class="flex justify-between border-b border-gray-200 dark:border-gray-600 pb-2">
+                    <span class="text-gray-600 dark:text-white"><i class="bi bi-gem mr-1"></i> Материал</span>
+                    <span class="font-semibold text-gray-900 dark:text-white">{{ product.material.name }}</span>
+                </div>
+                <div class="flex justify-between border-b border-gray-200 dark:border-gray-600 pb-2">
+                    <span class="text-gray-600 dark:text-white"><i class="bi bi-box mr-1"></i> Вес металла</span>
+                    <span class="font-semibold text-gray-900 dark:text-white">{{ product.metal_weight }} г</span>
+                </div>
+                {% if product.total_weight %}
+                <div class="flex justify-between border-b border-gray-200 dark:border-gray-600 pb-2">
+                    <span class="text-gray-600 dark:text-white"><i class="bi bi-layers mr-1"></i> Общий вес</span>
+                    <span class="font-semibold text-gray-900 dark:text-white">{{ product.total_weight }} г</span>
+                </div>
+                {% endif %}
+                {% if product.size %}
+                <div class="flex justify-between border-b border-gray-200 dark:border-gray-600 pb-2">
+                    <span class="text-gray-600 dark:text-white"><i class="bi bi-arrows-angle-expand mr-1"></i> Размер</span>
+                    <span class="font-semibold text-gray-900 dark:text-white">{{ product.size }}</span>
+                </div>
+                {% endif %}
+                {% if product.has_dimensions %}
+                <div class="flex justify-between border-b border-gray-200 dark:border-gray-600 pb-2">
+                    <span class="text-gray-600 dark:text-white"><i class="bi bi-rulers mr-1"></i> Размеры</span>
+                    <span class="font-semibold text-gray-900 dark:text-white">{{ product.dimensions_text }}</span>
+                </div>
+                {% endif %}
+                {% if product.has_inserts %}
+                <div class="flex justify-between border-b border-gray-200 dark:border-gray-600 pb-2">
+                    <span class="text-gray-600 dark:text-white"><i class="bi bi-asterisk mr-1"></i> Вставки</span>
+                    <span class="font-semibold text-gray-900 dark:text-white">{{ product.insert_description|default:"Есть" }}</span>
+                </div>
+                {% endif %}
+                <div class="flex justify-between">
+                    <span class="text-gray-600 dark:text-white"><i class="bi bi-tag mr-1"></i> Категория</span>
+                    <span class="font-semibold text-gray-900 dark:text-white">{{ product.category.name }}</span>
+                </div>
             </div>
         </div>
 
-        <!-- Информация о заводе -->
-        <div class="factory-info">
-            <div class="factory-header">
+        <!-- Factory Info -->
+        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+            <div class="flex items-center gap-4 mb-4">
                 {% if product.factory.logo %}
-                    <img src="{{ product.factory.logo.url }}" alt="{{ product.factory.name }}" class="factory-logo">
+                    <img src="{{ product.factory.logo.url }}" alt="{{ product.factory.name }}" class="w-16 h-16 object-contain bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
                 {% else %}
-                    <div class="factory-logo bg-light d-flex align-items-center justify-content-center">
-                        <i class="bi bi-building text-muted"></i>
+                    <div class="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 flex items-center justify-center">
+                        <i class="bi bi-building text-gray-400 dark:text-white text-2xl"></i>
                     </div>
                 {% endif %}
                 <div>
-                    <h3>{{ product.factory.name }}</h3>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ product.factory.name }}</h3>
                     {% if product.factory.is_verified %}
-                    <span>
+                    <span class="text-sm text-green-600">
                         <i class="bi bi-patch-check-fill"></i> Проверенный производитель
                     </span>
                     {% endif %}
                 </div>
             </div>
-            <div class="factory-contacts">
-                <i class="bi bi-geo-alt"></i> {{ product.factory.address }}<br>
-                <i class="bi bi-telephone"></i> {{ product.factory.phone }}<br>
-                <i class="bi bi-envelope"></i> {{ product.factory.email }}
+            <div class="text-sm text-gray-600 dark:text-white space-y-1 mb-4">
+                <p><i class="bi bi-geo-alt"></i> {{ product.factory.address }}</p>
+                <p><i class="bi bi-telephone"></i> {{ product.factory.phone }}</p>
+                <p><i class="bi bi-envelope"></i> {{ product.factory.email }}</p>
             </div>
-            <a href="{% url 'catalog:factory_detail' product.factory.id %}" class="factory-link">
-                <i class="bi bi-arrow-right-circle"></i> Все товары завода
+            <a href="{% url 'catalog:factory_detail' product.factory.id %}" class="text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center justify-center w-full">
+                <i class="bi bi-arrow-right-circle mr-2"></i> Все товары завода
             </a>
         </div>
     </div>
 </div>
 
-<!-- Похожие товары -->
+<!-- Similar Products -->
 {% if similar_products %}
-<div class="similar-section">
-    <h2><i class="bi bi-grid"></i> Похожие товары</h2>
-    <div class="similar-grid">
+<div class="mb-8">
+    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+        <i class="bi bi-grid mr-2"></i>Похожие товары
+    </h2>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         {% for similar in similar_products %}
-            <a href="{% url 'catalog:product_detail' similar.article %}" class="similar-card">
+            <a href="{% url 'catalog:product_detail' similar.article %}" class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow hover:shadow-lg transition-shadow">
                 {% if similar.images.all.0 %}
-                    <img src="{{ similar.images.all.0.image.url }}" alt="{{ similar.name }}" class="similar-image">
+                    <img src="{{ similar.images.all.0.image.url }}" alt="{{ similar.name }}" class="w-full h-48 object-contain bg-gray-50 dark:bg-gray-700 rounded-t-lg">
                 {% else %}
-                    <div class="similar-image bg-light d-flex align-items-center justify-content-center">
-                        <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+                    <div class="w-full h-48 bg-gray-50 dark:bg-gray-700 flex items-center justify-center rounded-t-lg">
+                        <i class="bi bi-image text-gray-400 dark:text-white text-5xl"></i>
                     </div>
                 {% endif %}
-                <div class="similar-info">
-                    <div class="similar-name">{{ similar.name }}</div>
-                    <div class="similar-price">${{ similar.price }}</div>
+                <div class="p-4">
+                    <h5 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">{{ similar.name }}</h5>
+                    <p class="text-xl font-bold text-primary-600">${{ similar.price }}</p>
                 </div>
             </a>
         {% endfor %}
@@ -225,4 +245,15 @@
 
 {% block extra_js %}
 <script src="{% static 'js/ruler.js' %}"></script>
+<script>
+function changeImage(url, element) {
+    document.getElementById('mainImage').src = url;
+    document.querySelectorAll('.grid img').forEach(img => {
+        img.classList.remove('border-primary-600');
+        img.classList.add('border-gray-200');
+    });
+    element.classList.remove('border-gray-200');
+    element.classList.add('border-primary-600');
+}
+</script>
 {% endblock %}
