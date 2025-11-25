@@ -9,6 +9,7 @@ urlpatterns = [
     # Публичные страницы
     path('', views.home, name='home'),
     path('product/<str:article>/', views.product_detail, name='product_detail'),
+    path('product/<str:article>/fullscreen/', views.product_fullscreen, name='product_fullscreen'),
     path('factory/<int:factory_id>/', views.factory_detail, name='factory_detail'),
     
     # Аутентификация

@@ -194,6 +194,21 @@ def product_detail(request, article):
     return render(request, 'catalog/product_detail.html', context)
 
 
+def product_fullscreen(request, article):
+    """Полноэкранный просмотр изображения товара"""
+    product = get_object_or_404(
+        Product.objects.select_related('factory', 'category').prefetch_related('images'),
+        article=article,
+        is_active=True
+    )
+
+    context = {
+        'product': product,
+    }
+
+    return render(request, 'catalog/product_fullscreen.html', context)
+
+
 def factory_detail(request, factory_id):
     """Страница завода со всеми его товарами"""
     factory = get_object_or_404(Factory, id=factory_id)

@@ -1,0 +1,499 @@
+{% extends 'catalog/base.html' %}
+{% load static %}
+
+{% block title %}{{ product.name }} - Полноэкранный просмотр{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Убираем отступы для полноэкранного режима */
+    main {
+        padding: 0 !important;
+        max-width: 100% !important;
+    }
+
+    .fullscreen-container {
+        min-height: calc(100vh - 80px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        position: relative;
+    }
+
+    .fullscreen-image-wrapper {
+        max-width: 90vw;
+        max-height: 85vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .fullscreen-image {
+        max-width: 100%;
+        max-height: 85vh;
+        object-fit: contain;
+        border-radius: 8px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    .fullscreen-controls {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(10px);
+        border-radius: 50px;
+        padding: 15px 30px;
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        z-index: 100;
+    }
+
+    .fullscreen-info {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(10px);
+        color: white;
+        padding: 15px 30px;
+        border-radius: 30px;
+        z-index: 100;
+        text-align: center;
+    }
+
+    .control-btn {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        padding: 10px 20px;
+        border-radius: 25px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 14px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .control-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.5);
+        transform: translateY(-2px);
+    }
+
+    .control-btn.primary {
+        background: rgba(99, 102, 241, 0.8);
+        border-color: rgba(99, 102, 241, 1);
+    }
+
+    .control-btn.primary:hover {
+        background: rgba(99, 102, 241, 1);
+    }
+
+    .thumbnail-gallery {
+        position: fixed;
+        bottom: 120px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 10px;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(10px);
+        padding: 10px;
+        border-radius: 15px;
+    }
+
+    .thumbnail {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 8px;
+        cursor: pointer;
+        border: 3px solid transparent;
+        transition: all 0.3s ease;
+    }
+
+    .thumbnail:hover {
+        transform: scale(1.1);
+        border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .thumbnail.active {
+        border-color: #6366f1;
+        transform: scale(1.15);
+    }
+
+    /* Ruler styles */
+    .ruler-overlay {
+        position: absolute;
+        pointer-events: none;
+        z-index: 50;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+    }
+
+    .ruler-tool {
+        position: absolute;
+        cursor: move;
+        pointer-events: auto;
+        filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
+        transition: transform 0.1s ease;
+    }
+
+    .ruler-tool:hover {
+        transform: scale(1.05);
+    }
+
+    .ruler-tool.active {
+        filter: drop-shadow(0 6px 12px rgba(99, 102, 241, 0.5));
+    }
+
+    .control-btn.active {
+        background: rgba(99, 102, 241, 0.9);
+        border-color: rgba(99, 102, 241, 1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="fullscreen-container" id="fullscreenContainer">
+    <!-- Product Info -->
+    <div class="fullscreen-info">
+        <h1 class="text-xl font-bold mb-1">{{ product.name }}</h1>
+        <p class="text-sm opacity-80">
+            <i class="bi bi-hash"></i> {{ product.article }} •
+            <i class="bi bi-gem"></i> {{ product.material.name }}
+            {% if product.purity %} • {{ product.purity.value }}{% endif %}
+        </p>
+    </div>
+
+    <!-- Main Image -->
+    <div class="fullscreen-image-wrapper" id="imageWrapper" style="position: relative;">
+        {% if product.images.all %}
+            <img src="{{ product.images.all.0.image.url }}"
+                 alt="{{ product.name }}"
+                 class="fullscreen-image"
+                 id="mainFullscreenImage">
+
+            <!-- Ruler Overlay -->
+            <div class="ruler-overlay" id="rulerOverlay">
+                <img src="{% static 'images/ruler.svg' %}"
+                     alt="Линейка"
+                     class="ruler-tool"
+                     id="rulerTool"
+                     style="width: 450px; top: 10%; left: 10%;">
+            </div>
+        {% else %}
+            <div class="text-white text-center">
+                <i class="bi bi-image" style="font-size: 8rem; opacity: 0.5;"></i>
+                <p class="mt-4 text-xl">Изображение отсутствует</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Thumbnail Gallery (if multiple images) -->
+    {% if product.images.all|length > 1 %}
+    <div class="thumbnail-gallery">
+        {% for image in product.images.all %}
+            <img src="{{ image.image.url }}"
+                 alt="{{ product.name }}"
+                 class="thumbnail {% if forloop.first %}active{% endif %}"
+                 onclick="changeFullscreenImage('{{ image.image.url }}', this)">
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Control Panel -->
+    <div class="fullscreen-controls">
+        <a href="{% url 'catalog:product_detail' product.article %}" class="control-btn primary">
+            <i class="bi bi-arrow-left"></i>
+            Назад к товару
+        </a>
+
+        <button onclick="toggleZoom()" class="control-btn" id="zoomBtn">
+            <i class="bi bi-zoom-in"></i>
+            Увеличить
+        </button>
+
+        <button onclick="toggleRuler()" class="control-btn active" id="rulerBtn">
+            <i class="bi bi-rulers"></i>
+            Скрыть линейку
+        </button>
+
+        {% if product.images.all|length > 1 %}
+        <button onclick="previousImage()" class="control-btn">
+            <i class="bi bi-chevron-left"></i>
+            Предыдущее
+        </button>
+
+        <button onclick="nextImage()" class="control-btn">
+            Следующее
+            <i class="bi bi-chevron-right"></i>
+        </button>
+        {% endif %}
+
+        <button onclick="downloadImage()" class="control-btn">
+            <i class="bi bi-download"></i>
+            Скачать
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentImageIndex = 0;
+const images = [
+    {% for image in product.images.all %}
+    '{{ image.image.url }}'{% if not forloop.last %},{% endif %}
+    {% endfor %}
+];
+let isZoomed = false;
+let isRulerActive = true;
+
+function changeFullscreenImage(url, thumbnail) {
+    const mainImage = document.getElementById('mainFullscreenImage');
+    mainImage.src = url;
+
+    // Update active thumbnail
+    document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+    thumbnail.classList.add('active');
+
+    // Update current index
+    currentImageIndex = Array.from(document.querySelectorAll('.thumbnail')).indexOf(thumbnail);
+
+    // Reset zoom
+    if (isZoomed) {
+        toggleZoom();
+    }
+}
+
+function previousImage() {
+    if (images.length <= 1) return;
+
+    currentImageIndex = (currentImageIndex - 1 + images.length) % images.length;
+    const mainImage = document.getElementById('mainFullscreenImage');
+    mainImage.src = images[currentImageIndex];
+
+    // Update active thumbnail
+    const thumbnails = document.querySelectorAll('.thumbnail');
+    thumbnails.forEach((t, i) => {
+        t.classList.toggle('active', i === currentImageIndex);
+    });
+
+    // Reset zoom
+    if (isZoomed) {
+        toggleZoom();
+    }
+}
+
+function nextImage() {
+    if (images.length <= 1) return;
+
+    currentImageIndex = (currentImageIndex + 1) % images.length;
+    const mainImage = document.getElementById('mainFullscreenImage');
+    mainImage.src = images[currentImageIndex];
+
+    // Update active thumbnail
+    const thumbnails = document.querySelectorAll('.thumbnail');
+    thumbnails.forEach((t, i) => {
+        t.classList.toggle('active', i === currentImageIndex);
+    });
+
+    // Reset zoom
+    if (isZoomed) {
+        toggleZoom();
+    }
+}
+
+function toggleZoom() {
+    const mainImage = document.getElementById('mainFullscreenImage');
+    const zoomBtn = document.getElementById('zoomBtn');
+
+    if (isZoomed) {
+        mainImage.style.transform = 'scale(1)';
+        mainImage.style.cursor = 'default';
+        zoomBtn.innerHTML = '<i class="bi bi-zoom-in"></i> Увеличить';
+        isZoomed = false;
+    } else {
+        mainImage.style.transform = 'scale(2)';
+        mainImage.style.cursor = 'move';
+        mainImage.style.transition = 'transform 0.3s ease';
+        zoomBtn.innerHTML = '<i class="bi bi-zoom-out"></i> Уменьшить';
+        isZoomed = true;
+
+        // Enable dragging when zoomed
+        enableImageDrag(mainImage);
+    }
+}
+
+function enableImageDrag(element) {
+    let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+
+    element.onmousedown = dragMouseDown;
+
+    function dragMouseDown(e) {
+        if (!isZoomed) return;
+        e.preventDefault();
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        document.onmouseup = closeDragElement;
+        document.onmousemove = elementDrag;
+    }
+
+    function elementDrag(e) {
+        e.preventDefault();
+        pos1 = pos3 - e.clientX;
+        pos2 = pos4 - e.clientY;
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+
+        const newLeft = element.offsetLeft - pos1;
+        const newTop = element.offsetTop - pos2;
+
+        element.style.left = newLeft + "px";
+        element.style.top = newTop + "px";
+        element.style.position = "relative";
+    }
+
+    function closeDragElement() {
+        document.onmouseup = null;
+        document.onmousemove = null;
+    }
+}
+
+function downloadImage() {
+    const mainImage = document.getElementById('mainFullscreenImage');
+    const link = document.createElement('a');
+    link.href = mainImage.src;
+    link.download = '{{ product.name }}_{{ product.article }}.jpg';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// Toggle Ruler
+function toggleRuler() {
+    const rulerOverlay = document.getElementById('rulerOverlay');
+    const rulerBtn = document.getElementById('rulerBtn');
+
+    isRulerActive = !isRulerActive;
+
+    if (isRulerActive) {
+        rulerOverlay.style.display = 'block';
+        rulerBtn.classList.add('active');
+        rulerBtn.innerHTML = '<i class="bi bi-rulers"></i> Скрыть линейку';
+        initRulerDrag();
+    } else {
+        rulerOverlay.style.display = 'none';
+        rulerBtn.classList.remove('active');
+        rulerBtn.innerHTML = '<i class="bi bi-rulers"></i> Линейка';
+    }
+}
+
+// Initialize Ruler Dragging
+let rulerDragInitialized = false;
+let rulerState = {
+    isDragging: false,
+    currentX: 0,
+    currentY: 0,
+    initialX: 0,
+    initialY: 0,
+    xOffset: 0,
+    yOffset: 0
+};
+
+function initRulerDrag() {
+    if (rulerDragInitialized) return; // Prevent multiple initializations
+
+    const ruler = document.getElementById('rulerTool');
+    const rulerOverlay = document.getElementById('rulerOverlay');
+
+    function dragStart(e) {
+        if (e.target !== ruler) return;
+
+        e.preventDefault();
+
+        if (e.type === 'touchstart') {
+            rulerState.initialX = e.touches[0].clientX - rulerState.xOffset;
+            rulerState.initialY = e.touches[0].clientY - rulerState.yOffset;
+        } else {
+            rulerState.initialX = e.clientX - rulerState.xOffset;
+            rulerState.initialY = e.clientY - rulerState.yOffset;
+        }
+
+        rulerState.isDragging = true;
+        ruler.classList.add('active');
+    }
+
+    function drag(e) {
+        if (!rulerState.isDragging) return;
+
+        e.preventDefault();
+
+        if (e.type === 'touchmove') {
+            rulerState.currentX = e.touches[0].clientX - rulerState.initialX;
+            rulerState.currentY = e.touches[0].clientY - rulerState.initialY;
+        } else {
+            rulerState.currentX = e.clientX - rulerState.initialX;
+            rulerState.currentY = e.clientY - rulerState.initialY;
+        }
+
+        rulerState.xOffset = rulerState.currentX;
+        rulerState.yOffset = rulerState.currentY;
+
+        setRulerPosition(rulerState.currentX, rulerState.currentY);
+    }
+
+    function dragEnd(e) {
+        rulerState.isDragging = false;
+        ruler.classList.remove('active');
+    }
+
+    function setRulerPosition(xPos, yPos) {
+        ruler.style.left = `calc(10% + ${xPos}px)`;
+        ruler.style.top = `calc(10% + ${yPos}px)`;
+        ruler.style.transform = 'translate(-50%, -50%)';
+    }
+
+    // Mouse events
+    ruler.addEventListener('mousedown', dragStart);
+    document.addEventListener('mousemove', drag);
+    document.addEventListener('mouseup', dragEnd);
+
+    // Touch events
+    ruler.addEventListener('touchstart', dragStart, { passive: false });
+    document.addEventListener('touchmove', drag, { passive: false });
+    document.addEventListener('touchend', dragEnd);
+
+    rulerDragInitialized = true;
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowLeft') {
+        previousImage();
+    } else if (e.key === 'ArrowRight') {
+        nextImage();
+    } else if (e.key === 'Escape') {
+        window.location.href = '{% url "catalog:product_detail" product.article %}';
+    } else if (e.key === 'z' || e.key === 'Z') {
+        toggleZoom();
+    } else if (e.key === 'r' || e.key === 'R') {
+        toggleRuler();
+    }
+});
+
+// Initialize ruler drag on page load
+document.addEventListener('DOMContentLoaded', function() {
+    initRulerDrag();
+});
+</script>
+{% endblock %}

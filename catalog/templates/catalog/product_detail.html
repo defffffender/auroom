@@ -41,12 +41,22 @@
         {% if product.images.all %}
             {% if product.show_ruler and product.has_dimensions %}
                 <!-- Ruler Container -->
-                <div id="jewelryRulerContainer" class="ruler-container bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4"
+                <div id="jewelryRulerContainer" class="ruler-container bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 relative"
                      data-width-mm="{{ product.width_mm }}"
                      data-height-mm="{{ product.height_mm }}"
                      data-diameter-mm="{{ product.diameter_mm }}"
                      data-reference-type="{{ product.reference_photo_type }}"
                      data-editor-data="{{ product.editor_data|escapejs }}">
+
+                    <!-- Fullscreen Buttons -->
+                    <div class="absolute top-6 right-6 z-10 flex gap-2">
+                        <a href="{% url 'catalog:product_fullscreen' product.article %}" class="text-white bg-primary-600/90 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center" title="Отдельная страница">
+                            <i class="bi bi-aspect-ratio text-xl"></i>
+                        </a>
+                        <button onclick="openFullscreen()" class="text-white bg-gray-800/70 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center" title="Модальное окно">
+                            <i class="bi bi-arrows-fullscreen text-xl"></i>
+                        </button>
+                    </div>
 
                     {% if product.reference_photo_type != 'none' %}
                         <div class="flex items-center p-4 mb-4 text-sm text-blue-800 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-300 dark:border-blue-800" role="alert">
@@ -64,10 +74,22 @@
                 </div>
             {% else %}
                 <!-- Regular Gallery -->
-                <img src="{{ product.images.all.0.image.url }}"
-                     alt="{{ product.name }}"
-                     class="w-full h-auto object-contain bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600"
-                     id="mainImage">
+                <div class="relative">
+                    <!-- Fullscreen Buttons -->
+                    <div class="absolute top-4 right-4 z-10 flex gap-2">
+                        <a href="{% url 'catalog:product_fullscreen' product.article %}" class="text-white bg-primary-600/90 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center" title="Отдельная страница">
+                            <i class="bi bi-aspect-ratio text-xl"></i>
+                        </a>
+                        <button onclick="openFullscreen()" class="text-white bg-gray-800/70 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center" title="Модальное окно">
+                            <i class="bi bi-arrows-fullscreen text-xl"></i>
+                        </button>
+                    </div>
+
+                    <img src="{{ product.images.all.0.image.url }}"
+                         alt="{{ product.name }}"
+                         class="w-full h-auto object-contain bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600"
+                         id="mainImage">
+                </div>
             {% endif %}
 
             {% if product.images.all|length > 1 %}
@@ -250,10 +272,68 @@ function changeImage(url, element) {
     document.getElementById('mainImage').src = url;
     document.querySelectorAll('.grid img').forEach(img => {
         img.classList.remove('border-primary-600');
-        img.classList.add('border-gray-200');
+        img.classList.add('border-gray-200', 'dark:border-gray-600');
     });
-    element.classList.remove('border-gray-200');
+    element.classList.remove('border-gray-200', 'dark:border-gray-600');
     element.classList.add('border-primary-600');
+}
+
+// Fullscreen modal functionality
+function openFullscreen() {
+    const mainImage = document.getElementById('mainImage');
+    const imageUrl = mainImage.src;
+    const imageName = "{{ product.name }}";
+
+    // Create fullscreen modal
+    const modal = document.createElement('div');
+    modal.id = 'fullscreenModal';
+    modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black/95';
+    modal.innerHTML = `
+        <div class="relative w-full h-full flex items-center justify-center p-8">
+            <!-- Close Button -->
+            <button onclick="closeFullscreen()" class="absolute top-4 right-4 text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm p-3 text-center inline-flex items-center z-10" title="Закрыть">
+                <i class="bi bi-x-lg text-2xl"></i>
+            </button>
+
+            <!-- Image -->
+            <img src="${imageUrl}" alt="${imageName}" class="max-w-full max-h-full object-contain" id="fullscreenImage">
+
+            <!-- Image Name -->
+            <div class="absolute bottom-4 left-0 right-0 text-center">
+                <p class="text-white text-xl font-semibold bg-black/50 inline-block px-6 py-3 rounded-lg">
+                    ${imageName}
+                </p>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    document.body.style.overflow = 'hidden';
+
+    // Close on Escape key
+    document.addEventListener('keydown', handleEscapeKey);
+
+    // Close on background click
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeFullscreen();
+        }
+    });
+}
+
+function closeFullscreen() {
+    const modal = document.getElementById('fullscreenModal');
+    if (modal) {
+        modal.remove();
+        document.body.style.overflow = 'auto';
+        document.removeEventListener('keydown', handleEscapeKey);
+    }
+}
+
+function handleEscapeKey(e) {
+    if (e.key === 'Escape') {
+        closeFullscreen();
+    }
 }
 </script>
 {% endblock %}
