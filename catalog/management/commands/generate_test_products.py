@@ -111,28 +111,28 @@ class Command(BaseCommand):
                 price = Decimal(random.randint(5000, 500000))
 
                 # Вес (от 1 до 50 грамм)
-                weight = Decimal(random.uniform(1.0, 50.0)).quantize(Decimal('0.01'))
+                metal_weight = Decimal(random.uniform(1.0, 50.0)).quantize(Decimal('0.01'))
+                total_weight = metal_weight + Decimal(random.uniform(0.1, 5.0)).quantize(Decimal('0.01'))
 
                 # Размеры (от 5 до 50 мм)
-                width = Decimal(random.uniform(5.0, 50.0)).quantize(Decimal('0.1'))
-                height = Decimal(random.uniform(5.0, 50.0)).quantize(Decimal('0.1'))
-                diameter = Decimal(random.uniform(5.0, 30.0)).quantize(Decimal('0.1')) if random.random() > 0.5 else None
+                width_mm = Decimal(random.uniform(5.0, 50.0)).quantize(Decimal('0.1'))
+                height_mm = Decimal(random.uniform(5.0, 50.0)).quantize(Decimal('0.1'))
+                diameter_mm = Decimal(random.uniform(15.0, 22.0)).quantize(Decimal('0.1')) if random.random() > 0.5 else None
 
                 # Количество на складе (от 0 до 100)
-                stock = random.randint(0, 100)
+                stock_quantity = random.randint(0, 100)
 
                 # Информация о вставке (50% товаров)
-                insert_info = None
-                insert_count = None
-                insert_weight = None
-                if random.random() > 0.5:
+                has_inserts = random.random() > 0.5
+                insert_description = None
+                if has_inserts:
                     insert_type = random.choice(insert_types)
-                    insert_info = insert_type.name
                     insert_count = random.randint(1, 50)
-                    insert_weight = Decimal(random.uniform(0.1, 5.0)).quantize(Decimal('0.01'))
+                    insert_description = f"{insert_type.name}, {insert_count} шт"
 
                 # Клеймо и проба
-                stamp = f"TEST{random.randint(100, 999)}"
+                has_stamp = random.random() > 0.3
+                stamp_description = f"TEST{random.randint(100, 999)}" if has_stamp else ""
 
                 # Описание
                 descriptions = [
@@ -155,15 +155,16 @@ class Command(BaseCommand):
                     purity=purity,
                     metal_color=metal_color,
                     style=style,
-                    weight=weight,
-                    width=width,
-                    height=height,
-                    diameter=diameter,
-                    insert_info=insert_info,
-                    insert_count=insert_count,
-                    insert_weight=insert_weight,
-                    stamp=stamp,
-                    stock=stock,
+                    metal_weight=metal_weight,
+                    total_weight=total_weight,
+                    width_mm=width_mm,
+                    height_mm=height_mm,
+                    diameter_mm=diameter_mm,
+                    has_inserts=has_inserts,
+                    insert_description=insert_description or "",
+                    has_stamp=has_stamp,
+                    stamp_description=stamp_description,
+                    stock_quantity=stock_quantity,
                     is_active=True
                 )
                 products_batch.append(product)
