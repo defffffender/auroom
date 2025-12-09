@@ -6,16 +6,22 @@ bind = "0.0.0.0:8000"
 backlog = 2048
 
 # Worker processes
-# Оптимизировано для высокой нагрузки с Redis кэшированием
-# Используем 4 sync воркера (стабильно с Django/PostgreSQL)
-workers = 4
-worker_class = 'sync'
+# Оптимизировано для высокой нагрузки (до 1000+ одновременных пользователей)
+# Используем 3 async воркера (gevent) с psycogreen патчем для PostgreSQL
+workers = 3
+worker_class = 'gevent'
 worker_connections = 1000
 timeout = 120
 keepalive = 5
 
 # Preload app для экономии памяти (общий код между воркерами)
 preload_app = True
+
+# Патч psycopg2 для совместимости с gevent
+def post_fork(server, worker):
+    """Применяет gevent патч для psycopg2 после fork воркера"""
+    from psycogreen.gevent import patch_psycopg
+    patch_psycopg()
 
 # Ограничение памяти для воркеров
 max_requests = 1000  # Перезапуск воркера после 1000 запросов (предотвращает утечки памяти)
