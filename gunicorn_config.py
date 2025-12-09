@@ -6,10 +6,10 @@ bind = "0.0.0.0:8000"
 backlog = 2048
 
 # Worker processes
-# Оптимизировано для высокой нагрузки (до 1000 одновременных пользователей)
-# Используем 3 async воркера (gevent) для обработки тысяч одновременных соединений
-workers = 3
-worker_class = 'gevent'
+# Оптимизировано для высокой нагрузки с Redis кэшированием
+# Используем 4 sync воркера (стабильно с Django/PostgreSQL)
+workers = 4
+worker_class = 'sync'
 worker_connections = 1000
 timeout = 120
 keepalive = 5
