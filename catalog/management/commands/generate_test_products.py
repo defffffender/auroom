@@ -4,13 +4,16 @@
 Использование: python manage.py generate_test_products --count 100000
 """
 import random
+import os
 from decimal import Decimal
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.core.files import File
+from django.conf import settings
 from catalog.models import (
     Product, Factory, Category, Material, Purity,
-    MetalColor, Style, InsertType, Coating
+    MetalColor, Style, InsertType, Coating, ProductImage
 )
 
 User = get_user_model()
@@ -32,12 +35,22 @@ class Command(BaseCommand):
             default=1000,
             help='Размер батча для bulk_create (по умолчанию: 1000)'
         )
+        parser.add_argument(
+            '--delete-old',
+            action='store_true',
+            help='Удалить все старые тестовые товары перед генерацией'
+        )
 
     def handle(self, *args, **options):
         count = options['count']
         batch_size = options['batch_size']
+        delete_old = options['delete_old']
 
         self.stdout.write(f'Начинаем генерацию {count} товаров...\n')
+
+        # Удаляем старые товары если указан флаг
+        if delete_old:
+            self._delete_old_products()
 
         # Проверяем наличие необходимых данных
         if not self._check_required_data():
@@ -45,6 +58,23 @@ class Command(BaseCommand):
 
         # Получаем или создаем тестовую фабрику
         factory = self._get_or_create_test_factory()
+
+        # Проверяем наличие изображений
+        images_dir = os.path.join(os.path.dirname(settings.BASE_DIR), 'images')
+        image_files = self._check_images(images_dir)
+        if not image_files:
+            self.stdout.write(
+                self.style.WARNING(
+                    f'\n⚠️  Изображения не найдены в {images_dir}\n'
+                    'Товары будут созданы без изображений.\n'
+                )
+            )
+        else:
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f'\n✅ Найдено {len(image_files)} изображений для товаров\n'
+                )
+            )
 
         # Загружаем справочники в память
         categories = list(Category.objects.filter(parent__isnull=False))  # Только подкатегории
@@ -171,7 +201,11 @@ class Command(BaseCommand):
 
             # Сохраняем батч
             with transaction.atomic():
-                Product.objects.bulk_create(products_batch, ignore_conflicts=True)
+                created_products = Product.objects.bulk_create(products_batch, ignore_conflicts=True)
+
+            # Добавляем изображения к созданным товарам
+            if image_files:
+                self._add_images_to_products(created_products, image_files, batch_num)
 
             total_created += len(products_batch)
 
@@ -278,3 +312,64 @@ class Command(BaseCommand):
             )
 
         self.stdout.write('\n')
+
+    def _delete_old_products(self):
+        """Удаляет все старые тестовые товары"""
+        factory = Factory.objects.filter(name='Test Factory').first()
+        if factory:
+            old_count = Product.objects.filter(factory=factory).count()
+            if old_count > 0:
+                self.stdout.write(f'\nУдаление {old_count} старых тестовых товаров...')
+                Product.objects.filter(factory=factory).delete()
+                self.stdout.write(self.style.SUCCESS(f'✅ Удалено {old_count} товаров\n'))
+        else:
+            self.stdout.write('Старые товары не найдены\n')
+
+    def _check_images(self, images_dir):
+        """Проверяет наличие изображений и возвращает список файлов"""
+        if not os.path.exists(images_dir):
+            return []
+
+        # Ищем изображения 1.png - 12.png
+        image_files = []
+        for i in range(1, 13):
+            image_path = os.path.join(images_dir, f'{i}.png')
+            if os.path.exists(image_path):
+                image_files.append(image_path)
+
+        return image_files
+
+    def _add_images_to_products(self, products, image_files, batch_num):
+        """Добавляет изображения к товарам циклично"""
+        product_images = []
+        num_images = len(image_files)
+
+        for idx, product in enumerate(products):
+            # Выбираем изображение циклично (0-11)
+            image_index = (batch_num + idx) % num_images
+            image_path = image_files[image_index]
+
+            # Открываем файл и создаем ProductImage
+            try:
+                with open(image_path, 'rb') as f:
+                    file_content = f.read()
+                    # Создаем временный файл в памяти
+                    from django.core.files.base import ContentFile
+                    image_file = ContentFile(file_content, name=os.path.basename(image_path))
+
+                    product_image = ProductImage(
+                        product=product,
+                        image=image_file,
+                        order=0
+                    )
+                    product_images.append(product_image)
+            except Exception as e:
+                self.stdout.write(
+                    self.style.WARNING(
+                        f'\n⚠️  Ошибка при добавлении изображения {image_path}: {e}\n'
+                    )
+                )
+
+        # Сохраняем изображения батчем
+        if product_images:
+            ProductImage.objects.bulk_create(product_images, ignore_conflicts=True)
