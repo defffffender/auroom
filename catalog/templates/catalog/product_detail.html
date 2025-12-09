@@ -69,7 +69,8 @@
                         <img src="{{ product.images.all.0.image.url }}"
                              alt="{{ product.name }}"
                              class="ruler-image w-full rounded-lg"
-                             id="mainImage">
+                             id="mainImage"
+                             loading="lazy">
                     </div>
                 </div>
             {% else %}
@@ -88,7 +89,8 @@
                     <img src="{{ product.images.all.0.image.url }}"
                          alt="{{ product.name }}"
                          class="w-full h-auto object-contain bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600"
-                         id="mainImage">
+                         id="mainImage"
+                         loading="lazy">
                 </div>
             {% endif %}
 
@@ -99,7 +101,8 @@
                          alt="{{ product.name }}"
                          class="w-full h-24 object-contain bg-gray-50 dark:bg-gray-700 rounded-lg border-2 cursor-pointer hover:border-primary-600 {% if forloop.first %}border-primary-600{% else %}border-gray-200 dark:border-gray-600{% endif %}"
                          onclick="changeImage('{{ image.image.url }}', this)"
-                         {% if image.is_reference %}title="Эталонное фото"{% endif %}>
+                         {% if image.is_reference %}title="Эталонное фото"{% endif %}
+                         loading="lazy">
                 {% endfor %}
             </div>
             {% endif %}
@@ -211,7 +214,7 @@
         <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
             <div class="flex items-center gap-4 mb-4">
                 {% if product.factory.logo %}
-                    <img src="{{ product.factory.logo.url }}" alt="{{ product.factory.name }}" class="w-16 h-16 object-contain bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                    <img src="{{ product.factory.logo.url }}" alt="{{ product.factory.name }}" class="w-16 h-16 object-contain bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600" loading="lazy">
                 {% else %}
                     <div class="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 flex items-center justify-center">
                         <i class="bi bi-building text-gray-400 dark:text-white text-2xl"></i>
@@ -248,7 +251,7 @@
         {% for similar in similar_products %}
             <a href="{% url 'catalog:product_detail' similar.article %}" class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow hover:shadow-lg transition-shadow">
                 {% if similar.images.all.0 %}
-                    <img src="{{ similar.images.all.0.image.url }}" alt="{{ similar.name }}" class="w-full h-48 object-contain bg-gray-50 dark:bg-gray-700 rounded-t-lg">
+                    <img src="{{ similar.images.all.0.image.url }}" alt="{{ similar.name }}" class="w-full h-48 object-contain bg-gray-50 dark:bg-gray-700 rounded-t-lg" loading="lazy">
                 {% else %}
                     <div class="w-full h-48 bg-gray-50 dark:bg-gray-700 flex items-center justify-center rounded-t-lg">
                         <i class="bi bi-image text-gray-400 dark:text-white text-5xl"></i>

@@ -180,7 +180,8 @@
             <img src="{{ product.images.all.0.image.url }}"
                  alt="{{ product.name }}"
                  class="fullscreen-image"
-                 id="mainFullscreenImage">
+                 id="mainFullscreenImage"
+                 loading="eager">
 
             <!-- Ruler Overlay -->
             <div class="ruler-overlay" id="rulerOverlay">
@@ -205,7 +206,8 @@
             <img src="{{ image.image.url }}"
                  alt="{{ product.name }}"
                  class="thumbnail {% if forloop.first %}active{% endif %}"
-                 onclick="changeFullscreenImage('{{ image.image.url }}', this)">
+                 onclick="changeFullscreenImage('{{ image.image.url }}', this)"
+                 loading="lazy">
         {% endfor %}
     </div>
     {% endif %}
