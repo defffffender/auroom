@@ -6,11 +6,17 @@ bind = "0.0.0.0:8000"
 backlog = 2048
 
 # Worker processes
-workers = multiprocessing.cpu_count() * 2 + 1
+# Оптимизировано для VPS с ограниченной памятью (< 1GB RAM)
+# Используем 2 воркера вместо формулы cpu_count() * 2 + 1
+workers = 2
 worker_class = 'sync'
 worker_connections = 1000
 timeout = 120
 keepalive = 5
+
+# Ограничение памяти для воркеров
+max_requests = 1000  # Перезапуск воркера после 1000 запросов (предотвращает утечки памяти)
+max_requests_jitter = 50  # Случайный разброс для предотвращения одновременного рестарта
 
 # Logging
 accesslog = '/var/log/auroom/gunicorn-access.log'
