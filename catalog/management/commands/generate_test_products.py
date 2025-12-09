@@ -201,7 +201,13 @@ class Command(BaseCommand):
 
             # Сохраняем батч
             with transaction.atomic():
-                created_products = Product.objects.bulk_create(products_batch, ignore_conflicts=True)
+                # bulk_create с возвратом ID (только для PostgreSQL, MySQL, SQLite 3.35+)
+                Product.objects.bulk_create(products_batch, ignore_conflicts=True)
+
+            # Получаем созданные товары для добавления изображений
+            # Получаем артикулы только что созданных товаров
+            articles = [p.article for p in products_batch]
+            created_products = Product.objects.filter(article__in=articles)
 
             # Добавляем изображения к созданным товарам
             if image_files:
@@ -341,35 +347,48 @@ class Command(BaseCommand):
 
     def _add_images_to_products(self, products, image_files, batch_num):
         """Добавляет изображения к товарам циклично"""
-        product_images = []
+        from django.core.files.base import ContentFile
+
         num_images = len(image_files)
 
+        # Загружаем все изображения в память один раз
+        image_contents = {}
+        for image_path in image_files:
+            try:
+                with open(image_path, 'rb') as f:
+                    image_contents[image_path] = f.read()
+            except Exception as e:
+                self.stdout.write(
+                    self.style.WARNING(
+                        f'\n⚠️  Ошибка при чтении изображения {image_path}: {e}\n'
+                    )
+                )
+
+        # Создаем ProductImage для каждого товара
         for idx, product in enumerate(products):
             # Выбираем изображение циклично (0-11)
             image_index = (batch_num + idx) % num_images
             image_path = image_files[image_index]
 
-            # Открываем файл и создаем ProductImage
-            try:
-                with open(image_path, 'rb') as f:
-                    file_content = f.read()
-                    # Создаем временный файл в памяти
-                    from django.core.files.base import ContentFile
-                    image_file = ContentFile(file_content, name=os.path.basename(image_path))
+            if image_path not in image_contents:
+                continue
 
-                    product_image = ProductImage(
-                        product=product,
-                        image=image_file,
-                        order=0
-                    )
-                    product_images.append(product_image)
+            try:
+                # Создаем файл из содержимого
+                image_file = ContentFile(
+                    image_contents[image_path],
+                    name=f"{product.article}_{os.path.basename(image_path)}"
+                )
+
+                # Создаем и сохраняем изображение напрямую (не bulk_create)
+                ProductImage.objects.create(
+                    product=product,
+                    image=image_file,
+                    order=0
+                )
             except Exception as e:
                 self.stdout.write(
                     self.style.WARNING(
-                        f'\n⚠️  Ошибка при добавлении изображения {image_path}: {e}\n'
+                        f'\n⚠️  Ошибка при добавлении изображения к товару {product.article}: {e}\n'
                     )
                 )
-
-        # Сохраняем изображения батчем
-        if product_images:
-            ProductImage.objects.bulk_create(product_images, ignore_conflicts=True)
