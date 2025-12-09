@@ -7,9 +7,9 @@ backlog = 2048
 
 # Worker processes
 # Оптимизировано для высокой нагрузки (до 1000 одновременных пользователей)
-# Увеличиваем воркеры до 4 (каждый ~60MB RAM)
-workers = 4
-worker_class = 'sync'
+# Используем 3 async воркера (gevent) для обработки тысяч одновременных соединений
+workers = 3
+worker_class = 'gevent'
 worker_connections = 1000
 timeout = 120
 keepalive = 5
