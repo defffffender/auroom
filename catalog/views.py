@@ -7,6 +7,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.forms import modelformset_factory
 from django.http import JsonResponse
+from django.views.decorators.cache import cache_page
+from django.core.cache import cache
 
 from .models import Product, Category, Material, Factory, ProductImage, Favorite, Theme
 from .forms import (
@@ -23,6 +25,30 @@ logger = logging.getLogger(__name__)
 # Константы
 PRODUCTS_PER_PAGE = 12
 
+def get_cached_categories():
+    """Получить категории из кэша или БД"""
+    categories = cache.get('categories_list')
+    if categories is None:
+        categories = list(Category.objects.filter(parent__isnull=True, is_active=True))
+        cache.set('categories_list', categories, 60 * 60)  # Кэш на 1 час
+    return categories
+
+def get_cached_reference_data():
+    """Получить справочные данные из кэша"""
+    from .models import Purity, MetalColor, Style
+
+    ref_data = cache.get('reference_data')
+    if ref_data is None:
+        ref_data = {
+            'materials': list(Material.objects.all()),
+            'purities': list(Purity.objects.all()),
+            'metal_colors': list(MetalColor.objects.all()),
+            'styles': list(Style.objects.all()),
+        }
+        cache.set('reference_data', ref_data, 60 * 60)  # Кэш на 1 час
+    return ref_data
+
+@cache_page(60 * 5)  # Кэшировать на 5 минут
 def home(request):
     """Главная страница с каталогом товаров с расширенными фильтрами"""
     from django.core.paginator import Paginator
@@ -110,12 +136,13 @@ def home(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    # Данные для фильтров
-    categories = Category.objects.filter(parent__isnull=True, is_active=True)
-    materials = Material.objects.all()
-    purities = Purity.objects.all()
-    metal_colors = MetalColor.objects.all()
-    styles = Style.objects.all()
+    # Данные для фильтров (используем кэш)
+    categories = get_cached_categories()
+    ref_data = get_cached_reference_data()
+    materials = ref_data['materials']
+    purities = ref_data['purities']
+    metal_colors = ref_data['metal_colors']
+    styles = ref_data['styles']
 
     # Get selected filter objects for display
     selected_category = None
