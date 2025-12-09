@@ -9,6 +9,7 @@ from django.forms import modelformset_factory
 from django.http import JsonResponse
 from django.views.decorators.cache import cache_page
 from django.core.cache import cache
+from django.core.paginator import Paginator
 
 from .models import Product, Category, Material, Factory, ProductImage, Favorite, Theme
 from .forms import (
@@ -239,17 +240,22 @@ def product_fullscreen(request, article):
 def factory_detail(request, factory_id):
     """Страница завода со всеми его товарами"""
     factory = get_object_or_404(Factory, id=factory_id)
-    
-    products = Product.objects.filter(
+
+    products_list = Product.objects.filter(
         factory=factory,
         is_active=True
-    ).select_related('category', 'material').prefetch_related('images')
-    
+    ).select_related('category', 'material', 'purity', 'metal_color', 'style').prefetch_related('images')
+
+    # Пагинация (12 товаров на странице)
+    paginator = Paginator(products_list, 12)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
     context = {
         'factory': factory,
-        'products': products,
+        'page_obj': page_obj,
     }
-    
+
     return render(request, 'catalog/factory_detail.html', context)
 
 def factory_register(request):

@@ -52,18 +52,25 @@
 <div class="mb-6">
     <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
         Товары производителя
-        <span class="text-primary-600">({{ products.count }})</span>
+        <span class="text-primary-600">({{ page_obj.paginator.count }})</span>
     </h2>
 
-    {% if products %}
-        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {% for product in products %}
+    {% if page_obj %}
+        <!-- Информация о результатах -->
+        <div class="flex items-center p-4 mb-4 text-sm text-blue-800 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-300 dark:border-blue-800" role="alert">
+            <i class="bi bi-info-circle mr-2"></i>
+            <span>Показано {{ page_obj.start_index }}–{{ page_obj.end_index }} из {{ page_obj.paginator.count }} товаров</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
+            {% for product in page_obj %}
                 <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow hover:shadow-lg transition-shadow">
                     <a href="{% url 'catalog:product_detail' product.article %}" class="block">
                         {% if product.images.all.0 %}
                             <img src="{{ product.images.all.0.image.url }}"
                                  alt="{{ product.name }}"
-                                 class="w-full h-64 object-contain bg-gray-50 dark:bg-gray-700 rounded-t-lg">
+                                 class="w-full h-64 object-contain bg-gray-50 dark:bg-gray-700 rounded-t-lg"
+                                 loading="lazy">
                         {% else %}
                             <div class="w-full h-64 bg-gray-50 dark:bg-gray-700 flex items-center justify-center rounded-t-lg">
                                 <i class="bi bi-image text-gray-400 dark:text-gray-500 text-5xl"></i>
@@ -104,6 +111,67 @@
                 </div>
             {% endfor %}
         </div>
+
+        <!-- Пагинация -->
+        {% if page_obj.has_other_pages %}
+        <nav class="flex items-center justify-center" aria-label="Page navigation">
+            <ul class="inline-flex -space-x-px text-sm">
+                {% if page_obj.has_previous %}
+                <li>
+                    <a href="?page=1" class="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-e-0 border-gray-300 dark:border-gray-700 rounded-s-lg hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-white">
+                        <i class="bi bi-chevron-double-left"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="?page={{ page_obj.previous_page_number }}" class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-white">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
+                {% else %}
+                <li>
+                    <span class="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-300 dark:text-gray-600 bg-white dark:bg-gray-800 border border-e-0 border-gray-300 dark:border-gray-700 rounded-s-lg">
+                        <i class="bi bi-chevron-double-left"></i>
+                    </span>
+                </li>
+                <li>
+                    <span class="flex items-center justify-center px-3 h-8 leading-tight text-gray-300 dark:text-gray-600 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700">
+                        <i class="bi bi-chevron-left"></i>
+                    </span>
+                </li>
+                {% endif %}
+
+                <li>
+                    <span class="flex items-center justify-center px-3 h-8 text-primary-600 dark:text-primary-400 border border-gray-300 dark:border-gray-700 bg-primary-50 dark:bg-primary-900/30">
+                        Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
+                    </span>
+                </li>
+
+                {% if page_obj.has_next %}
+                <li>
+                    <a href="?page={{ page_obj.next_page_number }}" class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-white">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="?page={{ page_obj.paginator.num_pages }}" class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-e-lg hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-white">
+                        <i class="bi bi-chevron-double-right"></i>
+                    </a>
+                </li>
+                {% else %}
+                <li>
+                    <span class="flex items-center justify-center px-3 h-8 leading-tight text-gray-300 dark:text-gray-600 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700">
+                        <i class="bi bi-chevron-right"></i>
+                    </span>
+                </li>
+                <li>
+                    <span class="flex items-center justify-center px-3 h-8 leading-tight text-gray-300 dark:text-gray-600 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-e-lg">
+                        <i class="bi bi-chevron-double-right"></i>
+                    </span>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
     {% else %}
         <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm text-center p-12">
             <i class="bi bi-inbox text-primary-600" style="font-size: 4rem;"></i>
