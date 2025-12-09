@@ -17,11 +17,15 @@ keepalive = 5
 # Preload app для экономии памяти (общий код между воркерами)
 preload_app = True
 
-# Патч psycopg2 для совместимости с gevent
+# Патч psycopg2 и Django для совместимости с gevent
 def post_fork(server, worker):
     """Применяет gevent патч для psycopg2 после fork воркера"""
     from psycogreen.gevent import patch_psycopg
     patch_psycopg()
+
+    # Отключаем проверку потоков в Django для gevent
+    from django.db.backends.base import base
+    base.BaseDatabaseWrapper.allow_thread_sharing = True
 
 # Ограничение памяти для воркеров
 max_requests = 1000  # Перезапуск воркера после 1000 запросов (предотвращает утечки памяти)
