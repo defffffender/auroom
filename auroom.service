@@ -1,0 +1,22 @@
+[Unit]
+Description=Gunicorn daemon for AuRoom Django Application
+After=network.target
+
+[Service]
+Type=notify
+User=root
+Group=root
+WorkingDirectory=/root/auroom
+Environment="PATH=/root/auroom/venv/bin"
+ExecStart=/root/auroom/venv/bin/gunicorn \
+    --config /root/auroom/gunicorn_config.py \
+    auroom.wsgi:application
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=5
+PrivateTmp=true
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

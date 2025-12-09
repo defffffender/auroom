@@ -19,7 +19,8 @@
       "Bash(CHANGELOG_AUDIT_FIXES.md)",
       "Bash(git add:*)",
       "Bash(curl:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(.\\venv\\Scripts\\python.exe manage.py:*)"
     ],
     "deny": [],
     "ask": []

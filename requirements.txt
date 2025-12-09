@@ -1,0 +1,21 @@
+# Core Django
+Django==5.1
+asgiref==3.10.0
+sqlparse==0.5.3
+tzdata==2025.2
+
+# Image processing
+Pillow==11.3.0
+
+# Production server
+gunicorn==21.2.0
+
+# PostgreSQL adapter
+psycopg2-binary==2.9.9
+
+# Environment variables
+python-dotenv==1.0.0
+
+# Redis for caching
+redis==5.0.1
+django-redis==5.4.0
