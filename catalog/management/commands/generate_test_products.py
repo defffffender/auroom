@@ -206,8 +206,8 @@ class Command(BaseCommand):
         """Получает или создает тестовую фабрику"""
         # Ищем существующую тестовую фабрику
         try:
-            factory = Factory.objects.get(company_name='Test Factory')
-            self.stdout.write(f'Используется существующая фабрика: {factory.company_name}')
+            factory = Factory.objects.get(name='Test Factory')
+            self.stdout.write(f'Используется существующая фабрика: {factory.name}')
             return factory
         except Factory.DoesNotExist:
             pass
@@ -228,7 +228,7 @@ class Command(BaseCommand):
         # Создаем фабрику
         factory = Factory.objects.create(
             user=user,
-            company_name='Test Factory',
+            name='Test Factory',
             address='Test Address, Test City',
             phone='+998901234567',
             email=email,
@@ -236,7 +236,7 @@ class Command(BaseCommand):
             is_verified=True
         )
 
-        self.stdout.write(self.style.SUCCESS(f'Создана новая фабрика: {factory.company_name}'))
+        self.stdout.write(self.style.SUCCESS(f'Создана новая фабрика: {factory.name}'))
         return factory
 
     def _add_many_to_many_relations(self, factory, insert_types, coatings):
