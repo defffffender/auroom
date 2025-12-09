@@ -229,7 +229,7 @@ class Command(BaseCommand):
         self._add_many_to_many_relations(factory, insert_types, coatings)
 
         self.stdout.write(self.style.SUCCESS(f'\n✅ Успешно создано {total_created} товаров!'))
-        self.stdout.write(f'Фабрика: {factory.company_name} (ID: {factory.id})')
+        self.stdout.write(f'Фабрика: {factory.name} (ID: {factory.id})')
 
     def _check_required_data(self):
         """Проверяет наличие необходимых данных в БД"""
