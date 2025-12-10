@@ -7,7 +7,6 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.forms import modelformset_factory
 from django.http import JsonResponse
-from django.views.decorators.cache import cache_page
 from django.core.cache import cache
 from django.core.paginator import Paginator
 
@@ -49,7 +48,6 @@ def get_cached_reference_data():
         cache.set('reference_data', ref_data, 60 * 60)  # Кэш на 1 час
     return ref_data
 
-@cache_page(60 * 5)  # Кэшировать на 5 минут
 def home(request):
     """Главная страница с каталогом товаров с расширенными фильтрами"""
     from django.core.paginator import Paginator
