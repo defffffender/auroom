@@ -82,21 +82,41 @@
                 document.documentElement.classList.add('dark');
             }
 
-            // Load active theme from localStorage
+            // Load active theme from localStorage OR use default theme from DB
             const activeThemeStr = localStorage.getItem('activeTheme');
             let activeTheme = null;
 
             if (activeThemeStr) {
                 try {
                     activeTheme = JSON.parse(activeThemeStr);
-
-                    // Apply sharp corners class if enabled
-                    if (activeTheme && activeTheme.sharp_corners) {
-                        document.documentElement.classList.add('sharp-corners');
-                    }
                 } catch (e) {
                     console.error('Failed to parse active theme:', e);
                 }
+            }
+
+            // Если у пользователя нет сохраненной темы, используем дефолтную из БД
+            {% if default_theme_data and not activeTheme %}
+            if (!activeTheme) {
+                activeTheme = {
+                    id: {{ default_theme_data.id }},
+                    name: "{{ default_theme_data.name|escapejs }}",
+                    primary_color: "{{ default_theme_data.primary_color }}",
+                    secondary_color: "{{ default_theme_data.secondary_color }}",
+                    color_scheme: "{{ default_theme_data.color_scheme }}",
+                    gradient_enabled: {{ default_theme_data.gradient_enabled|lower }},
+                    sharp_corners: {{ default_theme_data.sharp_corners|lower }},
+                    heading_font: "{{ default_theme_data.heading_font|escapejs }}",
+                    body_font: "{{ default_theme_data.body_font|escapejs }}",
+                    heading_font_weight: "{{ default_theme_data.heading_font_weight }}",
+                    body_font_weight: "{{ default_theme_data.body_font_weight }}",
+                    is_default: true
+                };
+            }
+            {% endif %}
+
+            // Apply sharp corners class if enabled
+            if (activeTheme && activeTheme.sharp_corners) {
+                document.documentElement.classList.add('sharp-corners');
             }
 
             // Helper functions
