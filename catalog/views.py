@@ -635,24 +635,28 @@ def factory_characteristic_add(request):
 
 @login_required
 def theme_editor(request):
-    """Редактор цветовой схемы (только для авторизованных пользователей)"""
-    # Получаем тему по умолчанию (только superuser может её редактировать)
-    default_theme = None
-    if request.user.is_superuser:
-        default_theme = Theme.objects.filter(is_default=True).first()
+    """Редактор цветовой схемы (только для superuser)"""
+    # Проверяем, что пользователь - суперюзер
+    if not request.user.is_superuser:
+        messages.error(request, 'Доступ запрещен. Только администратор может редактировать темы.')
+        return redirect('catalog:home')
 
-    # Получаем пользовательские темы текущего пользователя
-    user_themes = Theme.objects.filter(user=request.user, is_default=False)
+    # Получаем дефолтную тему для редактирования
+    default_theme = Theme.objects.filter(is_default=True).first()
 
     return render(request, 'catalog/theme_editor.html', {
         'default_theme': default_theme,
-        'user_themes': user_themes
+        'user_themes': []  # Обычных пользовательских тем больше нет
     })
 
 
 @login_required
 def theme_save(request):
-    """Сохранение темы (только для авторизованных пользователей)"""
+    """Сохранение темы (только для superuser)"""
+    # Только superuser может сохранять темы
+    if not request.user.is_superuser:
+        return JsonResponse({'success': False, 'error': 'Доступ запрещен. Только администратор может редактировать темы.'})
+
     if request.method == 'POST':
         import json
         data = json.loads(request.body)
@@ -664,21 +668,15 @@ def theme_save(request):
             try:
                 theme = Theme.objects.get(id=theme_id)
 
-                # Проверяем права:
-                # 1. Дефолтную тему может редактировать только superuser
-                if theme.is_default and not request.user.is_superuser:
-                    return JsonResponse({'success': False, 'error': 'Только администратор может редактировать дефолтную тему'})
-
-                # 2. Пользовательскую тему может редактировать только её владелец
-                if not theme.is_default and theme.user != request.user:
-                    return JsonResponse({'success': False, 'error': 'Нет прав для редактирования этой темы'})
+                # Superuser может редактировать только дефолтную тему
+                if not theme.is_default:
+                    return JsonResponse({'success': False, 'error': 'Можно редактировать только дефолтную тему'})
 
             except Theme.DoesNotExist:
                 return JsonResponse({'success': False, 'error': 'Тема не найдена'})
         else:
-            # Создаём новую пользовательскую тему (обычные пользователи не могут создавать дефолтную)
-            theme_name = data.get('name', 'Новая тема')
-            theme = Theme(user=request.user, name=theme_name, is_default=False)
+            # Создание новых тем запрещено
+            return JsonResponse({'success': False, 'error': 'Создание новых тем запрещено. Можно редактировать только дефолтную тему.'})
 
         # Обновляем поля темы
         if not theme.is_default:
@@ -710,14 +708,16 @@ def theme_save(request):
 
 @login_required
 def theme_load(request, theme_id):
-    """Загрузка темы (только для авторизованных пользователей)"""
+    """Загрузка темы (только для superuser)"""
+    # Только superuser может загружать темы
+    if not request.user.is_superuser:
+        return JsonResponse({'success': False, 'error': 'Доступ запрещен'})
+
     try:
         theme = Theme.objects.get(id=theme_id)
-        # Проверяем доступ:
-        # 1. Дефолтную тему могут загружать все авторизованные пользователи
-        # 2. Пользовательскую тему может загружать только её владелец
-        if not theme.is_default and theme.user != request.user:
-            return JsonResponse({'success': False, 'error': 'Нет доступа к этой теме'})
+        # Superuser может загружать только дефолтную тему
+        if not theme.is_default:
+            return JsonResponse({'success': False, 'error': 'Можно загружать только дефолтную тему'})
 
         return JsonResponse({
             'success': True,
@@ -743,27 +743,9 @@ def theme_load(request, theme_id):
 
 @login_required
 def theme_delete(request, theme_id):
-    """Удаление темы (только для авторизованных пользователей)"""
-    if request.method == 'POST':
-        try:
-            theme = Theme.objects.get(id=theme_id, user=request.user)
-
-            # Защита от удаления default темы
-            if theme.is_default:
-                return JsonResponse({'success': False, 'error': 'Нельзя удалить дефолтную тему'})
-
-            theme_name = theme.name
-            theme.delete()
-            return JsonResponse({
-                'success': True,
-                'message': f'Тема "{theme_name}" удалена'
-            })
-        except Theme.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Тема не найдена или нет прав для её удаления'})
-        except ValueError as e:
-            return JsonResponse({'success': False, 'error': str(e)})
-
-    return JsonResponse({'success': False, 'error': 'Метод не поддерживается'})
+    """Удаление темы (запрещено - можно только редактировать дефолтную)"""
+    # Удаление тем полностью запрещено
+    return JsonResponse({'success': False, 'error': 'Удаление тем запрещено. Можно только редактировать дефолтную тему.'})
 
 
 @login_required

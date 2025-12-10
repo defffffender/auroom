@@ -546,10 +546,10 @@
                         <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">Тёмная тема</span>
                     </label>
 
-                    <!-- Link to Theme Editor -->
-                    {% if user.is_authenticated %}
+                    <!-- Link to Theme Editor (только для superuser) -->
+                    {% if user.is_superuser %}
                     <a href="{% url 'catalog:theme_editor' %}" class="block text-sm text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300 font-medium mt-3">
-                        <i class="bi bi-palette mr-1"></i> Открыть редактор темы
+                        <i class="bi bi-palette mr-1"></i> Редактор темы (Admin)
                     </a>
                     {% endif %}
                 </div>
