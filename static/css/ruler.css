@@ -8,11 +8,21 @@
     border-radius: 12px;
 }
 
+/* Dark mode for ruler-container */
+.dark .ruler-container {
+    background: rgb(31 41 55);
+}
+
 .ruler-controls {
     background: #f9f9f9;
     padding: 1.5rem;
     border-radius: 12px;
     margin-bottom: 1rem;
+}
+
+/* Dark mode for ruler-controls */
+.dark .ruler-controls {
+    background: rgb(31 41 55);
 }
 
 /* Контейнер с кнопками - НОВЫЙ МАКЕТ */
@@ -131,10 +141,21 @@
     margin-top: 1rem;
 }
 
+/* Dark mode for ruler-info */
+.dark .ruler-info {
+    background: rgb(120 113 108 / 0.3);
+    border-left-color: #fbbf24;
+}
+
 .ruler-instruction {
     margin: 0 0 1rem 0;
     color: #856404;
     font-size: 0.95rem;
+}
+
+/* Dark mode for ruler-instruction */
+.dark .ruler-instruction {
+    color: rgb(254 240 138);
 }
 
 .ruler-status {
@@ -144,6 +165,12 @@
     color: var(--color-primary);
     font-weight: 600;
     text-align: center;
+}
+
+/* Dark mode for ruler-status */
+.dark .ruler-status {
+    background: rgb(55 65 81);
+    color: rgb(147 197 253);
 }
 
 /* Статус для режима сетки */
@@ -156,6 +183,12 @@
     text-align: center;
 }
 
+/* Dark mode for gridDrawStatus */
+.dark #gridDrawStatus {
+    background: rgb(55 65 81);
+    color: rgb(134 239 172);
+}
+
 /* Улучшенные координаты */
 .ruler-coordinates {
     display: flex;
@@ -166,6 +199,12 @@
     border-radius: 8px;
     font-size: 1.1rem;
     margin-bottom: 0.5rem;
+}
+
+/* Dark mode for ruler-coordinates */
+.dark .ruler-coordinates {
+    background: rgb(55 65 81);
+    color: rgb(209 213 219);
 }
 
 .ruler-coordinates span {
@@ -181,14 +220,30 @@
     text-align: right;
 }
 
+/* Dark mode for ruler-coordinates strong */
+.dark .ruler-coordinates strong {
+    color: rgb(147 197 253);
+}
+
 /* Стиль для инфо сетки */
 .ruler-info-grid {
     background: #e8f5e9;
     border-left-color: #4caf50;
 }
 
+/* Dark mode for ruler-info-grid */
+.dark .ruler-info-grid {
+    background: rgb(22 101 52 / 0.3);
+    border-left-color: #4ade80;
+}
+
 .ruler-info-grid .ruler-instruction {
     color: #2e7d32;
+}
+
+/* Dark mode for ruler-info-grid instruction */
+.dark .ruler-info-grid .ruler-instruction {
+    color: rgb(134 239 172);
 }
 
 /* Стиль для инфо перпендикуляра */
@@ -197,8 +252,19 @@
     border-left-color: #ff4444;
 }
 
+/* Dark mode for ruler-info-perpendicular */
+.dark .ruler-info-perpendicular {
+    background: rgb(127 29 29 / 0.3);
+    border-left-color: #f87171;
+}
+
 .ruler-info-perpendicular .ruler-instruction {
     color: #c62828;
+}
+
+/* Dark mode for ruler-info-perpendicular instruction */
+.dark .ruler-info-perpendicular .ruler-instruction {
+    color: rgb(252 165 165);
 }
 
 /* Информация о эталоне */
@@ -211,8 +277,19 @@
     margin-top: 1rem;
 }
 
+/* Dark mode for reference-info-ruler */
+.dark .reference-info-ruler {
+    background: rgb(55 65 81);
+    color: rgb(147 197 253);
+}
+
 .reference-info-ruler strong {
     color: var(--color-primary);
+}
+
+/* Dark mode for reference-info-ruler strong */
+.dark .reference-info-ruler strong {
+    color: rgb(147 197 253);
 }
 
 /* Изображение с линейкой */
