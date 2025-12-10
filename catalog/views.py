@@ -8,6 +8,8 @@ from django.contrib import messages
 from django.forms import modelformset_factory
 from django.http import JsonResponse
 from django.core.cache import cache
+from django.views.decorators.cache import cache_page
+from django.views.decorators.vary import vary_on_cookie
 from django.core.paginator import Paginator
 
 from .models import Product, Category, Material, Factory, ProductImage, Favorite, Theme
@@ -48,6 +50,8 @@ def get_cached_reference_data():
         cache.set('reference_data', ref_data, 60 * 60)  # Кэш на 1 час
     return ref_data
 
+@cache_page(60 * 5)  # Кэш на 5 минут
+@vary_on_cookie  # Отдельный кэш для каждого пользователя (по cookies)
 def home(request):
     """Главная страница с каталогом товаров с расширенными фильтрами"""
     from django.core.paginator import Paginator
