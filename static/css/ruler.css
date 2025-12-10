@@ -57,6 +57,12 @@
     overflow: hidden;
 }
 
+/* Force white text on buttons in both light and dark mode */
+.ruler-btn,
+.dark .ruler-btn {
+    color: white !important;
+}
+
 /* Градиентный блик для ruler-btn */
 .ruler-btn::before {
     content: '';
@@ -100,6 +106,12 @@
     background: #f44336;
     position: relative;
     overflow: hidden;
+}
+
+/* Force white text on secondary buttons in both light and dark mode */
+.ruler-btn-secondary,
+.dark .ruler-btn-secondary {
+    color: white !important;
 }
 
 /* Градиентный блик для ruler-btn-secondary */
