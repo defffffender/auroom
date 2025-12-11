@@ -190,6 +190,37 @@ def home(request):
         'max_price': max_price,
     }
 
+    # Проверяем, это AJAX запрос для бесконечного скролла?
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        from django.http import JsonResponse
+
+        # Формируем JSON ответ с товарами
+        products_data = []
+        for product in page_obj:
+            image_url = product.images.all()[0].image.url if product.images.exists() else None
+            products_data.append({
+                'article': product.article,
+                'name': product.name,
+                'price': str(product.price),
+                'image_url': image_url,
+                'category_name': product.category.name,
+                'in_stock': product.in_stock,
+                'stock_quantity': product.stock_quantity if product.in_stock else 0,
+                'material_name': product.material.name if product.material else '',
+                'metal_weight': str(product.metal_weight) if product.metal_weight else '—',
+                'factory_name': product.factory.name if product.factory else '',
+                'detail_url': f'/product/{product.article}/',
+            })
+
+        return JsonResponse({
+            'products': products_data,
+            'has_next': page_obj.has_next(),
+            'has_previous': page_obj.has_previous(),
+            'current_page': page_obj.number,
+            'total_pages': page_obj.paginator.num_pages,
+            'total_count': page_obj.paginator.count,
+        })
+
     return render(request, 'catalog/home.html', context)
 
 

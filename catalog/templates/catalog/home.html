@@ -5,7 +5,12 @@
 
 {% block header_title %}Ювелирный Каталог{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/infinite-scroll.css' %}">
+{% endblock %}
+
 {% block content %}
+<div id="catalogTop"></div>
 <!-- Компактная система фильтров -->
 <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-4 mb-6">
     <!-- Заголовок и кнопка "Очистить все" -->
@@ -270,7 +275,9 @@
     </div>
 
     <!-- Сетка товаров с Flowbite Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6" id="productsGrid"
+         data-current-page="{{ page_obj.number }}"
+         data-total-pages="{{ page_obj.paginator.num_pages }}">
         {% for product in page_obj %}
         <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow hover:shadow-lg transition-shadow">
             {% if product.images.all.0 %}
@@ -320,9 +327,56 @@
         {% endfor %}
     </div>
 
-    <!-- Пагинация с Flowbite -->
+    <!-- Sentinel для Intersection Observer (бесконечный скролл) -->
+    <div id="scrollSentinel"></div>
+
+    <!-- Loading Indicator -->
+    <div id="loadingIndicator" class="hidden">
+        <div class="spinner"></div>
+        <p class="text-gray-600 dark:text-gray-400">Загрузка товаров...</p>
+    </div>
+
+    <!-- Липкая пагинация справа -->
+    <div id="stickyPagination">
+        <div class="pagination-header">СТРАНИЦЫ</div>
+
+        <!-- Кнопка в начало -->
+        <button class="nav-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+            <i class="bi bi-chevron-double-up"></i>
+        </button>
+
+        <!-- Кнопка предыдущей страницы -->
+        <button class="nav-btn" id="prevPageBtn" {% if not page_obj.has_previous %}disabled{% endif %}>
+            <i class="bi bi-chevron-up"></i>
+        </button>
+
+        <!-- Текущая страница -->
+        <div class="current-page text-gray-900 dark:text-white">
+            <span id="currentPageNumber">{{ page_obj.number }}</span> / {{ page_obj.paginator.num_pages }}
+        </div>
+
+        <!-- Кнопки номеров страниц -->
+        <div id="paginationNumbers"></div>
+
+        <!-- Кнопка следующей страницы -->
+        <button class="nav-btn" id="nextPageBtn" {% if not page_obj.has_next %}disabled{% endif %}>
+            <i class="bi bi-chevron-down"></i>
+        </button>
+
+        <!-- Кнопка в конец -->
+        <button class="nav-btn" onclick="document.getElementById('scrollSentinel').scrollIntoView({behavior:'smooth'})">
+            <i class="bi bi-chevron-double-down"></i>
+        </button>
+    </div>
+
+    <!-- Кнопка "Вернуться к началу" -->
+    <button id="scrollToTopBtn" class="hidden" title="Вернуться к началу">
+        <i class="bi bi-arrow-up"></i>
+    </button>
+
+    <!-- Старая пагинация (скрыта) -->
     {% if page_obj.has_other_pages %}
-    <nav class="flex items-center justify-center" aria-label="Page navigation">
+    <nav class="hidden flex items-center justify-center" aria-label="Page navigation">
         <ul class="inline-flex -space-x-px text-sm">
             {% if page_obj.has_previous %}
             <li>
@@ -392,4 +446,8 @@
         </a>
     </div>
 {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/infinite-scroll.js' %}"></script>
 {% endblock %}
