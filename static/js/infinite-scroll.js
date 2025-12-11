@@ -57,7 +57,8 @@ class InfiniteScroll {
 
             const response = await fetch(url, {
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
                 }
             });
 
