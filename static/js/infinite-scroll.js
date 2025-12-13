@@ -318,38 +318,53 @@ class InfiniteScroll {
 
         try {
             let firstCardOfTargetPage = null;
+            const itemsPerPage = 12;
 
-            // Если переход назад (например с 4 на 2)
-            if (targetPage < this.currentPage) {
-                // Вычисляем какие товары нужно удалить (всё после целевой страницы)
-                const itemsPerPage = 12;
-                const keepItemsCount = targetPage * itemsPerPage;
+            // Вычисляем сколько страниц реально загружено в гриде
+            const loadedItemsCount = this.productsGrid.children.length;
+            const loadedPagesCount = Math.ceil(loadedItemsCount / itemsPerPage);
 
-                // Сначала находим карточку целевой страницы до удаления
+            // Проверяем нужно ли удалять товары или загружать новые
+            if (targetPage <= loadedPagesCount) {
+                // Целевая страница уже загружена в гриде
                 const targetCardIndex = (targetPage - 1) * itemsPerPage;
-                if (this.productsGrid.children[targetCardIndex]) {
-                    firstCardOfTargetPage = this.productsGrid.children[targetCardIndex];
-                    firstCardOfTargetPage.id = `page-${targetPage}-start`;
-                    firstCardOfTargetPage.style.scrollMarginTop = '100px';
 
-                    // Плавно скроллим к целевой странице ДО удаления
-                    firstCardOfTargetPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                if (targetPage < loadedPagesCount) {
+                    // Нужно удалить лишние товары после целевой страницы
+                    const keepItemsCount = targetPage * itemsPerPage;
 
-                    // Ждём завершения скролла перед удалением
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                }
+                    if (this.productsGrid.children[targetCardIndex]) {
+                        firstCardOfTargetPage = this.productsGrid.children[targetCardIndex];
+                        firstCardOfTargetPage.id = `page-${targetPage}-start`;
+                        firstCardOfTargetPage.style.scrollMarginTop = '100px';
 
-                // Теперь удаляем лишние товары (после целевой страницы)
-                while (this.productsGrid.children.length > keepItemsCount) {
-                    this.productsGrid.removeChild(this.productsGrid.lastChild);
+                        // Плавно скроллим к целевой странице ДО удаления
+                        firstCardOfTargetPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                        // Ждём завершения скролла перед удалением
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                    }
+
+                    // Удаляем лишние товары (после целевой страницы)
+                    while (this.productsGrid.children.length > keepItemsCount) {
+                        this.productsGrid.removeChild(this.productsGrid.lastChild);
+                    }
+                } else {
+                    // Просто скроллим к нужной странице (она последняя загруженная)
+                    if (this.productsGrid.children[targetCardIndex]) {
+                        firstCardOfTargetPage = this.productsGrid.children[targetCardIndex];
+                        firstCardOfTargetPage.id = `page-${targetPage}-start`;
+                        firstCardOfTargetPage.style.scrollMarginTop = '100px';
+                        firstCardOfTargetPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
                 }
 
                 this.currentPage = targetPage;
                 this.updatePagination();
 
             } else {
-                // Переход вперёд (например с 2 на 4) - загружаем недостающие страницы
-                for (let page = this.currentPage + 1; page <= targetPage; page++) {
+                // Целевая страница НЕ загружена - нужно загрузить недостающие страницы
+                for (let page = loadedPagesCount + 1; page <= targetPage; page++) {
                     const url = new URL(window.location.href);
                     url.searchParams.set('page', page);
                     url.searchParams.set('format', 'json');
