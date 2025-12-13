@@ -191,11 +191,8 @@ def home(request):
     }
 
     # Проверяем, это AJAX запрос для бесконечного скролла?
-    # Возвращаем JSON только если это явный AJAX запрос И запрошен формат JSON
-    is_ajax = (
-        request.headers.get('X-Requested-With') == 'XMLHttpRequest' and
-        'application/json' in request.headers.get('Accept', '')
-    )
+    # Используем URL параметр для определения формата ответа
+    is_ajax = request.GET.get('format') == 'json'
 
     if is_ajax:
         from django.http import JsonResponse

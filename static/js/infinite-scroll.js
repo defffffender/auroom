@@ -54,13 +54,9 @@ class InfiniteScroll {
             const nextPage = this.currentPage + 1;
             const url = new URL(window.location.href);
             url.searchParams.set('page', nextPage);
+            url.searchParams.set('format', 'json');
 
-            const response = await fetch(url, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
-                }
-            });
+            const response = await fetch(url);
 
             if (!response.ok) throw new Error('Network response was not ok');
 
@@ -71,8 +67,11 @@ class InfiniteScroll {
                 this.currentPage = data.current_page;
                 this.updatePagination();
 
-                // Обновляем URL без перезагрузки
-                window.history.pushState({}, '', url);
+                // Обновляем URL без перезагрузки (убираем format=json из URL)
+                const displayUrl = new URL(window.location.href);
+                displayUrl.searchParams.set('page', this.currentPage);
+                displayUrl.searchParams.delete('format');
+                window.history.pushState({}, '', displayUrl);
             }
 
         } catch (error) {
@@ -177,18 +176,97 @@ class InfiniteScroll {
         }
     }
 
-    async goToPage(page) {
-        if (page < 1 || page > this.totalPages || page === this.currentPage) return;
+    async goToPage(targetPage) {
+        if (targetPage < 1 || targetPage > this.totalPages || targetPage === this.currentPage) return;
 
-        // Скроллим к началу каталога
-        const catalogTop = document.getElementById('catalogTop');
-        if (catalogTop) {
-            catalogTop.scrollIntoView({ behavior: 'smooth' });
+        this.isLoading = true;
+        this.showLoading();
+
+        try {
+            let firstCardOfTargetPage = null;
+
+            // Если переход назад (например с 4 на 2)
+            if (targetPage < this.currentPage) {
+                // Вычисляем какие товары нужно удалить (всё после целевой страницы)
+                const itemsPerPage = 12;
+                const keepItemsCount = targetPage * itemsPerPage;
+
+                // Сначала находим карточку целевой страницы до удаления
+                const targetCardIndex = (targetPage - 1) * itemsPerPage;
+                if (this.productsGrid.children[targetCardIndex]) {
+                    firstCardOfTargetPage = this.productsGrid.children[targetCardIndex];
+                    firstCardOfTargetPage.id = `page-${targetPage}-start`;
+                    firstCardOfTargetPage.style.scrollMarginTop = '100px';
+
+                    // Плавно скроллим к целевой странице ДО удаления
+                    firstCardOfTargetPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                    // Ждём завершения скролла перед удалением
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+
+                // Теперь удаляем лишние товары (после целевой страницы)
+                while (this.productsGrid.children.length > keepItemsCount) {
+                    this.productsGrid.removeChild(this.productsGrid.lastChild);
+                }
+
+                this.currentPage = targetPage;
+                this.updatePagination();
+
+            } else {
+                // Переход вперёд (например с 2 на 4) - загружаем недостающие страницы
+                for (let page = this.currentPage + 1; page <= targetPage; page++) {
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('page', page);
+                    url.searchParams.set('format', 'json');
+
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error('Network response was not ok');
+
+                    const data = await response.json();
+
+                    if (data.products && data.products.length > 0) {
+                        // Запоминаем количество товаров перед добавлением
+                        const beforeCount = this.productsGrid.children.length;
+
+                        this.appendProducts(data.products);
+
+                        // Если это целевая страница, запоминаем первую карточку
+                        if (page === targetPage && !firstCardOfTargetPage) {
+                            firstCardOfTargetPage = this.productsGrid.children[beforeCount];
+                            if (firstCardOfTargetPage) {
+                                firstCardOfTargetPage.id = `page-${page}-start`;
+                                firstCardOfTargetPage.style.scrollMarginTop = '100px';
+                            }
+                        }
+
+                        this.currentPage = data.current_page;
+                        this.totalPages = data.total_pages;
+                    }
+                }
+
+                this.updatePagination();
+
+                // Скроллим к началу целевой страницы
+                setTimeout(() => {
+                    if (firstCardOfTargetPage) {
+                        firstCardOfTargetPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }, 100);
+            }
+
+            // Обновляем URL без перезагрузки (убираем format=json из URL)
+            const displayUrl = new URL(window.location.href);
+            displayUrl.searchParams.set('page', targetPage);
+            displayUrl.searchParams.delete('format');
+            window.history.pushState({}, '', displayUrl);
+
+        } catch (error) {
+            console.error('Error loading page:', error);
+        } finally {
+            this.isLoading = false;
+            this.hideLoading();
         }
-
-        // Загружаем страницу
-        this.currentPage = page - 1; // Будет инкрементирована в loadMore
-        await this.loadMore();
     }
 
     showLoading() {
