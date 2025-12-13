@@ -291,59 +291,22 @@ class InfiniteScroll {
         const container = document.getElementById('paginationNumbers');
         if (!container) return;
 
-        // Определяем диапазон страниц для отображения (всегда 5 кнопок если возможно)
-        const maxButtons = 5;
-        let startPage, endPage;
+        container.innerHTML = '';
 
-        if (this.totalPages <= maxButtons) {
-            // Если страниц мало, показываем все
-            startPage = 1;
-            endPage = this.totalPages;
-        } else {
-            // Вычисляем диапазон так, чтобы текущая была по центру
-            startPage = Math.max(1, this.currentPage - Math.floor(maxButtons / 2));
-            endPage = startPage + maxButtons - 1;
-
-            // Корректируем если выходим за границы
-            if (endPage > this.totalPages) {
-                endPage = this.totalPages;
-                startPage = Math.max(1, endPage - maxButtons + 1);
-            }
-        }
-
-        // Получаем существующие кнопки
-        const existingButtons = Array.from(container.children);
-        const newPages = [];
+        // Определяем диапазон страниц для отображения
+        let startPage = Math.max(1, this.currentPage - 2);
+        let endPage = Math.min(this.totalPages, this.currentPage + 2);
 
         for (let i = startPage; i <= endPage; i++) {
-            newPages.push(i);
-        }
-
-        // Обновляем существующие кнопки или создаём новые
-        newPages.forEach((pageNum, index) => {
-            let button = existingButtons[index];
-
-            if (!button) {
-                // Создаём новую кнопку
-                button = document.createElement('button');
-                button.className = 'px-3 py-1 text-sm rounded border border-gray-300 dark:border-gray-600 transition-all duration-200';
-                button.onclick = () => this.goToPage(parseInt(button.textContent));
-                container.appendChild(button);
-            }
-
-            // Обновляем содержимое и стиль
-            button.textContent = pageNum;
-
-            if (pageNum === this.currentPage) {
-                button.className = 'px-3 py-1 text-sm rounded bg-primary-600 text-white border border-primary-600 transition-all duration-200';
-            } else {
-                button.className = 'px-3 py-1 text-sm rounded bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600 transition-all duration-200';
-            }
-        });
-
-        // Удаляем лишние кнопки
-        while (container.children.length > newPages.length) {
-            container.removeChild(container.lastChild);
+            const button = document.createElement('button');
+            button.className = `px-3 py-1 text-sm rounded ${
+                i === this.currentPage
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+            } border border-gray-300 dark:border-gray-600`;
+            button.textContent = i;
+            button.onclick = () => this.goToPage(i);
+            container.appendChild(button);
         }
     }
 
