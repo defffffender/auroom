@@ -340,13 +340,13 @@
     <div id="stickyPagination">
         <div class="pagination-header">СТРАНИЦЫ</div>
 
-        <!-- Кнопка в начало -->
-        <button class="nav-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+        <!-- Кнопка к первой видимой странице -->
+        <button class="nav-btn" id="firstVisiblePageBtn">
             <i class="bi bi-chevron-double-up"></i>
         </button>
 
         <!-- Кнопка предыдущей страницы -->
-        <button class="nav-btn" id="prevPageBtn" {% if not page_obj.has_previous %}disabled{% endif %}>
+        <button class="nav-btn" id="prevPageBtn">
             <i class="bi bi-chevron-up"></i>
         </button>
 
@@ -359,12 +359,12 @@
         <div id="paginationNumbers"></div>
 
         <!-- Кнопка следующей страницы -->
-        <button class="nav-btn" id="nextPageBtn" {% if not page_obj.has_next %}disabled{% endif %}>
+        <button class="nav-btn" id="nextPageBtn">
             <i class="bi bi-chevron-down"></i>
         </button>
 
-        <!-- Кнопка в конец -->
-        <button class="nav-btn" onclick="document.getElementById('scrollSentinel').scrollIntoView({behavior:'smooth'})">
+        <!-- Кнопка к последней видимой странице -->
+        <button class="nav-btn" id="lastVisiblePageBtn">
             <i class="bi bi-chevron-double-down"></i>
         </button>
     </div>
@@ -449,5 +449,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/infinite-scroll.js' %}?v=5"></script>
+<script src="{% static 'js/infinite-scroll.js' %}?v=6"></script>
 {% endblock %}

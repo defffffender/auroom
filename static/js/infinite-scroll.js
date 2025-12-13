@@ -23,8 +23,51 @@ class InfiniteScroll {
         // Обновляем пагинацию справа
         this.updatePagination();
 
+        // Настройка кнопок навигации пагинации
+        this.setupPaginationButtons();
+
         // Кнопка "Вернуться к началу"
         this.setupScrollToTop();
+    }
+
+    setupPaginationButtons() {
+        // Кнопка "предыдущая страница" (одна стрелка вверх)
+        const prevBtn = document.getElementById('prevPageBtn');
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                if (this.currentPage > 1) {
+                    this.goToPage(this.currentPage - 1);
+                }
+            });
+        }
+
+        // Кнопка "следующая страница" (одна стрелка вниз)
+        const nextBtn = document.getElementById('nextPageBtn');
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                if (this.currentPage < this.totalPages) {
+                    this.goToPage(this.currentPage + 1);
+                }
+            });
+        }
+
+        // Кнопка "первая видимая страница" (две стрелки вверх)
+        const firstVisibleBtn = document.getElementById('firstVisiblePageBtn');
+        if (firstVisibleBtn) {
+            firstVisibleBtn.addEventListener('click', () => {
+                const startPage = Math.max(1, this.currentPage - 2);
+                this.goToPage(startPage);
+            });
+        }
+
+        // Кнопка "последняя видимая страница" (две стрелки вниз)
+        const lastVisibleBtn = document.getElementById('lastVisiblePageBtn');
+        if (lastVisibleBtn) {
+            lastVisibleBtn.addEventListener('click', () => {
+                const endPage = Math.min(this.totalPages, this.currentPage + 2);
+                this.goToPage(endPage);
+            });
+        }
     }
 
     setupIntersectionObserver() {
@@ -151,6 +194,40 @@ class InfiniteScroll {
 
         // Генерируем кнопки страниц
         this.generatePageButtons();
+
+        // Обновляем состояние навигационных кнопок
+        this.updateNavigationButtons();
+    }
+
+    updateNavigationButtons() {
+        const prevBtn = document.getElementById('prevPageBtn');
+        const nextBtn = document.getElementById('nextPageBtn');
+        const firstVisibleBtn = document.getElementById('firstVisiblePageBtn');
+        const lastVisibleBtn = document.getElementById('lastVisiblePageBtn');
+
+        // Определяем диапазон видимых страниц
+        const startPage = Math.max(1, this.currentPage - 2);
+        const endPage = Math.min(this.totalPages, this.currentPage + 2);
+
+        // Кнопка "предыдущая страница"
+        if (prevBtn) {
+            prevBtn.disabled = this.currentPage <= 1;
+        }
+
+        // Кнопка "следующая страница"
+        if (nextBtn) {
+            nextBtn.disabled = this.currentPage >= this.totalPages;
+        }
+
+        // Кнопка "первая видимая"
+        if (firstVisibleBtn) {
+            firstVisibleBtn.disabled = this.currentPage === startPage;
+        }
+
+        // Кнопка "последняя видимая"
+        if (lastVisibleBtn) {
+            lastVisibleBtn.disabled = this.currentPage === endPage;
+        }
     }
 
     generatePageButtons() {
