@@ -74,7 +74,8 @@ class InfiniteScroll {
         const sentinel = document.getElementById('scrollSentinel');
         if (!sentinel) return;
 
-        const observer = new IntersectionObserver((entries) => {
+        // Observer для автозагрузки при скролле вниз
+        const sentinelObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting && !this.isLoading && this.currentPage < this.totalPages) {
                     this.loadMore();
@@ -84,7 +85,58 @@ class InfiniteScroll {
             rootMargin: '200px'
         });
 
-        observer.observe(sentinel);
+        sentinelObserver.observe(sentinel);
+
+        // Observer для отслеживания видимых карточек и определения текущей страницы
+        this.setupPageTracker();
+    }
+
+    setupPageTracker() {
+        // Наблюдатель за видимыми карточками для определения текущей страницы
+        const trackObserver = new IntersectionObserver((entries) => {
+            // Находим все видимые карточки
+            const visibleCards = entries
+                .filter(entry => entry.isIntersecting)
+                .map(entry => entry.target);
+
+            if (visibleCards.length > 0) {
+                // Берём первую видимую карточку в центре экрана
+                const centerCard = visibleCards[Math.floor(visibleCards.length / 2)];
+                const cardIndex = Array.from(this.productsGrid.children).indexOf(centerCard);
+
+                if (cardIndex >= 0) {
+                    // Вычисляем номер страницы по индексу карточки (12 товаров на страницу)
+                    const pageNumber = Math.floor(cardIndex / 12) + 1;
+
+                    // Обновляем currentPage только если изменилась
+                    if (pageNumber !== this.currentPage && pageNumber <= this.totalPages) {
+                        this.currentPage = pageNumber;
+                        this.updatePagination();
+
+                        // Обновляем URL без перезагрузки
+                        const displayUrl = new URL(window.location.href);
+                        displayUrl.searchParams.set('page', this.currentPage);
+                        displayUrl.searchParams.delete('format');
+                        window.history.replaceState({}, '', displayUrl);
+                    }
+                }
+            }
+        }, {
+            threshold: 0.5,  // Карточка считается видимой если видно 50%
+            rootMargin: '-20% 0px -20% 0px'  // Отслеживаем центральную часть экрана
+        });
+
+        // Наблюдаем за всеми карточками товаров
+        this.observeProductCards(trackObserver);
+    }
+
+    observeProductCards(observer) {
+        // Наблюдаем за существующими карточками
+        const cards = this.productsGrid.querySelectorAll('.bg-white');
+        cards.forEach(card => observer.observe(card));
+
+        // Сохраняем observer для новых карточек
+        this.pageTrackObserver = observer;
     }
 
     async loadMore() {
@@ -129,6 +181,11 @@ class InfiniteScroll {
         products.forEach(product => {
             const productCard = this.createProductCard(product);
             this.productsGrid.appendChild(productCard);
+
+            // Добавляем наблюдение за новой карточкой для отслеживания страницы
+            if (this.pageTrackObserver) {
+                this.pageTrackObserver.observe(productCard);
+            }
         });
     }
 
