@@ -488,20 +488,59 @@ class ProductImage(models.Model):
         return f"Фото {self.product.article}"
 
 
+class FavoriteList(models.Model):
+    """Списки избранного (как плейлисты)"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='favorite_lists', verbose_name="Пользователь")
+    name = models.CharField(max_length=100, verbose_name="Название списка")
+    description = models.TextField(blank=True, verbose_name="Описание")
+    is_default = models.BooleanField(default=False, verbose_name="Список по умолчанию")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
+
+    class Meta:
+        verbose_name = "Список избранного"
+        verbose_name_plural = "Списки избранного"
+        ordering = ['-is_default', '-updated_at']
+        unique_together = ['user', 'name']
+
+    def __str__(self):
+        return f"{self.user.username} - {self.name}"
+
+    def save(self, *args, **kwargs):
+        # Если это список по умолчанию, убираем флаг у других списков пользователя
+        if self.is_default:
+            FavoriteList.objects.filter(user=self.user, is_default=True).exclude(pk=self.pk).update(is_default=False)
+        super().save(*args, **kwargs)
+
+    @property
+    def items_count(self):
+        """Количество товаров в списке"""
+        return self.favorites.count()
+
+
 class Favorite(models.Model):
     """Избранные товары клиентов"""
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='favorites', verbose_name="Пользователь")
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='favorited_by', verbose_name="Товар")
+    favorite_list = models.ForeignKey(
+        FavoriteList,
+        on_delete=models.CASCADE,
+        related_name='favorites',
+        verbose_name="Список избранного",
+        null=True,  # Временно null для миграции
+        blank=True
+    )
     added_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата добавления")
 
     class Meta:
         verbose_name = "Избранное"
         verbose_name_plural = "Избранное"
-        unique_together = ['user', 'product']
+        unique_together = ['user', 'product', 'favorite_list']
         ordering = ['-added_at']
 
     def __str__(self):
-        return f"{self.user.username} - {self.product.name}"
+        list_name = self.favorite_list.name if self.favorite_list else 'Без списка'
+        return f"{self.user.username} - {self.product.name} ({list_name})"
 
 
 class Theme(models.Model):

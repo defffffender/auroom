@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import (
-    Factory, Category, Material, Product, ProductImage, Favorite,
+    Factory, Category, Material, Product, ProductImage, Favorite, FavoriteList,
     Purity, MetalColor, Style, InsertType, Coating, ReferenceImage, Theme
 )
 
@@ -87,10 +87,18 @@ class ProductImageAdmin(admin.ModelAdmin):
     list_editable = ['is_main', 'is_reference', 'order']
 
 
+@admin.register(FavoriteList)
+class FavoriteListAdmin(admin.ModelAdmin):
+    list_display = ['user', 'name', 'is_default', 'created_at']
+    list_filter = ['is_default', 'created_at']
+    search_fields = ['user__username', 'name']
+    readonly_fields = ['created_at', 'updated_at']
+
+
 @admin.register(Favorite)
 class FavoriteAdmin(admin.ModelAdmin):
-    list_display = ['user', 'product', 'added_at']
-    list_filter = ['added_at']
+    list_display = ['user', 'product', 'favorite_list', 'added_at']
+    list_filter = ['added_at', 'favorite_list']
     search_fields = ['user__username', 'product__name']
 
 
