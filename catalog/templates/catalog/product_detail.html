@@ -131,22 +131,13 @@
 
         <!-- Favorite Button -->
         {% if user.is_authenticated %}
-            <form action="{% url 'catalog:toggle_favorite' product.article %}" method="post" class="mb-4">
-                {% csrf_token %}
-                {% if product in user.favorites.all %}
-                    <button type="submit" class="w-full text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center justify-center">
-                        <i class="bi bi-heart-fill mr-2"></i> Удалить из избранного
-                    </button>
-                {% else %}
-                    <button type="submit" class="w-full text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center justify-center">
-                        <i class="bi bi-heart mr-2"></i> Добавить в избранное
-                    </button>
-                {% endif %}
-            </form>
+            <button id="favoriteBtn" onclick="showFavoriteListsModal()" class="w-full text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center justify-center mb-4">
+                <i class="bi bi-heart mr-2"></i> Добавить в избранное
+            </button>
         {% else %}
-            <a href="{% url 'catalog:login' %}" class="w-full text-white bg-gray-600 hover:bg-gray-700 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center justify-center mb-4">
-                <i class="bi bi-box-arrow-in-right mr-2"></i> Войдите, чтобы добавить в избранное
-            </a>
+            <button onclick="addToLocalStorageFavorites('{{ product.article }}')" class="w-full text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center justify-center mb-4">
+                <i class="bi bi-heart mr-2"></i> Добавить в избранное
+            </button>
         {% endif %}
 
         {% if product.in_stock %}
@@ -337,6 +328,240 @@ function handleEscapeKey(e) {
     if (e.key === 'Escape') {
         closeFullscreen();
     }
+}
+
+// Favorite Lists Modal
+function showFavoriteListsModal() {
+    const modal = document.getElementById('favoriteListsModal');
+    if (!modal) {
+        createFavoriteListsModal();
+    }
+
+    // Load user's favorite lists
+    loadUserFavoriteLists();
+
+    document.getElementById('favoriteListsModal').classList.remove('hidden');
+}
+
+function closeFavoriteListsModal() {
+    document.getElementById('favoriteListsModal').classList.add('hidden');
+}
+
+function createFavoriteListsModal() {
+    const modalHTML = `
+        <!-- Favorite Lists Modal -->
+        <div id="favoriteListsModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4 max-h-[80vh] flex flex-col">
+                <!-- Header -->
+                <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                        <i class="bi bi-heart mr-2"></i>Добавить в список
+                    </h3>
+                    <button onclick="closeFavoriteListsModal()" class="text-gray-400 hover:text-gray-900 dark:hover:text-white">
+                        <i class="bi bi-x-lg text-xl"></i>
+                    </button>
+                </div>
+
+                <!-- Lists Container -->
+                <div id="favoriteListsContainer" class="flex-1 overflow-y-auto p-4">
+                    <div class="text-center text-gray-500">
+                        <i class="bi bi-hourglass-split text-3xl"></i>
+                        <p>Загрузка...</p>
+                    </div>
+                </div>
+
+                <!-- Footer with Create Button -->
+                <div class="border-t border-gray-200 dark:border-gray-700 p-4">
+                    <button onclick="showCreateListForm()" class="w-full text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                        <i class="bi bi-plus-circle mr-2"></i>Создать новый список
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function loadUserFavoriteLists() {
+    const container = document.getElementById('favoriteListsContainer');
+
+    fetch("{% url 'catalog:toggle_favorite' product.article %}", {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.lists && data.lists.length > 0) {
+            let listsHTML = '<div class="space-y-2">';
+
+            data.lists.forEach(list => {
+                listsHTML += `
+                    <button onclick="addToFavoriteList(${list.id})"
+                            class="w-full flex items-center justify-between p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                        <div class="flex items-center">
+                            <i class="bi bi-${list.is_default ? 'heart-fill' : 'list-ul'} text-primary-600 mr-3 text-xl"></i>
+                            <div class="text-left">
+                                <div class="font-medium text-gray-900 dark:text-white">${list.name}</div>
+                                <div class="text-xs text-gray-500">${list.items_count} товаров</div>
+                            </div>
+                        </div>
+                        <i class="bi bi-chevron-right text-gray-400"></i>
+                    </button>
+                `;
+            });
+
+            listsHTML += '</div>';
+            container.innerHTML = listsHTML;
+        } else {
+            container.innerHTML = `
+                <div class="text-center text-gray-500 py-8">
+                    <i class="bi bi-inbox text-5xl mb-3"></i>
+                    <p>У вас пока нет списков</p>
+                    <p class="text-sm">Создайте свой первый список избранного</p>
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        console.error('Error loading lists:', error);
+        container.innerHTML = `
+            <div class="text-center text-red-500 py-8">
+                <i class="bi bi-exclamation-circle text-5xl mb-3"></i>
+                <p>Ошибка загрузки списков</p>
+            </div>
+        `;
+    });
+}
+
+function addToFavoriteList(listId) {
+    fetch("{% url 'catalog:toggle_favorite' product.article %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: `list_id=${listId}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.is_favorite) {
+            showNotification(data.message, 'success');
+        } else {
+            showNotification(data.message, 'info');
+        }
+        closeFavoriteListsModal();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Произошла ошибка', 'error');
+    });
+}
+
+function showCreateListForm() {
+    const container = document.getElementById('favoriteListsContainer');
+    container.innerHTML = `
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Название списка</label>
+                <input type="text" id="newListName"
+                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                       placeholder="Например: Свадебные украшения">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Описание (опционально)</label>
+                <textarea id="newListDescription" rows="3"
+                          class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                          placeholder="Описание списка..."></textarea>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="createNewList()"
+                        class="flex-1 text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                    <i class="bi bi-check-lg mr-2"></i>Создать
+                </button>
+                <button onclick="loadUserFavoriteLists()"
+                        class="flex-1 text-gray-900 dark:text-white bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-700 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                    <i class="bi bi-x-lg mr-2"></i>Отмена
+                </button>
+            </div>
+        </div>
+    `;
+    document.getElementById('newListName').focus();
+}
+
+function createNewList() {
+    const name = document.getElementById('newListName').value.trim();
+    const description = document.getElementById('newListDescription').value.trim();
+
+    if (!name) {
+        showNotification('Введите название списка', 'error');
+        return;
+    }
+
+    fetch("{% url 'catalog:favorite_list_create' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: `name=${encodeURIComponent(name)}&description=${encodeURIComponent(description)}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Список создан!', 'success');
+            loadUserFavoriteLists();
+        } else {
+            showNotification(data.error || 'Ошибка создания списка', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Произошла ошибка', 'error');
+    });
+}
+
+// LocalStorage favorites for non-authenticated users
+function addToLocalStorageFavorites(article) {
+    let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+
+    if (favorites.includes(article)) {
+        favorites = favorites.filter(item => item !== article);
+        localStorage.setItem('favorites', JSON.stringify(favorites));
+        showNotification('Удалено из избранного', 'info');
+    } else {
+        favorites.push(article);
+        localStorage.setItem('favorites', JSON.stringify(favorites));
+        showNotification('Добавлено в избранное! Войдите, чтобы сохранить навсегда.', 'success');
+    }
+}
+
+// Notification system
+function showNotification(message, type = 'info') {
+    const colors = {
+        'success': 'bg-green-500',
+        'error': 'bg-red-500',
+        'info': 'bg-blue-500'
+    };
+
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 ${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-slide-in`;
+    notification.innerHTML = `
+        <div class="flex items-center">
+            <i class="bi bi-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'} mr-2"></i>
+            <span>${message}</span>
+        </div>
+    `;
+
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
 }
 </script>
 {% endblock %}

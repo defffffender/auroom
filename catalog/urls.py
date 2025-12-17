@@ -19,7 +19,13 @@ urlpatterns = [
     
     # Избранное
     path('favorites/', views.favorites_list, name='favorites_list'),
+    path('favorites/<int:list_id>/', views.favorites_list, name='favorites_list_detail'),
     path('favorites/toggle/<str:article>/', views.toggle_favorite, name='toggle_favorite'),
+
+    # Управление списками избранного
+    path('favorite-lists/create/', views.favorite_list_create, name='favorite_list_create'),
+    path('favorite-lists/<int:list_id>/delete/', views.favorite_list_delete, name='favorite_list_delete'),
+    path('favorite-lists/<int:list_id>/rename/', views.favorite_list_rename, name='favorite_list_rename'),
     
     # Личный кабинет завода
     path('dashboard/', views.factory_dashboard, name='factory_dashboard'),

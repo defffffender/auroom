@@ -12,7 +12,7 @@ from django.views.decorators.cache import cache_page
 from django.views.decorators.vary import vary_on_cookie
 from django.core.paginator import Paginator
 
-from .models import Product, Category, Material, Factory, ProductImage, Favorite, Theme
+from .models import Product, Category, Material, Factory, ProductImage, Favorite, FavoriteList, Theme
 from .forms import (
     FactoryRegistrationForm,
     FactoryProfileForm,
@@ -525,47 +525,183 @@ def customer_register(request):
 def toggle_favorite(request, article):
     """Добавить/удалить товар из избранного (AJAX)"""
     product = get_object_or_404(Product, article=article, is_active=True)
-    
-    favorite, created = Favorite.objects.get_or_create(
+
+    # Получаем или создаем дефолтный список
+    list_id = request.POST.get('list_id') or request.GET.get('list_id')
+
+    if list_id:
+        favorite_list = get_object_or_404(FavoriteList, id=list_id, user=request.user)
+    else:
+        # Создаём или получаем дефолтный список
+        favorite_list, _ = FavoriteList.objects.get_or_create(
+            user=request.user,
+            is_default=True,
+            defaults={'name': 'Мои избранные', 'description': 'Список по умолчанию'}
+        )
+
+    # Проверяем, есть ли товар в ЭТОМ списке
+    favorite = Favorite.objects.filter(
         user=request.user,
-        product=product
-    )
-    
-    if not created:
-        # Если уже был в избранном - удаляем
+        product=product,
+        favorite_list=favorite_list
+    ).first()
+
+    if favorite:
+        # Если уже был в этом списке - удаляем
         favorite.delete()
         is_favorite = False
-        message = 'Удалено из избранного'
+        message = f'Удалено из списка "{favorite_list.name}"'
     else:
+        # Добавляем в выбранный список
+        Favorite.objects.create(
+            user=request.user,
+            product=product,
+            favorite_list=favorite_list
+        )
         is_favorite = True
-        message = 'Добавлено в избранное'
-    
+        message = f'Добавлено в список "{favorite_list.name}"'
+
     # Для AJAX запросов
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         import json
         from django.http import JsonResponse
+
+        # Получаем все списки пользователя для popup
+        user_lists = FavoriteList.objects.filter(user=request.user).order_by('-is_default', 'name')
+        lists_data = [{
+            'id': lst.id,
+            'name': lst.name,
+            'is_default': lst.is_default,
+            'items_count': lst.items_count
+        } for lst in user_lists]
+
         return JsonResponse({
             'is_favorite': is_favorite,
-            'message': message
+            'message': message,
+            'lists': lists_data,
+            'current_list_id': favorite_list.id
         })
-    
+
     # Для обычных запросов
     messages.success(request, message)
     return redirect('catalog:product_detail', article=article)
 
 
 @login_required
-def favorites_list(request):
-    """Список избранных товаров"""
-    favorites = Favorite.objects.filter(user=request.user).select_related(
+def favorites_list(request, list_id=None):
+    """Список избранных товаров (с поддержкой списков)"""
+    # Получаем или создаём дефолтный список
+    default_list, _ = FavoriteList.objects.get_or_create(
+        user=request.user,
+        is_default=True,
+        defaults={'name': 'Мои избранные', 'description': 'Список по умолчанию'}
+    )
+
+    # Определяем текущий список
+    if list_id:
+        current_list = get_object_or_404(FavoriteList, id=list_id, user=request.user)
+    else:
+        current_list = default_list
+
+    # Получаем все списки пользователя
+    user_lists = FavoriteList.objects.filter(user=request.user).order_by('-is_default', 'name')
+
+    # Получаем товары из текущего списка
+    favorites = Favorite.objects.filter(
+        user=request.user,
+        favorite_list=current_list
+    ).select_related(
         'product__factory', 'product__category', 'product__material'
     ).prefetch_related('product__images').order_by('-added_at')
-    
+
     context = {
         'favorites': favorites,
+        'current_list': current_list,
+        'user_lists': user_lists,
     }
-    
+
     return render(request, 'catalog/favorites_list.html', context)
+
+
+@login_required
+def favorite_list_create(request):
+    """Создать новый список избранного (AJAX)"""
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+
+        if not name:
+            return JsonResponse({'success': False, 'error': 'Название списка не может быть пустым'}, status=400)
+
+        # Проверяем уникальность
+        if FavoriteList.objects.filter(user=request.user, name=name).exists():
+            return JsonResponse({'success': False, 'error': 'Список с таким названием уже существует'}, status=400)
+
+        # Создаём новый список
+        favorite_list = FavoriteList.objects.create(
+            user=request.user,
+            name=name,
+            description=request.POST.get('description', ''),
+            is_default=False
+        )
+
+        return JsonResponse({
+            'success': True,
+            'list': {
+                'id': favorite_list.id,
+                'name': favorite_list.name,
+                'is_default': favorite_list.is_default,
+                'items_count': 0
+            }
+        })
+
+    return JsonResponse({'success': False, 'error': 'Метод не поддерживается'}, status=405)
+
+
+@login_required
+def favorite_list_delete(request, list_id):
+    """Удалить список избранного (AJAX)"""
+    if request.method == 'POST':
+        favorite_list = get_object_or_404(FavoriteList, id=list_id, user=request.user)
+
+        # Нельзя удалить дефолтный список
+        if favorite_list.is_default:
+            return JsonResponse({'success': False, 'error': 'Нельзя удалить основной список'}, status=400)
+
+        favorite_list.delete()
+        return JsonResponse({'success': True})
+
+    return JsonResponse({'success': False, 'error': 'Метод не поддерживается'}, status=405)
+
+
+@login_required
+def favorite_list_rename(request, list_id):
+    """Переименовать список избранного (AJAX)"""
+    if request.method == 'POST':
+        favorite_list = get_object_or_404(FavoriteList, id=list_id, user=request.user)
+        new_name = request.POST.get('name', '').strip()
+
+        if not new_name:
+            return JsonResponse({'success': False, 'error': 'Название не может быть пустым'}, status=400)
+
+        # Проверяем уникальность (кроме текущего списка)
+        if FavoriteList.objects.filter(user=request.user, name=new_name).exclude(id=list_id).exists():
+            return JsonResponse({'success': False, 'error': 'Список с таким названием уже существует'}, status=400)
+
+        favorite_list.name = new_name
+        favorite_list.description = request.POST.get('description', favorite_list.description)
+        favorite_list.save()
+
+        return JsonResponse({
+            'success': True,
+            'list': {
+                'id': favorite_list.id,
+                'name': favorite_list.name,
+                'is_default': favorite_list.is_default
+            }
+        })
+
+    return JsonResponse({'success': False, 'error': 'Метод не поддерживается'}, status=405)
+
 
 def logout_view(request):
     """Выход из системы"""
