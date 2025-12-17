@@ -535,6 +535,7 @@ class Favorite(models.Model):
     class Meta:
         verbose_name = "Избранное"
         verbose_name_plural = "Избранное"
+        # Уникальность: один товар может быть только один раз в каждом конкретном списке
         unique_together = ['user', 'product', 'favorite_list']
         ordering = ['-added_at']
 

@@ -575,10 +575,9 @@ def toggle_favorite(request, article):
             ).first()
 
             if favorite:
-                # Если уже был в этом списке - удаляем
-                favorite.delete()
-                is_favorite = False
-                message = f'Удалено из списка "{favorite_list.name}"'
+                # Если уже есть в этом списке - сообщаем
+                is_favorite = True
+                message = f'Товар уже в списке "{favorite_list.name}"'
             else:
                 # Добавляем в выбранный список
                 Favorite.objects.create(
@@ -625,8 +624,7 @@ def toggle_favorite(request, article):
         ).first()
 
         if favorite:
-            favorite.delete()
-            message = f'Удалено из списка "{favorite_list.name}"'
+            message = f'Товар уже в списке "{favorite_list.name}"'
         else:
             Favorite.objects.create(
                 user=request.user,
