@@ -1,5 +1,6 @@
 {% extends 'catalog/base.html' %}
 {% load static %}
+{% load i18n %}
 
 {% block title %}{{ product.name }} - {{ product.article }}{% endblock %}
 
@@ -14,7 +15,7 @@
         <li class="inline-flex items-center">
             <a href="{% url 'catalog:home' %}" class="inline-flex items-center text-sm font-medium text-gray-700 dark:text-white hover:text-primary-600">
                 <i class="bi bi-house mr-2"></i>
-                Главная
+                {% trans "Главная" %}
             </a>
         </li>
         <li>
@@ -50,10 +51,10 @@
 
                     <!-- Fullscreen Buttons -->
                     <div class="absolute top-6 right-6 z-10 flex gap-2">
-                        <a href="{% url 'catalog:product_fullscreen' product.article %}" class="text-white bg-primary-600/90 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center" title="Отдельная страница">
+                        <a href="{% url 'catalog:product_fullscreen' product.article %}" class="text-white bg-primary-600/90 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center" title="{% trans 'Отдельная страница' %}">
                             <i class="bi bi-aspect-ratio text-xl"></i>
                         </a>
-                        <button onclick="openFullscreen()" class="text-white bg-gray-800/70 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center" title="Модальное окно">
+                        <button onclick="openFullscreen()" class="text-white bg-gray-800/70 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center" title="{% trans 'Модальное окно' %}">
                             <i class="bi bi-arrows-fullscreen text-xl"></i>
                         </button>
                     </div>
@@ -61,7 +62,7 @@
                     {% if product.reference_photo_type != 'none' %}
                         <div class="flex items-center p-4 mb-4 text-sm text-blue-800 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-300 dark:border-blue-800" role="alert">
                             <i class="bi bi-rulers mr-2"></i>
-                            <span>Эталонное фото для точных размеров</span>
+                            <span>{% trans "Эталонное фото для точных размеров" %}</span>
                         </div>
                     {% endif %}
 
@@ -78,10 +79,10 @@
                 <div class="relative">
                     <!-- Fullscreen Buttons -->
                     <div class="absolute top-4 right-4 z-10 flex gap-2">
-                        <a href="{% url 'catalog:product_fullscreen' product.article %}" class="text-white bg-primary-600/90 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center" title="Отдельная страница">
+                        <a href="{% url 'catalog:product_fullscreen' product.article %}" class="text-white bg-primary-600/90 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center" title="{% trans 'Отдельная страница' %}">
                             <i class="bi bi-aspect-ratio text-xl"></i>
                         </a>
-                        <button onclick="openFullscreen()" class="text-white bg-gray-800/70 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center" title="Модальное окно">
+                        <button onclick="openFullscreen()" class="text-white bg-gray-800/70 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center" title="{% trans 'Модальное окно' %}">
                             <i class="bi bi-arrows-fullscreen text-xl"></i>
                         </button>
                     </div>
@@ -101,7 +102,7 @@
                          alt="{{ product.name }}"
                          class="w-full h-24 object-contain bg-gray-50 dark:bg-gray-700 rounded-lg border-2 cursor-pointer hover:border-primary-600 {% if forloop.first %}border-primary-600{% else %}border-gray-200 dark:border-gray-600{% endif %}"
                          onclick="changeImage('{{ image.image.url }}', this)"
-                         {% if image.is_reference %}title="Эталонное фото"{% endif %}
+                         {% if image.is_reference %}title="{% trans 'Эталонное фото' %}"{% endif %}
                          loading="lazy">
                 {% endfor %}
             </div>
@@ -120,10 +121,10 @@
         <div class="flex flex-wrap gap-2 mb-4">
             <span class="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-sm font-medium px-3 py-1 rounded border border-blue-300 dark:border-blue-800">{{ product.category.name }}</span>
             <span class="text-sm text-gray-600 dark:text-gray-300">
-                <i class="bi bi-hash"></i> Артикул: <strong class="text-gray-900 dark:text-white">{{ product.article }}</strong>
+                <i class="bi bi-hash"></i> {% trans "Артикул:" %} <strong class="text-gray-900 dark:text-white">{{ product.article }}</strong>
             </span>
             <span class="text-sm text-gray-600 dark:text-gray-300">
-                <i class="bi bi-eye"></i> Просмотров: {{ product.views_count }}
+                <i class="bi bi-eye"></i> {% trans "Просмотров:" %} {{ product.views_count }}
             </span>
         </div>
 
@@ -132,23 +133,23 @@
         <!-- Favorite Button -->
         {% if user.is_authenticated %}
             <button id="favoriteBtn" onclick="showFavoriteListsModal()" class="w-full text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center justify-center mb-4">
-                <i class="bi bi-heart mr-2"></i> Добавить в избранное
+                <i class="bi bi-heart mr-2"></i> {% trans "Добавить в избранное" %}
             </button>
         {% else %}
             <button onclick="addToLocalStorageFavorites('{{ product.article }}')" class="w-full text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center justify-center mb-4">
-                <i class="bi bi-heart mr-2"></i> Добавить в избранное
+                <i class="bi bi-heart mr-2"></i> {% trans "Добавить в избранное" %}
             </button>
         {% endif %}
 
         {% if product.in_stock %}
             <div class="flex items-center p-4 mb-4 text-sm text-green-800 dark:text-green-300 bg-green-50 dark:bg-green-900/30 rounded-lg border border-green-300 dark:border-green-800" role="alert">
                 <i class="bi bi-check-circle mr-2"></i>
-                <span>В наличии ({{ product.stock_quantity }} шт)</span>
+                <span>{% blocktrans with quantity=product.stock_quantity %}В наличии ({{ quantity }} шт){% endblocktrans %}</span>
             </div>
         {% else %}
             <div class="flex items-center p-4 mb-4 text-sm text-red-800 dark:text-red-300 bg-red-50 dark:bg-red-900/30 rounded-lg border border-red-300 dark:border-red-800" role="alert">
                 <i class="bi bi-x-circle mr-2"></i>
-                <span>Нет в наличии</span>
+                <span>{% trans "Нет в наличии" %}</span>
             </div>
         {% endif %}
 
@@ -159,43 +160,43 @@
         <!-- Specifications -->
         <div class="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg p-6 mb-6">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                <i class="bi bi-list-ul mr-2"></i>Характеристики
+                <i class="bi bi-list-ul mr-2"></i>{% trans "Характеристики" %}
             </h3>
             <div class="space-y-3">
                 <div class="flex justify-between border-b border-gray-200 dark:border-gray-600 pb-2">
-                    <span class="text-gray-600 dark:text-gray-300"><i class="bi bi-gem mr-1"></i> Материал</span>
+                    <span class="text-gray-600 dark:text-gray-300"><i class="bi bi-gem mr-1"></i> {% trans "Материал" %}</span>
                     <span class="font-semibold text-gray-900 dark:text-white">{{ product.material.name }}</span>
                 </div>
                 <div class="flex justify-between border-b border-gray-200 dark:border-gray-600 pb-2">
-                    <span class="text-gray-600 dark:text-gray-300"><i class="bi bi-box mr-1"></i> Вес металла</span>
-                    <span class="font-semibold text-gray-900 dark:text-white">{{ product.metal_weight }} г</span>
+                    <span class="text-gray-600 dark:text-gray-300"><i class="bi bi-box mr-1"></i> {% trans "Вес металла" %}</span>
+                    <span class="font-semibold text-gray-900 dark:text-white">{{ product.metal_weight }} {% trans "г" %}</span>
                 </div>
                 {% if product.total_weight %}
                 <div class="flex justify-between border-b border-gray-200 dark:border-gray-600 pb-2">
-                    <span class="text-gray-600 dark:text-gray-300"><i class="bi bi-layers mr-1"></i> Общий вес</span>
-                    <span class="font-semibold text-gray-900 dark:text-white">{{ product.total_weight }} г</span>
+                    <span class="text-gray-600 dark:text-gray-300"><i class="bi bi-layers mr-1"></i> {% trans "Общий вес" %}</span>
+                    <span class="font-semibold text-gray-900 dark:text-white">{{ product.total_weight }} {% trans "г" %}</span>
                 </div>
                 {% endif %}
                 {% if product.size %}
                 <div class="flex justify-between border-b border-gray-200 dark:border-gray-600 pb-2">
-                    <span class="text-gray-600 dark:text-gray-300"><i class="bi bi-arrows-angle-expand mr-1"></i> Размер</span>
+                    <span class="text-gray-600 dark:text-gray-300"><i class="bi bi-arrows-angle-expand mr-1"></i> {% trans "Размер" %}</span>
                     <span class="font-semibold text-gray-900 dark:text-white">{{ product.size }}</span>
                 </div>
                 {% endif %}
                 {% if product.has_dimensions %}
                 <div class="flex justify-between border-b border-gray-200 dark:border-gray-600 pb-2">
-                    <span class="text-gray-600 dark:text-gray-300"><i class="bi bi-rulers mr-1"></i> Размеры</span>
+                    <span class="text-gray-600 dark:text-gray-300"><i class="bi bi-rulers mr-1"></i> {% trans "Размеры" %}</span>
                     <span class="font-semibold text-gray-900 dark:text-white">{{ product.dimensions_text }}</span>
                 </div>
                 {% endif %}
                 {% if product.has_inserts %}
                 <div class="flex justify-between border-b border-gray-200 dark:border-gray-600 pb-2">
-                    <span class="text-gray-600 dark:text-gray-300"><i class="bi bi-asterisk mr-1"></i> Вставки</span>
+                    <span class="text-gray-600 dark:text-gray-300"><i class="bi bi-asterisk mr-1"></i> {% trans "Вставки" %}</span>
                     <span class="font-semibold text-gray-900 dark:text-white">{{ product.insert_description|default:"Есть" }}</span>
                 </div>
                 {% endif %}
                 <div class="flex justify-between">
-                    <span class="text-gray-600 dark:text-gray-300"><i class="bi bi-tag mr-1"></i> Категория</span>
+                    <span class="text-gray-600 dark:text-gray-300"><i class="bi bi-tag mr-1"></i> {% trans "Категория" %}</span>
                     <span class="font-semibold text-gray-900 dark:text-white">{{ product.category.name }}</span>
                 </div>
             </div>
@@ -215,7 +216,7 @@
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ product.factory.name }}</h3>
                     {% if product.factory.is_verified %}
                     <span class="text-sm text-green-600 dark:text-green-400">
-                        <i class="bi bi-patch-check-fill"></i> Проверенный производитель
+                        <i class="bi bi-patch-check-fill"></i> {% trans "Проверенный производитель" %}
                     </span>
                     {% endif %}
                 </div>
@@ -226,7 +227,7 @@
                 <p><i class="bi bi-envelope"></i> {{ product.factory.email }}</p>
             </div>
             <a href="{% url 'catalog:factory_detail' product.factory.id %}" class="text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center justify-center w-full">
-                <i class="bi bi-arrow-right-circle mr-2"></i> Все товары завода
+                <i class="bi bi-arrow-right-circle mr-2"></i> {% trans "Все товары завода" %}
             </a>
         </div>
     </div>
@@ -236,7 +237,7 @@
 {% if similar_products %}
 <div class="mb-8">
     <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-        <i class="bi bi-grid mr-2"></i>Похожие товары
+        <i class="bi bi-grid mr-2"></i>{% trans "Похожие товары" %}
     </h2>
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         {% for similar in similar_products %}
@@ -262,6 +263,30 @@
 {% block extra_js %}
 <script src="{% static 'js/ruler.js' %}"></script>
 <script>
+// Translations object
+const translations = {
+    close: "{% trans 'Закрыть' %}",
+    addToList: "{% trans 'Добавить в список' %}",
+    loading: "{% trans 'Загрузка...' %}",
+    noListsYet: "{% trans 'У вас пока нет списков' %}",
+    createFirstList: "{% trans 'Создайте свой первый список избранного' %}",
+    errorLoadingLists: "{% trans 'Ошибка загрузки списков' %}",
+    products: "{% trans 'товаров' %}",
+    listName: "{% trans 'Название списка' %}",
+    forExample: "{% trans 'Например: Свадебные украшения' %}",
+    descriptionOptional: "{% trans 'Описание (опционально)' %}",
+    listDescription: "{% trans 'Описание списка...' %}",
+    create: "{% trans 'Создать' %}",
+    cancel: "{% trans 'Отмена' %}",
+    enterListName: "{% trans 'Введите название списка' %}",
+    listCreated: "{% trans 'Список создан!' %}",
+    errorCreatingList: "{% trans 'Ошибка создания списка' %}",
+    errorOccurred: "{% trans 'Произошла ошибка' %}",
+    removedFromFavorites: "{% trans 'Удалено из избранного' %}",
+    addedToFavorites: "{% trans 'Добавлено в избранное! Войдите, чтобы сохранить навсегда.' %}",
+    createNewList: "{% trans 'Создать новый список' %}"
+};
+
 function changeImage(url, element) {
     document.getElementById('mainImage').src = url;
     document.querySelectorAll('.grid img').forEach(img => {
@@ -285,7 +310,7 @@ function openFullscreen() {
     modal.innerHTML = `
         <div class="relative w-full h-full flex items-center justify-center p-8">
             <!-- Close Button -->
-            <button onclick="closeFullscreen()" class="absolute top-4 right-4 text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm p-3 text-center inline-flex items-center z-10" title="Закрыть">
+            <button onclick="closeFullscreen()" class="absolute top-4 right-4 text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm p-3 text-center inline-flex items-center z-10" title="${translations.close}">
                 <i class="bi bi-x-lg text-2xl"></i>
             </button>
 
@@ -355,7 +380,7 @@ function createFavoriteListsModal() {
                 <!-- Header -->
                 <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                        <i class="bi bi-heart mr-2"></i>Добавить в список
+                        <i class="bi bi-heart mr-2"></i>${translations.addToList}
                     </h3>
                     <button onclick="closeFavoriteListsModal()" class="text-gray-400 hover:text-gray-900 dark:hover:text-white">
                         <i class="bi bi-x-lg text-xl"></i>
@@ -366,14 +391,14 @@ function createFavoriteListsModal() {
                 <div id="favoriteListsContainer" class="flex-1 overflow-y-auto p-4">
                     <div class="text-center text-gray-500">
                         <i class="bi bi-hourglass-split text-3xl"></i>
-                        <p>Загрузка...</p>
+                        <p>${translations.loading}</p>
                     </div>
                 </div>
 
                 <!-- Footer with Create Button -->
                 <div class="border-t border-gray-200 dark:border-gray-700 p-4">
                     <button onclick="showCreateListForm()" class="w-full text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
-                        <i class="bi bi-plus-circle mr-2"></i>Создать новый список
+                        <i class="bi bi-plus-circle mr-2"></i>${translations.createNewList}
                     </button>
                 </div>
             </div>
@@ -405,7 +430,7 @@ function loadUserFavoriteLists() {
                             <i class="bi bi-${list.is_default ? 'heart-fill' : 'list-ul'} text-primary-600 mr-3 text-xl"></i>
                             <div class="text-left">
                                 <div class="font-medium text-gray-900 dark:text-white">${list.name}</div>
-                                <div class="text-xs text-gray-500">${list.items_count} товаров</div>
+                                <div class="text-xs text-gray-500">${list.items_count} ${translations.products}</div>
                             </div>
                         </div>
                         <i class="bi bi-chevron-right text-gray-400"></i>
@@ -419,8 +444,8 @@ function loadUserFavoriteLists() {
             container.innerHTML = `
                 <div class="text-center text-gray-500 py-8">
                     <i class="bi bi-inbox text-5xl mb-3"></i>
-                    <p>У вас пока нет списков</p>
-                    <p class="text-sm">Создайте свой первый список избранного</p>
+                    <p>${translations.noListsYet}</p>
+                    <p class="text-sm">${translations.createFirstList}</p>
                 </div>
             `;
         }
@@ -430,7 +455,7 @@ function loadUserFavoriteLists() {
         container.innerHTML = `
             <div class="text-center text-red-500 py-8">
                 <i class="bi bi-exclamation-circle text-5xl mb-3"></i>
-                <p>Ошибка загрузки списков</p>
+                <p>${translations.errorLoadingLists}</p>
             </div>
         `;
     });
@@ -457,7 +482,7 @@ function addToFavoriteList(listId) {
     })
     .catch(error => {
         console.error('Error:', error);
-        showNotification('Произошла ошибка', 'error');
+        showNotification(translations.errorOccurred, 'error');
     });
 }
 
@@ -466,25 +491,25 @@ function showCreateListForm() {
     container.innerHTML = `
         <div class="space-y-4">
             <div>
-                <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Название списка</label>
+                <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">${translations.listName}</label>
                 <input type="text" id="newListName"
                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                       placeholder="Например: Свадебные украшения">
+                       placeholder="${translations.forExample}">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Описание (опционально)</label>
+                <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">${translations.descriptionOptional}</label>
                 <textarea id="newListDescription" rows="3"
                           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                          placeholder="Описание списка..."></textarea>
+                          placeholder="${translations.listDescription}"></textarea>
             </div>
             <div class="flex gap-2">
                 <button onclick="createNewList()"
                         class="flex-1 text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
-                    <i class="bi bi-check-lg mr-2"></i>Создать
+                    <i class="bi bi-check-lg mr-2"></i>${translations.create}
                 </button>
                 <button onclick="loadUserFavoriteLists()"
                         class="flex-1 text-gray-900 dark:text-white bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-700 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
-                    <i class="bi bi-x-lg mr-2"></i>Отмена
+                    <i class="bi bi-x-lg mr-2"></i>${translations.cancel}
                 </button>
             </div>
         </div>
@@ -497,7 +522,7 @@ function createNewList() {
     const description = document.getElementById('newListDescription').value.trim();
 
     if (!name) {
-        showNotification('Введите название списка', 'error');
+        showNotification(translations.enterListName, 'error');
         return;
     }
 
@@ -513,15 +538,15 @@ function createNewList() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showNotification('Список создан!', 'success');
+            showNotification(translations.listCreated, 'success');
             loadUserFavoriteLists();
         } else {
-            showNotification(data.error || 'Ошибка создания списка', 'error');
+            showNotification(data.error || translations.errorCreatingList, 'error');
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        showNotification('Произошла ошибка', 'error');
+        showNotification(translations.errorOccurred, 'error');
     });
 }
 
@@ -532,11 +557,11 @@ function addToLocalStorageFavorites(article) {
     if (favorites.includes(article)) {
         favorites = favorites.filter(item => item !== article);
         localStorage.setItem('favorites', JSON.stringify(favorites));
-        showNotification('Удалено из избранного', 'info');
+        showNotification(translations.removedFromFavorites, 'info');
     } else {
         favorites.push(article);
         localStorage.setItem('favorites', JSON.stringify(favorites));
-        showNotification('Добавлено в избранное! Войдите, чтобы сохранить навсегда.', 'success');
+        showNotification(translations.addedToFavorites, 'success');
     }
 }
 
