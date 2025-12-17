@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: AuRoom 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-18 00:18+0500\n"
+"POT-Creation-Date: 2025-12-18 00:34+0500\n"
 "PO-Revision-Date: 2025-12-17 22:40+0500\n"
 "Last-Translator: Claude AI <noreply@anthropic.com>\n"
 "Language-Team: English <en@auroom.com>\n"
@@ -27,10 +27,12 @@ msgstr "Jewelry Catalog"
 
 #: catalog/templates/catalog/base.html:277
 #: catalog/templates/catalog/home.html:474
+#: catalog/templates/catalog/product_detail.html:270
 msgid "Загрузка..."
 msgstr "Loading..."
 
 #: catalog/templates/catalog/base.html:327
+#: catalog/templates/catalog/product_detail.html:18
 msgid "Главная"
 msgstr "Home"
 
@@ -176,16 +178,19 @@ msgstr "Go to Catalog"
 
 #: catalog/templates/catalog/favorites_list.html:192
 #: catalog/templates/catalog/home.html:476
+#: catalog/templates/catalog/product_detail.html:275
 msgid "Название списка"
 msgstr "List Name"
 
 #: catalog/templates/catalog/favorites_list.html:195
 #: catalog/templates/catalog/home.html:491
+#: catalog/templates/catalog/product_detail.html:276
 msgid "Например: Свадебные украшения"
 msgstr "E.g.: Wedding Jewelry"
 
 #: catalog/templates/catalog/favorites_list.html:198
 #: catalog/templates/catalog/home.html:478
+#: catalog/templates/catalog/product_detail.html:277
 msgid "Описание (опционально)"
 msgstr "Description (optional)"
 
@@ -199,6 +204,7 @@ msgstr "Save"
 
 #: catalog/templates/catalog/favorites_list.html:210
 #: catalog/templates/catalog/home.html:480
+#: catalog/templates/catalog/product_detail.html:280
 msgid "Отмена"
 msgstr "Cancel"
 
@@ -208,6 +214,7 @@ msgstr "Rename List"
 
 #: catalog/templates/catalog/favorites_list.html:249
 #: catalog/templates/catalog/home.html:481
+#: catalog/templates/catalog/product_detail.html:281
 msgid "Введите название списка"
 msgstr "Enter list name"
 
@@ -219,6 +226,7 @@ msgstr "Error saving list"
 #: catalog/templates/catalog/favorites_list.html:302
 #: catalog/templates/catalog/favorites_list.html:327
 #: catalog/templates/catalog/home.html:484
+#: catalog/templates/catalog/product_detail.html:284
 msgid "Произошла ошибка"
 msgstr "An error occurred"
 
@@ -320,6 +328,8 @@ msgstr "Showing %(start)s–%(end)s of %(count)s products"
 
 #: catalog/templates/catalog/home.html:298
 #: catalog/templates/catalog/home.html:304
+#: catalog/templates/catalog/product_detail.html:136
+#: catalog/templates/catalog/product_detail.html:140
 msgid "Добавить в избранное"
 msgstr "Add to Favorites"
 
@@ -328,6 +338,8 @@ msgid "Арт:"
 msgstr "Art:"
 
 #: catalog/templates/catalog/home.html:318
+#: catalog/templates/catalog/product_detail.html:172
+#: catalog/templates/catalog/product_detail.html:177
 msgid "г"
 msgstr "g"
 
@@ -336,6 +348,7 @@ msgid "В наличии"
 msgstr "In Stock"
 
 #: catalog/templates/catalog/home.html:327
+#: catalog/templates/catalog/product_detail.html:152
 msgid "Нет в наличии"
 msgstr "Out of Stock"
 
@@ -377,10 +390,12 @@ msgid "Сбросить фильтры"
 msgstr "Reset Filters"
 
 #: catalog/templates/catalog/home.html:473
+#: catalog/templates/catalog/product_detail.html:269
 msgid "Добавить в список"
 msgstr "Add to List"
 
 #: catalog/templates/catalog/home.html:475
+#: catalog/templates/catalog/product_detail.html:287
 msgid "Создать новый список"
 msgstr "Create New List"
 
@@ -389,41 +404,130 @@ msgid "Описание"
 msgstr "Description"
 
 #: catalog/templates/catalog/home.html:479
+#: catalog/templates/catalog/product_detail.html:279
 msgid "Создать"
 msgstr "Create"
 
 #: catalog/templates/catalog/home.html:482
+#: catalog/templates/catalog/product_detail.html:282
 msgid "Список создан!"
 msgstr "List Created!"
 
 #: catalog/templates/catalog/home.html:483
+#: catalog/templates/catalog/product_detail.html:283
 msgid "Ошибка создания списка"
 msgstr "Error Creating List"
 
 #: catalog/templates/catalog/home.html:485
+#: catalog/templates/catalog/product_detail.html:285
 msgid "Удалено из избранного"
 msgstr "Removed from Favorites"
 
 #: catalog/templates/catalog/home.html:486
+#: catalog/templates/catalog/product_detail.html:286
 msgid "Добавлено в избранное! Войдите, чтобы сохранить навсегда."
 msgstr "Added to Favorites! Sign in to save permanently."
 
 #: catalog/templates/catalog/home.html:487
+#: catalog/templates/catalog/product_detail.html:271
 msgid "У вас пока нет списков"
 msgstr "You don't have any lists yet"
 
 #: catalog/templates/catalog/home.html:488
+#: catalog/templates/catalog/product_detail.html:272
 msgid "Создайте свой первый список избранного"
 msgstr "Create your first favorites list"
 
 #: catalog/templates/catalog/home.html:489
+#: catalog/templates/catalog/product_detail.html:273
 msgid "Ошибка загрузки списков"
 msgstr "Error Loading Lists"
 
 #: catalog/templates/catalog/home.html:490
+#: catalog/templates/catalog/product_detail.html:274
 msgid "товаров"
 msgstr "products"
 
 #: catalog/templates/catalog/home.html:492
+#: catalog/templates/catalog/product_detail.html:278
 msgid "Описание списка..."
 msgstr "List description..."
+
+#: catalog/templates/catalog/product_detail.html:54
+#: catalog/templates/catalog/product_detail.html:82
+msgid "Отдельная страница"
+msgstr "Separate Page"
+
+#: catalog/templates/catalog/product_detail.html:57
+#: catalog/templates/catalog/product_detail.html:85
+msgid "Модальное окно"
+msgstr "Modal Window"
+
+#: catalog/templates/catalog/product_detail.html:65
+msgid "Эталонное фото для точных размеров"
+msgstr "Reference Photo for Exact Dimensions"
+
+#: catalog/templates/catalog/product_detail.html:105
+msgid "Эталонное фото"
+msgstr "Reference Photo"
+
+#: catalog/templates/catalog/product_detail.html:124
+msgid "Артикул:"
+msgstr "Art:"
+
+#: catalog/templates/catalog/product_detail.html:127
+msgid "Просмотров:"
+msgstr "Views:"
+
+#: catalog/templates/catalog/product_detail.html:147
+#, python-format
+msgid "В наличии (%(quantity)s шт)"
+msgstr "In Stock (%(quantity)s pcs)"
+
+#: catalog/templates/catalog/product_detail.html:163
+msgid "Характеристики"
+msgstr "Specifications"
+
+#: catalog/templates/catalog/product_detail.html:167
+msgid "Материал"
+msgstr "Material"
+
+#: catalog/templates/catalog/product_detail.html:171
+msgid "Вес металла"
+msgstr "Metal Weight"
+
+#: catalog/templates/catalog/product_detail.html:176
+msgid "Общий вес"
+msgstr "Total Weight"
+
+#: catalog/templates/catalog/product_detail.html:182
+msgid "Размер"
+msgstr "Size"
+
+#: catalog/templates/catalog/product_detail.html:188
+msgid "Размеры"
+msgstr "Dimensions"
+
+#: catalog/templates/catalog/product_detail.html:194
+msgid "Вставки"
+msgstr "Inserts"
+
+#: catalog/templates/catalog/product_detail.html:199
+msgid "Категория"
+msgstr "Category"
+
+#: catalog/templates/catalog/product_detail.html:219
+msgid "Проверенный производитель"
+msgstr "Verified Manufacturer"
+
+#: catalog/templates/catalog/product_detail.html:230
+msgid "Все товары завода"
+msgstr "All Factory Products"
+
+#: catalog/templates/catalog/product_detail.html:240
+msgid "Похожие товары"
+msgstr "Similar Products"
+
+#: catalog/templates/catalog/product_detail.html:268
+msgid "Закрыть"
+msgstr "Close"
