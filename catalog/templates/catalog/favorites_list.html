@@ -59,16 +59,60 @@
     <!-- Right Content - Products -->
     <div class="flex-1">
         <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-6">
-            <div class="flex items-center justify-between mb-6">
-                <div>
-                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white">{{ current_list.name }}</h2>
-                    {% if current_list.description %}
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ current_list.description }}</p>
-                    {% endif %}
-                    <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                        Товаров: {{ favorites.count }}
-                    </p>
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white">{{ current_list.name }}</h2>
+                {% if current_list.description %}
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ current_list.description }}</p>
+                {% endif %}
+
+                <!-- Статистика списка -->
+                {% if favorites %}
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Общая информация -->
+                    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <i class="bi bi-info-circle text-blue-600 dark:text-blue-400 mr-2"></i>
+                            <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Общая информация</h3>
+                        </div>
+                        <div class="space-y-1 text-sm">
+                            <p class="text-gray-700 dark:text-gray-300">
+                                <i class="bi bi-box text-blue-600 dark:text-blue-400"></i>
+                                Товаров: <span class="font-semibold">{{ favorites.count }}</span>
+                            </p>
+                            <p class="text-gray-700 dark:text-gray-300">
+                                <i class="bi bi-currency-dollar text-blue-600 dark:text-blue-400"></i>
+                                Сумма: <span class="font-semibold">${{ current_list.total_price|floatformat:2 }}</span>
+                            </p>
+                            <p class="text-gray-700 dark:text-gray-300">
+                                <i class="bi bi-weight text-blue-600 dark:text-blue-400"></i>
+                                Общий вес: <span class="font-semibold">{{ current_list.total_weight|floatformat:2 }} г</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Вес по металлам -->
+                    <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 md:col-span-2">
+                        <div class="flex items-center mb-2">
+                            <i class="bi bi-gem text-amber-600 dark:text-amber-400 mr-2"></i>
+                            <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Вес по металлам</h3>
+                        </div>
+                        {% if current_list.metal_weights %}
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+                            {% for material, weight in current_list.metal_weights.items %}
+                            <div class="flex items-center space-x-2">
+                                <i class="bi bi-circle-fill text-amber-500 dark:text-amber-400" style="font-size: 0.5rem;"></i>
+                                <span class="text-gray-700 dark:text-gray-300">
+                                    {{ material }}: <span class="font-semibold">{{ weight|floatformat:2 }} г</span>
+                                </span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Нет данных о весе металлов</p>
+                        {% endif %}
+                    </div>
                 </div>
+                {% endif %}
             </div>
 
             {% if favorites %}
