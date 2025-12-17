@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Ювелирный Каталог{% endblock %}</title>
+    <title>{% block title %}{% trans "Ювелирный Каталог" %}{% endblock %}</title>
 
     <!-- Fabric.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
@@ -274,7 +274,7 @@
     <div id="preloader">
         <div style="text-align: center;">
             <div class="spinner" style="margin: 0 auto;"></div>
-            <div class="loading-text">Загрузка...</div>
+            <div class="loading-text">{% trans "Загрузка..." %}</div>
         </div>
     </div>
 
@@ -305,7 +305,7 @@
             <!-- Логотип -->
             <a href="{% url 'catalog:home' %}" class="flex items-center space-x-3 rtl:space-x-reverse">
                 <i class="bi bi-gem text-white text-2xl"></i>
-                <span class="self-center text-2xl font-semibold whitespace-nowrap text-white">{% block header_title %}Ювелирный Каталог{% endblock %}</span>
+                <span class="self-center text-2xl font-semibold whitespace-nowrap text-white">{% block header_title %}{% trans "Ювелирный Каталог" %}{% endblock %}</span>
             </a>
 
             <!-- Mobile menu button -->
@@ -324,7 +324,7 @@
                     <li>
                         <a href="{% url 'catalog:home' %}" class="flex items-center py-2 px-3 text-white rounded hover:bg-white/20 md:hover:bg-transparent md:border-0 md:hover:text-white/80 md:p-0">
                             <i class="bi bi-house text-xl mr-2"></i>
-                            Главная
+                            {% trans "Главная" %}
                         </a>
                     </li>
 
@@ -370,7 +370,7 @@
                         <li>
                             <a href="{% url 'catalog:favorites_list' %}" class="flex items-center py-2 px-3 text-white rounded hover:bg-white/20 md:hover:bg-transparent md:border-0 md:hover:text-white/80 md:p-0">
                                 <i class="bi bi-heart text-xl mr-2"></i>
-                                Избранное
+                                {% trans "Избранное" %}
                             </a>
                         </li>
 
@@ -379,7 +379,7 @@
                         <li>
                             <button id="dropdownNavbarLink" data-dropdown-toggle="dropdownNavbar" class="flex items-center justify-between w-full py-2 px-3 text-white rounded hover:bg-white/20 md:hover:bg-transparent md:border-0 md:hover:text-white/80 md:p-0 md:w-auto">
                                 <i class="bi bi-building text-xl mr-2"></i>
-                                Завод
+                                {% trans "Завод" %}
                                 <svg class="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
                                 </svg>
@@ -389,28 +389,28 @@
                                 <ul class="py-2 text-sm text-gray-700" aria-labelledby="dropdownNavbarLink">
                                     <li>
                                         <a href="{% url 'catalog:factory_dashboard' %}" class="block px-4 py-2 hover:bg-gray-100">
-                                            <i class="bi bi-speedometer2 mr-2"></i>Личный кабинет
+                                            <i class="bi bi-speedometer2 mr-2"></i>{% trans "Личный кабинет" %}
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'catalog:product_add' %}" class="block px-4 py-2 hover:bg-gray-100">
-                                            <i class="bi bi-plus-circle mr-2"></i>Добавить товар
+                                            <i class="bi bi-plus-circle mr-2"></i>{% trans "Добавить товар" %}
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'catalog:factory_category_add' %}" class="block px-4 py-2 hover:bg-gray-100">
-                                            <i class="bi bi-tag mr-2"></i>Добавить категорию
+                                            <i class="bi bi-tag mr-2"></i>{% trans "Добавить категорию" %}
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'catalog:factory_characteristic_add' %}" class="block px-4 py-2 hover:bg-gray-100">
-                                            <i class="bi bi-list-stars mr-2"></i>Добавить характеристику
+                                            <i class="bi bi-list-stars mr-2"></i>{% trans "Добавить характеристику" %}
                                         </a>
                                     </li>
                                 </ul>
                                 <div class="py-1">
                                     <a href="{% url 'catalog:factory_profile_edit' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                        <i class="bi bi-pencil-square mr-2"></i>Редактировать профиль
+                                        <i class="bi bi-pencil-square mr-2"></i>{% trans "Редактировать профиль" %}
                                     </a>
                                 </div>
                             </div>
@@ -422,7 +422,7 @@
                         <li>
                             <a href="/admin/" class="flex items-center py-2 px-3 text-white rounded hover:bg-white/20 md:hover:bg-transparent md:border-0 md:hover:text-white/80 md:p-0">
                                 <i class="bi bi-gear text-xl mr-2"></i>
-                                Админка
+                                {% trans "Админка" %}
                             </a>
                         </li>
                         {% endif %}
@@ -441,7 +441,7 @@
                                 <ul class="py-2 text-sm text-gray-700">
                                     <li>
                                         <a href="{% url 'catalog:logout' %}" class="block px-4 py-2 hover:bg-gray-100">
-                                            <i class="bi bi-box-arrow-right mr-2"></i>Выход
+                                            <i class="bi bi-box-arrow-right mr-2"></i>{% trans "Выход" %}
                                         </a>
                                     </li>
                                 </ul>
@@ -452,7 +452,7 @@
                         <li>
                             <button id="dropdownRegisterLink" data-dropdown-toggle="dropdownRegister" class="flex items-center justify-between w-full py-2 px-3 text-white rounded hover:bg-white/20 md:hover:bg-transparent md:border-0 md:hover:text-white/80 md:p-0 md:w-auto">
                                 <i class="bi bi-person-plus text-xl mr-2"></i>
-                                Регистрация
+                                {% trans "Регистрация" %}
                                 <svg class="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
                                 </svg>
@@ -462,7 +462,7 @@
                                 <ul class="py-2 text-sm text-gray-700">
                                     <li>
                                         <a href="{% url 'catalog:customer_register' %}" class="block px-4 py-2 hover:bg-gray-100">
-                                            <i class="bi bi-person mr-2"></i>Регистрация покупателя
+                                            <i class="bi bi-person mr-2"></i>{% trans "Регистрация покупателя" %}
                                         </a>
                                     </li>
                                 </ul>
@@ -473,7 +473,7 @@
                         <li>
                             <a href="{% url 'catalog:login' %}" class="flex items-center py-2 px-3 text-white rounded hover:bg-white/20 md:hover:bg-transparent md:border-0 md:hover:text-white/80 md:p-0">
                                 <i class="bi bi-box-arrow-in-right text-xl mr-2"></i>
-                                Вход
+                                {% trans "Вход" %}
                             </a>
                         </li>
                     {% endif %}
@@ -525,19 +525,19 @@
             <div class="sm:flex sm:items-center sm:justify-between">
                 <a href="{% url 'catalog:home' %}" class="flex items-center mb-4 sm:mb-0 space-x-3 rtl:space-x-reverse">
                     <i class="bi bi-gem text-white text-2xl"></i>
-                    <span class="self-center text-2xl font-semibold whitespace-nowrap text-white">Ювелирный Каталог</span>
+                    <span class="self-center text-2xl font-semibold whitespace-nowrap text-white">{% trans "Ювелирный Каталог" %}</span>
                 </a>
                 <ul class="flex flex-wrap items-center mb-6 text-sm font-medium text-gray-400 sm:mb-0">
                     <li>
-                        <a href="#" class="hover:underline me-4 md:me-6">О нас</a>
+                        <a href="#" class="hover:underline me-4 md:me-6">{% trans "О нас" %}</a>
                     </li>
                     <li>
-                        <a href="#" class="hover:underline me-4 md:me-6">Контакты</a>
+                        <a href="#" class="hover:underline me-4 md:me-6">{% trans "Контакты" %}</a>
                     </li>
                 </ul>
             </div>
             <hr class="my-6 border-gray-700 sm:mx-auto lg:my-8" />
-            <span class="block text-sm text-gray-400 sm:text-center">© 2025 <a href="{% url 'catalog:home' %}" class="hover:underline">Ювелирный Каталог</a>. Платформа для производителей ювелирных изделий.</span>
+            <span class="block text-sm text-gray-400 sm:text-center">© 2025 <a href="{% url 'catalog:home' %}" class="hover:underline">{% trans "Ювелирный Каталог" %}</a>. {% trans "Платформа для производителей ювелирных изделий." %}</span>
         </div>
     </footer>
     {% endblock %}
@@ -567,7 +567,7 @@
 
             <!-- Header -->
             <div id="floatingPanelHeader" class="text-white p-4">
-                <h3 class="text-lg font-semibold">Настройки</h3>
+                <h3 class="text-lg font-semibold">{% trans "Настройки" %}</h3>
             </div>
 
             <!-- Content -->
@@ -575,19 +575,19 @@
 
                 <!-- Theme Switcher -->
                 <div class="space-y-3">
-                    <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-200">Тема оформления</h4>
+                    <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-200">{% trans "Тема оформления" %}</h4>
 
                     <!-- Dark/Light Mode Toggle -->
                     <label class="relative inline-flex items-center cursor-pointer w-full">
                         <input type="checkbox" id="darkModeToggle" class="sr-only peer" onchange="toggleDarkMode()">
                         <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
-                        <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">Тёмная тема</span>
+                        <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">{% trans "Тёмная тема" %}</span>
                     </label>
 
                     <!-- Link to Theme Editor (только для superuser) -->
                     {% if user.is_superuser %}
                     <a href="{% url 'catalog:theme_editor' %}" class="block text-sm text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300 font-medium mt-3">
-                        <i class="bi bi-palette mr-1"></i> Редактор темы (Admin)
+                        <i class="bi bi-palette mr-1"></i> {% trans "Редактор темы (Admin)" %}
                     </a>
                     {% endif %}
                 </div>
