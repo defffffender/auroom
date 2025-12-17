@@ -1,6 +1,7 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="{% get_current_language as LANGUAGE_CODE %}{{ LANGUAGE_CODE }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -325,6 +326,43 @@
                             <i class="bi bi-house text-xl mr-2"></i>
                             Главная
                         </a>
+                    </li>
+
+                    <!-- Переключатель языка -->
+                    <li>
+                        <button id="dropdownLanguageLink" data-dropdown-toggle="dropdownLanguage" class="flex items-center justify-between w-full py-2 px-3 text-white rounded hover:bg-white/20 md:hover:bg-transparent md:border-0 md:hover:text-white/80 md:p-0 md:w-auto">
+                            <i class="bi bi-translate text-xl mr-2"></i>
+                            {% get_current_language as LANGUAGE_CODE %}
+                            {% if LANGUAGE_CODE == 'ru' %}RU{% else %}EN{% endif %}
+                            <svg class="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
+                            </svg>
+                        </button>
+                        <!-- Dropdown menu -->
+                        <div id="dropdownLanguage" class="z-10 hidden font-normal bg-white divide-y divide-gray-100 rounded-lg shadow w-32">
+                            <ul class="py-2 text-sm text-gray-700">
+                                <li>
+                                    <form action="{% url 'set_language' %}" method="post" style="display: inline;">
+                                        {% csrf_token %}
+                                        <input name="next" type="hidden" value="{{ request.path }}">
+                                        <input type="hidden" name="language" value="ru">
+                                        <button type="submit" class="w-full text-left block px-4 py-2 hover:bg-gray-100">
+                                            <i class="bi bi-flag mr-2"></i>Русский
+                                        </button>
+                                    </form>
+                                </li>
+                                <li>
+                                    <form action="{% url 'set_language' %}" method="post" style="display: inline;">
+                                        {% csrf_token %}
+                                        <input name="next" type="hidden" value="{{ request.path }}">
+                                        <input type="hidden" name="language" value="en">
+                                        <button type="submit" class="w-full text-left block px-4 py-2 hover:bg-gray-100">
+                                            <i class="bi bi-flag-usa mr-2"></i>English
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
                     </li>
 
                     {% if user.is_authenticated %}
