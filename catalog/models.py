@@ -522,14 +522,14 @@ class FavoriteList(models.Model):
         """Общая стоимость всех товаров в списке"""
         from django.db.models import Sum
         result = self.favorites.aggregate(total=Sum('product__price'))
-        return result['total'] or 0
+        return float(result['total']) if result['total'] else 0
 
     @property
     def total_weight(self):
         """Общий вес всех товаров (total_weight)"""
         from django.db.models import Sum
         result = self.favorites.aggregate(total=Sum('product__total_weight'))
-        return result['total'] or 0
+        return float(result['total']) if result['total'] else 0
 
     @property
     def metal_weights(self):
@@ -544,7 +544,7 @@ class FavoriteList(models.Model):
             metal_weight = favorite.product.metal_weight or 0
 
             if material and metal_weight > 0:
-                weights[material.name] += metal_weight
+                weights[material.name] += float(metal_weight)
 
         return dict(weights)
 
