@@ -1,9 +1,10 @@
 {% extends 'catalog/base.html' %}
 {% load static %}
+{% load i18n %}
 
-{% block title %}Каталог ювелирных изделий{% endblock %}
+{% block title %}{% trans "Каталог ювелирных изделий" %}{% endblock %}
 
-{% block header_title %}Ювелирный Каталог{% endblock %}
+{% block header_title %}{% trans "Ювелирный Каталог" %}{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/infinite-scroll.css' %}">
@@ -17,12 +18,12 @@
     <div class="flex items-center justify-between mb-4">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
             <i class="bi bi-funnel text-primary-600 mr-2"></i>
-            Фильтры
+            {% trans "Фильтры" %}
         </h2>
         {% if current_category or current_material or current_purity or current_metal_color or current_style or min_price or max_price or search_query %}
         <a href="?" class="text-sm font-medium text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 flex items-center">
             <i class="bi bi-x-circle mr-1"></i>
-            Очистить все
+            {% trans "Очистить все" %}
         </a>
         {% endif %}
     </div>
@@ -32,7 +33,7 @@
         <!-- Поиск -->
         <div class="lg:col-span-2">
             <form method="get" class="flex">
-                <input type="search" name="search" value="{{ search_query|default:'' }}" class="block p-2 w-full text-sm text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 rounded-l-lg border border-gray-300 dark:border-gray-600 focus:ring-primary-500 focus:border-primary-500" placeholder="Поиск по названию или артикулу...">
+                <input type="search" name="search" value="{{ search_query|default:'' }}" class="block p-2 w-full text-sm text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 rounded-l-lg border border-gray-300 dark:border-gray-600 focus:ring-primary-500 focus:border-primary-500" placeholder="{% trans 'Поиск по названию или артикулу...' %}">
                 <button type="submit" class="p-2 text-sm font-medium text-white bg-primary-600 rounded-r-lg border border-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300">
                     <i class="bi bi-search"></i>
                 </button>
@@ -44,14 +45,14 @@
             <button id="categoryDropdown" data-dropdown-toggle="categoryDropdownMenu" class="w-full text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-3 py-2 text-center inline-flex items-center justify-between" type="button">
                 <span class="flex items-center text-left overflow-hidden">
                     <i class="bi bi-tag mr-2 flex-shrink-0"></i>
-                    <span class="truncate">{% if selected_category %}{{ selected_category.name }}{% else %}Категории{% endif %}</span>
+                    <span class="truncate">{% if selected_category %}{{ selected_category.name }}{% else %}{% trans "Категории" %}{% endif %}</span>
                 </span>
                 <i class="bi bi-chevron-down ml-2 flex-shrink-0"></i>
             </button>
             <div id="categoryDropdownMenu" class="z-10 hidden bg-white dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700 rounded-lg shadow w-44 border border-gray-200 dark:border-gray-700">
                 <ul class="py-2 text-sm text-gray-700 dark:text-gray-200 max-h-60 overflow-y-auto" aria-labelledby="categoryDropdown">
                     <li>
-                        <a href="?" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 {% if not current_category %}bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400{% endif %}">Все</a>
+                        <a href="?" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 {% if not current_category %}bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400{% endif %}">{% trans "Все" %}</a>
                     </li>
                     {% for category in categories %}
                     <li>
@@ -69,14 +70,14 @@
             <button id="materialDropdown" data-dropdown-toggle="materialDropdownMenu" class="w-full text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-3 py-2 text-center inline-flex items-center justify-between" type="button">
                 <span class="flex items-center text-left overflow-hidden">
                     <i class="bi bi-gem mr-2 flex-shrink-0"></i>
-                    <span class="truncate">{% if selected_material %}{{ selected_material.name }}{% else %}Материалы{% endif %}</span>
+                    <span class="truncate">{% if selected_material %}{{ selected_material.name }}{% else %}{% trans "Материалы" %}{% endif %}</span>
                 </span>
                 <i class="bi bi-chevron-down ml-2 flex-shrink-0"></i>
             </button>
             <div id="materialDropdownMenu" class="z-10 hidden bg-white dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700 rounded-lg shadow w-44 border border-gray-200 dark:border-gray-700">
                 <ul class="py-2 text-sm text-gray-700 dark:text-gray-200 max-h-60 overflow-y-auto" aria-labelledby="materialDropdown">
                     <li>
-                        <a href="?{% if current_category %}category={{ current_category }}&{% endif %}{% if current_purity %}purity={{ current_purity }}&{% endif %}{% if current_metal_color %}metal_color={{ current_metal_color }}&{% endif %}{% if current_style %}style={{ current_style }}&{% endif %}{% if min_price %}min_price={{ min_price }}&{% endif %}{% if max_price %}max_price={{ max_price }}&{% endif %}{% if search_query %}search={{ search_query }}&{% endif %}{% if sort_by %}sort={{ sort_by }}{% endif %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 {% if not current_material %}bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400{% endif %}">Все</a>
+                        <a href="?{% if current_category %}category={{ current_category }}&{% endif %}{% if current_purity %}purity={{ current_purity }}&{% endif %}{% if current_metal_color %}metal_color={{ current_metal_color }}&{% endif %}{% if current_style %}style={{ current_style }}&{% endif %}{% if min_price %}min_price={{ min_price }}&{% endif %}{% if max_price %}max_price={{ max_price }}&{% endif %}{% if search_query %}search={{ search_query }}&{% endif %}{% if sort_by %}sort={{ sort_by }}{% endif %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 {% if not current_material %}bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400{% endif %}">{% trans "Все" %}</a>
                     </li>
                     {% for material in materials %}
                     <li>
@@ -94,14 +95,14 @@
             <button id="purityDropdown" data-dropdown-toggle="purityDropdownMenu" class="w-full text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-3 py-2 text-center inline-flex items-center justify-between" type="button">
                 <span class="flex items-center text-left overflow-hidden">
                     <i class="bi bi-award mr-2 flex-shrink-0"></i>
-                    <span class="truncate">{% if selected_purity %}{{ selected_purity.value }}{% else %}Пробы{% endif %}</span>
+                    <span class="truncate">{% if selected_purity %}{{ selected_purity.value }}{% else %}{% trans "Пробы" %}{% endif %}</span>
                 </span>
                 <i class="bi bi-chevron-down ml-2 flex-shrink-0"></i>
             </button>
             <div id="purityDropdownMenu" class="z-10 hidden bg-white dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700 rounded-lg shadow w-44 border border-gray-200 dark:border-gray-700">
                 <ul class="py-2 text-sm text-gray-700 dark:text-gray-200 max-h-60 overflow-y-auto" aria-labelledby="purityDropdown">
                     <li>
-                        <a href="?{% if current_category %}category={{ current_category }}&{% endif %}{% if current_material %}material={{ current_material }}&{% endif %}{% if current_metal_color %}metal_color={{ current_metal_color }}&{% endif %}{% if current_style %}style={{ current_style }}&{% endif %}{% if min_price %}min_price={{ min_price }}&{% endif %}{% if max_price %}max_price={{ max_price }}&{% endif %}{% if search_query %}search={{ search_query }}&{% endif %}{% if sort_by %}sort={{ sort_by }}{% endif %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 {% if not current_purity %}bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400{% endif %}">Все</a>
+                        <a href="?{% if current_category %}category={{ current_category }}&{% endif %}{% if current_material %}material={{ current_material }}&{% endif %}{% if current_metal_color %}metal_color={{ current_metal_color }}&{% endif %}{% if current_style %}style={{ current_style }}&{% endif %}{% if min_price %}min_price={{ min_price }}&{% endif %}{% if max_price %}max_price={{ max_price }}&{% endif %}{% if search_query %}search={{ search_query }}&{% endif %}{% if sort_by %}sort={{ sort_by }}{% endif %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 {% if not current_purity %}bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400{% endif %}">{% trans "Все" %}</a>
                     </li>
                     {% for purity in purities %}
                     <li>
@@ -119,14 +120,14 @@
             <button id="metalColorDropdown" data-dropdown-toggle="metalColorDropdownMenu" class="w-full text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-3 py-2 text-center inline-flex items-center justify-between" type="button">
                 <span class="flex items-center text-left overflow-hidden">
                     <i class="bi bi-palette mr-2 flex-shrink-0"></i>
-                    <span class="truncate">{% if selected_metal_color %}{{ selected_metal_color.name }}{% else %}Цвет металла{% endif %}</span>
+                    <span class="truncate">{% if selected_metal_color %}{{ selected_metal_color.name }}{% else %}{% trans "Цвет металла" %}{% endif %}</span>
                 </span>
                 <i class="bi bi-chevron-down ml-2 flex-shrink-0"></i>
             </button>
             <div id="metalColorDropdownMenu" class="z-10 hidden bg-white dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700 rounded-lg shadow w-44 border border-gray-200 dark:border-gray-700">
                 <ul class="py-2 text-sm text-gray-700 dark:text-gray-200 max-h-60 overflow-y-auto" aria-labelledby="metalColorDropdown">
                     <li>
-                        <a href="?{% if current_category %}category={{ current_category }}&{% endif %}{% if current_material %}material={{ current_material }}&{% endif %}{% if current_purity %}purity={{ current_purity }}&{% endif %}{% if current_style %}style={{ current_style }}&{% endif %}{% if min_price %}min_price={{ min_price }}&{% endif %}{% if max_price %}max_price={{ max_price }}&{% endif %}{% if search_query %}search={{ search_query }}&{% endif %}{% if sort_by %}sort={{ sort_by }}{% endif %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 {% if not current_metal_color %}bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400{% endif %}">Все</a>
+                        <a href="?{% if current_category %}category={{ current_category }}&{% endif %}{% if current_material %}material={{ current_material }}&{% endif %}{% if current_purity %}purity={{ current_purity }}&{% endif %}{% if current_style %}style={{ current_style }}&{% endif %}{% if min_price %}min_price={{ min_price }}&{% endif %}{% if max_price %}max_price={{ max_price }}&{% endif %}{% if search_query %}search={{ search_query }}&{% endif %}{% if sort_by %}sort={{ sort_by }}{% endif %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 {% if not current_metal_color %}bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400{% endif %}">{% trans "Все" %}</a>
                     </li>
                     {% for color in metal_colors %}
                     <li>
@@ -144,14 +145,14 @@
             <button id="styleDropdown" data-dropdown-toggle="styleDropdownMenu" class="w-full text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-3 py-2 text-center inline-flex items-center justify-between" type="button">
                 <span class="flex items-center text-left overflow-hidden">
                     <i class="bi bi-brush mr-2 flex-shrink-0"></i>
-                    <span class="truncate">{% if selected_style %}{{ selected_style.name }}{% else %}Стили{% endif %}</span>
+                    <span class="truncate">{% if selected_style %}{{ selected_style.name }}{% else %}{% trans "Стили" %}{% endif %}</span>
                 </span>
                 <i class="bi bi-chevron-down ml-2 flex-shrink-0"></i>
             </button>
             <div id="styleDropdownMenu" class="z-10 hidden bg-white dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700 rounded-lg shadow w-44 border border-gray-200 dark:border-gray-700">
                 <ul class="py-2 text-sm text-gray-700 dark:text-gray-200 max-h-60 overflow-y-auto" aria-labelledby="styleDropdown">
                     <li>
-                        <a href="?{% if current_category %}category={{ current_category }}&{% endif %}{% if current_material %}material={{ current_material }}&{% endif %}{% if current_purity %}purity={{ current_purity }}&{% endif %}{% if current_metal_color %}metal_color={{ current_metal_color }}&{% endif %}{% if min_price %}min_price={{ min_price }}&{% endif %}{% if max_price %}max_price={{ max_price }}&{% endif %}{% if search_query %}search={{ search_query }}&{% endif %}{% if sort_by %}sort={{ sort_by }}{% endif %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 {% if not current_style %}bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400{% endif %}">Все</a>
+                        <a href="?{% if current_category %}category={{ current_category }}&{% endif %}{% if current_material %}material={{ current_material }}&{% endif %}{% if current_purity %}purity={{ current_purity }}&{% endif %}{% if current_metal_color %}metal_color={{ current_metal_color }}&{% endif %}{% if min_price %}min_price={{ min_price }}&{% endif %}{% if max_price %}max_price={{ max_price }}&{% endif %}{% if search_query %}search={{ search_query }}&{% endif %}{% if sort_by %}sort={{ sort_by }}{% endif %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 {% if not current_style %}bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400{% endif %}">{% trans "Все" %}</a>
                     </li>
                     {% for style in styles %}
                     <li>
@@ -177,25 +178,25 @@
 
         <div class="lg:col-span-2">
             <select name="sort" onchange="this.form.submit()" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2">
-                <option value="-created_at" {% if sort_by == '-created_at' %}selected{% endif %}>Сортировка: Новые</option>
-                <option value="price_asc" {% if sort_by == 'price_asc' %}selected{% endif %}>Цена: по возрастанию</option>
-                <option value="price_desc" {% if sort_by == 'price_desc' %}selected{% endif %}>Цена: по убыванию</option>
-                <option value="popular" {% if sort_by == 'popular' %}selected{% endif %}>Популярные</option>
-                <option value="name" {% if sort_by == 'name' %}selected{% endif %}>По алфавиту</option>
+                <option value="-created_at" {% if sort_by == '-created_at' %}selected{% endif %}>{% trans "Сортировка: Новые" %}</option>
+                <option value="price_asc" {% if sort_by == 'price_asc' %}selected{% endif %}>{% trans "Цена: по возрастанию" %}</option>
+                <option value="price_desc" {% if sort_by == 'price_desc' %}selected{% endif %}>{% trans "Цена: по убыванию" %}</option>
+                <option value="popular" {% if sort_by == 'popular' %}selected{% endif %}>{% trans "Популярные" %}</option>
+                <option value="name" {% if sort_by == 'name' %}selected{% endif %}>{% trans "По алфавиту" %}</option>
             </select>
         </div>
 
         <div>
-            <input type="number" name="min_price" value="{{ min_price|default:'' }}" placeholder="Цена от ($)" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2">
+            <input type="number" name="min_price" value="{{ min_price|default:'' }}" placeholder="{% trans 'Цена от ($)' %}" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2">
         </div>
 
         <div>
-            <input type="number" name="max_price" value="{{ max_price|default:'' }}" placeholder="Цена до ($)" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2">
+            <input type="number" name="max_price" value="{{ max_price|default:'' }}" placeholder="{% trans 'Цена до ($)' %}" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2">
         </div>
 
         <div>
             <button type="submit" class="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-4 py-2">
-                <i class="bi bi-check-circle mr-1"></i> Применить
+                <i class="bi bi-check-circle mr-1"></i> {% trans "Применить" %}
             </button>
         </div>
     </form>
@@ -204,7 +205,7 @@
     {% if current_category or current_material or current_purity or current_metal_color or current_style or min_price or max_price %}
     <div class="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
         <span class="text-sm text-gray-600 dark:text-gray-400 flex items-center mr-2">
-            Активные фильтры:
+            {% trans "Активные фильтры:" %}
         </span>
 
         {% if selected_category %}
@@ -271,7 +272,7 @@
     <!-- Информация о результатах -->
     <div class="flex items-center p-4 mb-4 text-sm text-blue-800 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-300 dark:border-blue-800" role="alert">
         <i class="bi bi-info-circle mr-2"></i>
-        <span>Показано {{ page_obj.start_index }}–{{ page_obj.end_index }} из {{ page_obj.paginator.count }} товаров</span>
+        <span>{% blocktrans with start=page_obj.start_index end=page_obj.end_index count=page_obj.paginator.count %}Показано {{ start }}–{{ end }} из {{ count }} товаров{% endblocktrans %}</span>
     </div>
 
     <!-- Сетка товаров с Flowbite Cards -->
@@ -294,13 +295,13 @@
             {% if user.is_authenticated %}
             <button onclick="showFavoriteModalFromCard('{{ product.article }}')"
                     class="absolute top-3 right-3 text-white bg-red-500/80 hover:bg-red-600 backdrop-blur-sm focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-full text-sm p-2 shadow-lg transition"
-                    title="Добавить в избранное">
+                    title="{% trans 'Добавить в избранное' %}">
                 <i class="bi bi-heart text-lg"></i>
             </button>
             {% else %}
             <button onclick="addToLocalStorageFavorites('{{ product.article }}')"
                     class="absolute top-3 right-3 text-white bg-red-500/80 hover:bg-red-600 backdrop-blur-sm focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-full text-sm p-2 shadow-lg transition"
-                    title="Добавить в избранное">
+                    title="{% trans 'Добавить в избранное' %}">
                 <i class="bi bi-heart text-lg"></i>
             </button>
             {% endif %}
@@ -313,17 +314,17 @@
                 </a>
 
                 <p class="mb-3 text-sm text-gray-700 dark:text-gray-300">
-                    <i class="bi bi-hash"></i> Арт: {{ product.article }}<br>
-                    <i class="bi bi-gem"></i> {{ product.material.name }} • {{ product.metal_weight|default:"—" }} г
+                    <i class="bi bi-hash"></i> {% trans "Арт:" %} {{ product.article }}<br>
+                    <i class="bi bi-gem"></i> {{ product.material.name }} • {{ product.metal_weight|default:"—" }} {% trans "г" %}
                 </p>
 
                 {% if product.in_stock %}
                 <span class="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300 text-xs font-medium px-2.5 py-0.5 rounded">
-                    <i class="bi bi-check-circle"></i> В наличии
+                    <i class="bi bi-check-circle"></i> {% trans "В наличии" %}
                 </span>
                 {% else %}
                 <span class="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 text-xs font-medium px-2.5 py-0.5 rounded">
-                    <i class="bi bi-x-circle"></i> Нет в наличии
+                    <i class="bi bi-x-circle"></i> {% trans "Нет в наличии" %}
                 </span>
                 {% endif %}
 
@@ -334,7 +335,7 @@
                     </p>
                     <a href="{% url 'catalog:product_detail' product.article %}" class="inline-flex items-center w-full justify-center px-3 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300">
                         <i class="bi bi-eye mr-2"></i>
-                        Подробнее
+                        {% trans "Подробнее" %}
                     </a>
                 </div>
             </div>
@@ -348,12 +349,12 @@
     <!-- Loading Indicator -->
     <div id="loadingIndicator" class="hidden">
         <div class="spinner"></div>
-        <p class="text-gray-600 dark:text-gray-400">Загрузка товаров...</p>
+        <p class="text-gray-600 dark:text-gray-400">{% trans "Загрузка товаров..." %}</p>
     </div>
 
     <!-- Липкая пагинация справа -->
     <div id="stickyPagination">
-        <div class="pagination-header">СТРАНИЦЫ</div>
+        <div class="pagination-header">{% trans "СТРАНИЦЫ" %}</div>
 
         <!-- Кнопка к первой видимой странице -->
         <button class="nav-btn" id="firstVisiblePageBtn">
@@ -385,13 +386,13 @@
     </div>
 
     <!-- Кнопка "Вернуться к началу" -->
-    <button id="scrollToTopBtn" class="hidden" title="Вернуться к началу">
+    <button id="scrollToTopBtn" class="hidden" title="{% trans 'Вернуться к началу' %}">
         <i class="bi bi-arrow-up"></i>
     </button>
 
     <!-- Старая пагинация (скрыта) -->
     {% if page_obj.has_other_pages %}
-    <nav class="hidden flex items-center justify-center" aria-label="Page navigation">
+    <nav class="hidden flex items-center justify-center" aria-label="{% trans 'Page navigation' %}">
         <ul class="inline-flex -space-x-px text-sm">
             {% if page_obj.has_previous %}
             <li>
@@ -419,7 +420,7 @@
 
             <li>
                 <span class="flex items-center justify-center px-3 h-8 text-primary-600 dark:text-primary-400 border border-gray-300 dark:border-gray-700 bg-primary-50 dark:bg-primary-900/30">
-                    Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
+                    {% blocktrans with page=page_obj.number total=page_obj.paginator.num_pages %}Страница {{ page }} из {{ total }}{% endblocktrans %}
                 </span>
             </li>
 
@@ -453,11 +454,11 @@
     <!-- Пустое состояние -->
     <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-12 text-center">
         <i class="bi bi-inbox text-primary-600" style="font-size: 4rem;"></i>
-        <h2 class="mt-4 text-2xl font-bold text-gray-900 dark:text-white">Товары не найдены</h2>
-        <p class="mt-2 text-gray-600 dark:text-gray-400">Попробуйте изменить фильтры или поисковый запрос</p>
+        <h2 class="mt-4 text-2xl font-bold text-gray-900 dark:text-white">{% trans "Товары не найдены" %}</h2>
+        <p class="mt-2 text-gray-600 dark:text-gray-400">{% trans "Попробуйте изменить фильтры или поисковый запрос" %}</p>
         <a href="{% url 'catalog:home' %}" class="mt-4 inline-flex items-center px-5 py-3 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300">
             <i class="bi bi-arrow-clockwise mr-2"></i>
-            Сбросить фильтры
+            {% trans "Сбросить фильтры" %}
         </a>
     </div>
 {% endif %}
@@ -467,6 +468,30 @@
 <script src="{% static 'js/infinite-scroll.js' %}?v=8"></script>
 
 <script>
+// Переводы для JavaScript
+const translations = {
+    addToList: "{% trans 'Добавить в список' %}",
+    loading: "{% trans 'Загрузка...' %}",
+    createNewList: "{% trans 'Создать новый список' %}",
+    listName: "{% trans 'Название списка' %}",
+    description: "{% trans 'Описание' %}",
+    descriptionOptional: "{% trans 'Описание (опционально)' %}",
+    create: "{% trans 'Создать' %}",
+    cancel: "{% trans 'Отмена' %}",
+    enterListName: "{% trans 'Введите название списка' %}",
+    listCreated: "{% trans 'Список создан!' %}",
+    errorCreatingList: "{% trans 'Ошибка создания списка' %}",
+    errorOccurred: "{% trans 'Произошла ошибка' %}",
+    removedFromFavorites: "{% trans 'Удалено из избранного' %}",
+    addedToFavorites: "{% trans 'Добавлено в избранное! Войдите, чтобы сохранить навсегда.' %}",
+    noListsYet: "{% trans 'У вас пока нет списков' %}",
+    createFirstList: "{% trans 'Создайте свой первый список избранного' %}",
+    errorLoadingLists: "{% trans 'Ошибка загрузки списков' %}",
+    products: "{% trans 'товаров' %}",
+    listNamePlaceholder: "{% trans 'Например: Свадебные украшения' %}",
+    descriptionPlaceholder: "{% trans 'Описание списка...' %}"
+};
+
 let currentArticle = '';
 
 function showFavoriteModalFromCard(article) {
@@ -491,7 +516,7 @@ function createFavoriteListsModal() {
                 <!-- Header -->
                 <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                        <i class="bi bi-heart mr-2"></i>Добавить в список
+                        <i class="bi bi-heart mr-2"></i>${translations.addToList}
                     </h3>
                     <button onclick="closeFavoriteListsModal()" class="text-gray-400 hover:text-gray-900 dark:hover:text-white">
                         <i class="bi bi-x-lg text-xl"></i>
@@ -502,14 +527,14 @@ function createFavoriteListsModal() {
                 <div id="favoriteListsContainer" class="flex-1 overflow-y-auto p-4">
                     <div class="text-center text-gray-500">
                         <i class="bi bi-hourglass-split text-3xl"></i>
-                        <p>Загрузка...</p>
+                        <p>${translations.loading}</p>
                     </div>
                 </div>
 
                 <!-- Footer with Create Button -->
                 <div class="border-t border-gray-200 dark:border-gray-700 p-4">
                     <button onclick="showCreateListForm()" class="w-full text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
-                        <i class="bi bi-plus-circle mr-2"></i>Создать новый список
+                        <i class="bi bi-plus-circle mr-2"></i>${translations.createNewList}
                     </button>
                 </div>
             </div>
@@ -541,7 +566,7 @@ function loadUserFavoriteLists() {
                             <i class="bi bi-${list.is_default ? 'heart-fill' : 'list-ul'} text-primary-600 mr-3 text-xl"></i>
                             <div class="text-left">
                                 <div class="font-medium text-gray-900 dark:text-white">${list.name}</div>
-                                <div class="text-xs text-gray-500">${list.items_count} товаров</div>
+                                <div class="text-xs text-gray-500">${list.items_count} ${translations.products}</div>
                             </div>
                         </div>
                         <i class="bi bi-chevron-right text-gray-400"></i>
@@ -555,8 +580,8 @@ function loadUserFavoriteLists() {
             container.innerHTML = `
                 <div class="text-center text-gray-500 py-8">
                     <i class="bi bi-inbox text-5xl mb-3"></i>
-                    <p>У вас пока нет списков</p>
-                    <p class="text-sm">Создайте свой первый список избранного</p>
+                    <p>${translations.noListsYet}</p>
+                    <p class="text-sm">${translations.createFirstList}</p>
                 </div>
             `;
         }
@@ -566,7 +591,7 @@ function loadUserFavoriteLists() {
         container.innerHTML = `
             <div class="text-center text-red-500 py-8">
                 <i class="bi bi-exclamation-circle text-5xl mb-3"></i>
-                <p>Ошибка загрузки списков</p>
+                <p>${translations.errorLoadingLists}</p>
             </div>
         `;
     });
@@ -593,7 +618,7 @@ function addToFavoriteList(listId) {
     })
     .catch(error => {
         console.error('Error:', error);
-        showNotification('Произошла ошибка', 'error');
+        showNotification(translations.errorOccurred, 'error');
     });
 }
 
@@ -602,25 +627,25 @@ function showCreateListForm() {
     container.innerHTML = `
         <div class="space-y-4">
             <div>
-                <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Название списка</label>
+                <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">${translations.listName}</label>
                 <input type="text" id="newListName"
                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                       placeholder="Например: Свадебные украшения">
+                       placeholder="${translations.listNamePlaceholder}">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Описание (опционально)</label>
+                <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">${translations.descriptionOptional}</label>
                 <textarea id="newListDescription" rows="3"
                           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                          placeholder="Описание списка..."></textarea>
+                          placeholder="${translations.descriptionPlaceholder}"></textarea>
             </div>
             <div class="flex gap-2">
                 <button onclick="createNewList()"
                         class="flex-1 text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
-                    <i class="bi bi-check-lg mr-2"></i>Создать
+                    <i class="bi bi-check-lg mr-2"></i>${translations.create}
                 </button>
                 <button onclick="loadUserFavoriteLists()"
                         class="flex-1 text-gray-900 dark:text-white bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-700 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
-                    <i class="bi bi-x-lg mr-2"></i>Отмена
+                    <i class="bi bi-x-lg mr-2"></i>${translations.cancel}
                 </button>
             </div>
         </div>
@@ -633,7 +658,7 @@ function createNewList() {
     const description = document.getElementById('newListDescription').value.trim();
 
     if (!name) {
-        showNotification('Введите название списка', 'error');
+        showNotification(translations.enterListName, 'error');
         return;
     }
 
@@ -649,15 +674,15 @@ function createNewList() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showNotification('Список создан!', 'success');
+            showNotification(translations.listCreated, 'success');
             loadUserFavoriteLists();
         } else {
-            showNotification(data.error || 'Ошибка создания списка', 'error');
+            showNotification(data.error || translations.errorCreatingList, 'error');
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        showNotification('Произошла ошибка', 'error');
+        showNotification(translations.errorOccurred, 'error');
     });
 }
 
@@ -668,11 +693,11 @@ function addToLocalStorageFavorites(article) {
     if (favorites.includes(article)) {
         favorites = favorites.filter(item => item !== article);
         localStorage.setItem('favorites', JSON.stringify(favorites));
-        showNotification('Удалено из избранного', 'info');
+        showNotification(translations.removedFromFavorites, 'info');
     } else {
         favorites.push(article);
         localStorage.setItem('favorites', JSON.stringify(favorites));
-        showNotification('Добавлено в избранное! Войдите, чтобы сохранить навсегда.', 'success');
+        showNotification(translations.addedToFavorites, 'success');
     }
 }
 
