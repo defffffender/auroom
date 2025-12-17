@@ -526,64 +526,117 @@ def toggle_favorite(request, article):
     """Добавить/удалить товар из избранного (AJAX)"""
     product = get_object_or_404(Product, article=article, is_active=True)
 
-    # Получаем или создаем дефолтный список
-    list_id = request.POST.get('list_id') or request.GET.get('list_id')
-
-    if list_id:
-        favorite_list = get_object_or_404(FavoriteList, id=list_id, user=request.user)
-    else:
-        # Создаём или получаем дефолтный список
-        favorite_list, _ = FavoriteList.objects.get_or_create(
-            user=request.user,
-            is_default=True,
-            defaults={'name': 'Мои избранные', 'description': 'Список по умолчанию'}
-        )
-
-    # Проверяем, есть ли товар в ЭТОМ списке
-    favorite = Favorite.objects.filter(
-        user=request.user,
-        product=product,
-        favorite_list=favorite_list
-    ).first()
-
-    if favorite:
-        # Если уже был в этом списке - удаляем
-        favorite.delete()
-        is_favorite = False
-        message = f'Удалено из списка "{favorite_list.name}"'
-    else:
-        # Добавляем в выбранный список
-        Favorite.objects.create(
-            user=request.user,
-            product=product,
-            favorite_list=favorite_list
-        )
-        is_favorite = True
-        message = f'Добавлено в список "{favorite_list.name}"'
-
     # Для AJAX запросов
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         import json
         from django.http import JsonResponse
 
-        # Получаем все списки пользователя для popup
-        user_lists = FavoriteList.objects.filter(user=request.user).order_by('-is_default', 'name')
-        lists_data = [{
-            'id': lst.id,
-            'name': lst.name,
-            'is_default': lst.is_default,
-            'items_count': lst.items_count
-        } for lst in user_lists]
+        # GET запрос - просто возвращаем списки для показа модалки
+        if request.method == 'GET':
+            # Создаём или получаем дефолтный список
+            FavoriteList.objects.get_or_create(
+                user=request.user,
+                is_default=True,
+                defaults={'name': 'Мои избранные', 'description': 'Список по умолчанию'}
+            )
 
-        return JsonResponse({
-            'is_favorite': is_favorite,
-            'message': message,
-            'lists': lists_data,
-            'current_list_id': favorite_list.id
-        })
+            # Получаем все списки пользователя для popup
+            user_lists = FavoriteList.objects.filter(user=request.user).order_by('-is_default', 'name')
+            lists_data = [{
+                'id': lst.id,
+                'name': lst.name,
+                'is_default': lst.is_default,
+                'items_count': lst.items_count
+            } for lst in user_lists]
 
-    # Для обычных запросов
-    messages.success(request, message)
+            return JsonResponse({
+                'lists': lists_data
+            })
+
+        # POST запрос - добавляем/удаляем товар
+        if request.method == 'POST':
+            list_id = request.POST.get('list_id')
+
+            if list_id:
+                favorite_list = get_object_or_404(FavoriteList, id=list_id, user=request.user)
+            else:
+                # Создаём или получаем дефолтный список
+                favorite_list, _ = FavoriteList.objects.get_or_create(
+                    user=request.user,
+                    is_default=True,
+                    defaults={'name': 'Мои избранные', 'description': 'Список по умолчанию'}
+                )
+
+            # Проверяем, есть ли товар в ЭТОМ списке
+            favorite = Favorite.objects.filter(
+                user=request.user,
+                product=product,
+                favorite_list=favorite_list
+            ).first()
+
+            if favorite:
+                # Если уже был в этом списке - удаляем
+                favorite.delete()
+                is_favorite = False
+                message = f'Удалено из списка "{favorite_list.name}"'
+            else:
+                # Добавляем в выбранный список
+                Favorite.objects.create(
+                    user=request.user,
+                    product=product,
+                    favorite_list=favorite_list
+                )
+                is_favorite = True
+                message = f'Добавлено в список "{favorite_list.name}"'
+
+            # Получаем все списки пользователя для popup
+            user_lists = FavoriteList.objects.filter(user=request.user).order_by('-is_default', 'name')
+            lists_data = [{
+                'id': lst.id,
+                'name': lst.name,
+                'is_default': lst.is_default,
+                'items_count': lst.items_count
+            } for lst in user_lists]
+
+            return JsonResponse({
+                'is_favorite': is_favorite,
+                'message': message,
+                'lists': lists_data,
+                'current_list_id': favorite_list.id
+            })
+
+    # Для обычных запросов (не AJAX)
+    if request.method == 'POST':
+        list_id = request.POST.get('list_id')
+
+        if list_id:
+            favorite_list = get_object_or_404(FavoriteList, id=list_id, user=request.user)
+        else:
+            favorite_list, _ = FavoriteList.objects.get_or_create(
+                user=request.user,
+                is_default=True,
+                defaults={'name': 'Мои избранные', 'description': 'Список по умолчанию'}
+            )
+
+        favorite = Favorite.objects.filter(
+            user=request.user,
+            product=product,
+            favorite_list=favorite_list
+        ).first()
+
+        if favorite:
+            favorite.delete()
+            message = f'Удалено из списка "{favorite_list.name}"'
+        else:
+            Favorite.objects.create(
+                user=request.user,
+                product=product,
+                favorite_list=favorite_list
+            )
+            message = f'Добавлено в список "{favorite_list.name}"'
+
+        messages.success(request, message)
+
     return redirect('catalog:product_detail', article=article)
 
 
