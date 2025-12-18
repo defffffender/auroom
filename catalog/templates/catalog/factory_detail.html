@@ -1,7 +1,8 @@
 {% extends 'catalog/base.html' %}
 {% load static %}
+{% load i18n %}
 
-{% block title %}{{ factory.name }} - Каталог товаров{% endblock %}
+{% block title %}{{ factory.name }} - {% trans "Каталог товаров" %}{% endblock %}
 
 {% block content %}
 <!-- Factory Information -->
@@ -21,7 +22,7 @@
                 {% if factory.is_verified %}
                     <span class="bg-green-100 text-green-800 text-sm font-medium px-3 py-1 rounded-full flex items-center">
                         <i class="bi bi-check-circle-fill mr-1"></i>
-                        Проверенный производитель
+                        {% trans "Проверенный производитель" %}
                     </span>
                 {% endif %}
             </div>
@@ -51,7 +52,7 @@
 <!-- Factory Products -->
 <div class="mb-6">
     <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-        Товары производителя
+        {% trans "Товары производителя" %}
         <span class="text-primary-600">({{ page_obj.paginator.count }})</span>
     </h2>
 
@@ -59,7 +60,7 @@
         <!-- Информация о результатах -->
         <div class="flex items-center p-4 mb-4 text-sm text-blue-800 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-300 dark:border-blue-800" role="alert">
             <i class="bi bi-info-circle mr-2"></i>
-            <span>Показано {{ page_obj.start_index }}–{{ page_obj.end_index }} из {{ page_obj.paginator.count }} товаров</span>
+            <span>{% blocktrans with start=page_obj.start_index end=page_obj.end_index total=page_obj.paginator.count %}Показано {{ start }}–{{ end }} из {{ total }} товаров{% endblocktrans %}</span>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
@@ -88,19 +89,19 @@
                             </h5>
                         </a>
                         <div class="text-sm text-gray-600 dark:text-white mb-3 space-y-1">
-                            <p><i class="bi bi-hash"></i> Арт: {{ product.article }}</p>
-                            <p><i class="bi bi-gem"></i> {{ product.material.name }} • {{ product.metal_weight|default:"—" }} г</p>
+                            <p><i class="bi bi-hash"></i> {% trans "Арт:" %} {{ product.article }}</p>
+                            <p><i class="bi bi-gem"></i> {{ product.material.name }} • {% blocktrans with weight=product.metal_weight|default:"—" %}{{ weight }} г{% endblocktrans %}</p>
                         </div>
 
                         {% if product.in_stock %}
                             <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded inline-flex items-center mb-3">
                                 <i class="bi bi-check-circle mr-1"></i>
-                                В наличии
+                                {% trans "В наличии" %}
                             </span>
                         {% else %}
                             <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded inline-flex items-center mb-3">
                                 <i class="bi bi-x-circle mr-1"></i>
-                                Нет в наличии
+                                {% trans "Нет в наличии" %}
                             </span>
                         {% endif %}
 
@@ -142,7 +143,7 @@
 
                 <li>
                     <span class="flex items-center justify-center px-3 h-8 text-primary-600 dark:text-primary-400 border border-gray-300 dark:border-gray-700 bg-primary-50 dark:bg-primary-900/30">
-                        Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
+                        {% blocktrans with current=page_obj.number total=page_obj.paginator.num_pages %}Страница {{ current }} из {{ total }}{% endblocktrans %}
                     </span>
                 </li>
 
@@ -175,8 +176,8 @@
     {% else %}
         <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm text-center p-12">
             <i class="bi bi-inbox text-primary-600" style="font-size: 4rem;"></i>
-            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mt-4">У производителя пока нет товаров в каталоге</h3>
-            <p class="text-gray-600 dark:text-white mt-2">Заходите позже, товары скоро появятся</p>
+            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mt-4">{% trans "У производителя пока нет товаров в каталоге" %}</h3>
+            <p class="text-gray-600 dark:text-white mt-2">{% trans "Заходите позже, товары скоро появятся" %}</p>
         </div>
     {% endif %}
 </div>

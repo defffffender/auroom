@@ -1,7 +1,8 @@
 {% extends 'catalog/base.html' %}
 {% load static %}
+{% load i18n %}
 
-{% block title %}Личный кабинет - {{ factory.name }}{% endblock %}
+{% block title %}{% trans "Личный кабинет" %} - {{ factory.name }}{% endblock %}
 
 {% block content %}
 <!-- Page Header -->
@@ -10,32 +11,32 @@
         <i class="bi bi-building text-primary-600 mr-2"></i>
         {{ factory.name }}
     </h1>
-    <p class="text-gray-600 dark:text-white">Личный кабинет завода</p>
+    <p class="text-gray-600 dark:text-white">{% trans "Личный кабинет завода" %}</p>
 </div>
 
 <!-- Statistics Cards -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
     <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-6">
         <h6 class="text-gray-500 dark:text-white text-sm font-medium mb-2">
-            <i class="bi bi-box-seam mr-1"></i> Всего товаров
+            <i class="bi bi-box-seam mr-1"></i> {% trans "Всего товаров" %}
         </h6>
         <p class="text-3xl font-bold text-primary-600">{{ stats.total_products }}</p>
     </div>
     <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-6">
         <h6 class="text-gray-500 dark:text-white text-sm font-medium mb-2">
-            <i class="bi bi-check-circle mr-1"></i> Активных
+            <i class="bi bi-check-circle mr-1"></i> {% trans "Активных" %}
         </h6>
         <p class="text-3xl font-bold text-green-600">{{ stats.active_products }}</p>
     </div>
     <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-6">
         <h6 class="text-gray-500 dark:text-white text-sm font-medium mb-2">
-            <i class="bi bi-archive mr-1"></i> В наличии
+            <i class="bi bi-archive mr-1"></i> {% trans "В наличии" %}
         </h6>
         <p class="text-3xl font-bold text-blue-600">{{ stats.in_stock }}</p>
     </div>
     <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-6">
         <h6 class="text-gray-500 dark:text-white text-sm font-medium mb-2">
-            <i class="bi bi-eye mr-1"></i> Просмотров
+            <i class="bi bi-eye mr-1"></i> {% trans "Просмотров" %}
         </h6>
         <p class="text-3xl font-bold text-yellow-600">{{ stats.total_views }}</p>
     </div>
@@ -46,7 +47,7 @@
     <div class="bg-gradient-to-r from-primary-600 to-purple-600 text-white px-6 py-4 rounded-t-lg">
         <h2 class="text-xl font-semibold">
             <i class="bi bi-grid mr-2"></i>
-            Мои товары
+            {% trans "Мои товары" %}
         </h2>
     </div>
     <div class="p-0">
@@ -55,15 +56,15 @@
             <table class="w-full text-sm text-left text-gray-500 dark:text-white">
                 <thead class="text-xs text-gray-700 dark:text-white uppercase bg-gray-50 dark:bg-gray-700">
                     <tr>
-                        <th scope="col" class="px-6 py-3">Фото</th>
-                        <th scope="col" class="px-6 py-3">Артикул</th>
-                        <th scope="col" class="px-6 py-3">Название</th>
-                        <th scope="col" class="px-6 py-3">Категория</th>
-                        <th scope="col" class="px-6 py-3">Цена</th>
-                        <th scope="col" class="px-6 py-3">Остаток</th>
-                        <th scope="col" class="px-6 py-3">Просмотры</th>
-                        <th scope="col" class="px-6 py-3">Статус</th>
-                        <th scope="col" class="px-6 py-3">Действия</th>
+                        <th scope="col" class="px-6 py-3">{% trans "Фото" %}</th>
+                        <th scope="col" class="px-6 py-3">{% trans "Артикул" %}</th>
+                        <th scope="col" class="px-6 py-3">{% trans "Название" %}</th>
+                        <th scope="col" class="px-6 py-3">{% trans "Категория" %}</th>
+                        <th scope="col" class="px-6 py-3">{% trans "Цена" %}</th>
+                        <th scope="col" class="px-6 py-3">{% trans "Остаток" %}</th>
+                        <th scope="col" class="px-6 py-3">{% trans "Просмотры" %}</th>
+                        <th scope="col" class="px-6 py-3">{% trans "Статус" %}</th>
+                        <th scope="col" class="px-6 py-3">{% trans "Действия" %}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -88,18 +89,18 @@
                             </span>
                         </td>
                         <td class="px-6 py-4 font-semibold text-primary-600">${{ product.price }}</td>
-                        <td class="px-6 py-4 text-gray-900 dark:text-white">{{ product.stock_quantity }} шт</td>
+                        <td class="px-6 py-4 text-gray-900 dark:text-white">{% blocktrans with quantity=product.stock_quantity %}{{ quantity }} шт{% endblocktrans %}</td>
                         <td class="px-6 py-4">
                             <i class="bi bi-eye text-gray-400 dark:text-gray-500"></i> {{ product.views_count }}
                         </td>
                         <td class="px-6 py-4">
                             {% if product.is_active %}
                             <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded flex items-center w-fit">
-                                <i class="bi bi-check-circle mr-1"></i> Активен
+                                <i class="bi bi-check-circle mr-1"></i> {% trans "Активен" %}
                             </span>
                             {% else %}
                             <span class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded flex items-center w-fit">
-                                <i class="bi bi-x-circle mr-1"></i> Неактивен
+                                <i class="bi bi-x-circle mr-1"></i> {% trans "Неактивен" %}
                             </span>
                             {% endif %}
                         </td>
@@ -107,17 +108,17 @@
                             <div class="inline-flex rounded-md shadow-sm" role="group">
                                 <a href="{% url 'catalog:product_detail' product.article %}"
                                    class="px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-l-lg hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300"
-                                   title="Просмотр">
+                                   title="{% trans 'Просмотр' %}">
                                     <i class="bi bi-eye"></i>
                                 </a>
                                 <a href="{% url 'catalog:product_edit' product.article %}"
                                    class="px-3 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300"
-                                   title="Редактировать">
+                                   title="{% trans 'Редактировать' %}">
                                     <i class="bi bi-pencil"></i>
                                 </a>
                                 <a href="{% url 'catalog:product_delete' product.article %}"
                                    class="px-3 py-2 text-sm font-medium text-white bg-red-600 rounded-r-lg hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300"
-                                   title="Удалить">
+                                   title="{% trans 'Удалить' %}">
                                     <i class="bi bi-trash"></i>
                                 </a>
                             </div>
@@ -130,11 +131,11 @@
         {% else %}
         <div class="text-center py-12">
             <i class="bi bi-inbox text-primary-600" style="font-size: 4rem;"></i>
-            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mt-4">У вас пока нет товаров</h3>
-            <p class="text-gray-600 dark:text-white mt-2">Начните добавлять товары в каталог, чтобы показывать их клиентам</p>
+            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mt-4">{% trans "У вас пока нет товаров" %}</h3>
+            <p class="text-gray-600 dark:text-white mt-2">{% trans "Начните добавлять товары в каталог, чтобы показывать их клиентам" %}</p>
             <a href="{% url 'catalog:product_add' %}" class="mt-6 inline-flex items-center text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
                 <i class="bi bi-plus-circle mr-2"></i>
-                Добавить первый товар
+                {% trans "Добавить первый товар" %}
             </a>
         </div>
         {% endif %}
