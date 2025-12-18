@@ -5,6 +5,7 @@ from django.db.models import Q, F, Sum, Count
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.utils.translation import gettext as _
 from django.forms import modelformset_factory
 from django.http import JsonResponse
 from django.core.cache import cache
@@ -301,7 +302,7 @@ def factory_register(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            messages.success(request, 'Регистрация прошла успешно! Добро пожаловать!')
+            messages.success(request, _('Регистрация прошла успешно! Добро пожаловать!'))
             return redirect('catalog:factory_dashboard')
     else:
         form = FactoryRegistrationForm()
@@ -315,7 +316,7 @@ def factory_dashboard(request):
     try:
         factory = request.user.factory
     except Factory.DoesNotExist:
-        messages.error(request, 'У вас нет профиля завода')
+        messages.error(request, _('У вас нет профиля завода'))
         return redirect('catalog:home')
     
     products = Product.objects.filter(factory=factory).select_related(
@@ -356,14 +357,14 @@ def factory_profile_edit(request):
     try:
         factory = request.user.factory
     except Factory.DoesNotExist:
-        messages.error(request, 'У вас нет профиля завода')
+        messages.error(request, _('У вас нет профиля завода'))
         return redirect('catalog:home')
     
     if request.method == 'POST':
         form = FactoryProfileForm(request.POST, request.FILES, instance=factory)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Профиль успешно обновлён!')
+            messages.success(request, _('Профиль успешно обновлён!'))
             return redirect('catalog:factory_dashboard')
     else:
         form = FactoryProfileForm(instance=factory)
@@ -377,7 +378,7 @@ def product_add(request):
     try:
         factory = request.user.factory
     except Factory.DoesNotExist:
-        messages.error(request, 'У вас нет профиля завода')
+        messages.error(request, _('У вас нет профиля завода'))
         return redirect('catalog:home')
     
     if request.method == 'POST':
@@ -402,9 +403,9 @@ def product_add(request):
                     logger.info(f"Canvas image saved for product {product.article}: {canvas_image.name}")
                 except Exception as e:
                     logger.error(f"Failed to save canvas image for product {product.article}: {e}")
-                    messages.error(request, 'Ошибка при сохранении изображения')
+                    messages.error(request, _('Ошибка при сохранении изображения'))
             
-            messages.success(request, f'Товар "{product.name}" успешно добавлен!')
+            messages.success(request, _(f'Товар \"{product.name}\" успешно добавлен!'))
             
             # 🔧 ФИКС: Проверяем тип запроса
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -412,7 +413,7 @@ def product_add(request):
                 from django.http import JsonResponse
                 return JsonResponse({
                     'success': True,
-                    'message': f'Товар "{product.name}" успешно добавлен!',
+                    'message': _(f'Товар \"{product.name}\" успешно добавлен!'),
                     'redirect_url': '/dashboard/'
                 })
             else:
@@ -431,7 +432,7 @@ def product_add(request):
                     'errors': form.errors
                 }, status=400)
             else:
-                messages.error(request, 'Пожалуйста, исправьте ошибки в форме.')
+                messages.error(request, _('Пожалуйста, исправьте ошибки в форме.'))
     else:
         form = ProductForm()
     
@@ -447,7 +448,7 @@ def product_edit(request, article):
     try:
         factory = request.user.factory
     except Factory.DoesNotExist:
-        messages.error(request, 'У вас нет профиля завода')
+        messages.error(request, _('У вас нет профиля завода'))
         return redirect('catalog:home')
     
     product = get_object_or_404(Product, article=article, factory=factory)
@@ -470,7 +471,7 @@ def product_edit(request, article):
                     image.product = product
                     image.save()
             
-            messages.success(request, f'Товар "{product.name}" успешно обновлён!')
+            messages.success(request, _(f'Товар \"{product.name}\" успешно обновлён!'))
             return redirect('catalog:factory_dashboard')
     else:
         form = ProductForm(instance=product)
@@ -490,7 +491,7 @@ def product_delete(request, article):
     try:
         factory = request.user.factory
     except Factory.DoesNotExist:
-        messages.error(request, 'У вас нет профиля завода')
+        messages.error(request, _('У вас нет профиля завода'))
         return redirect('catalog:home')
     
     product = get_object_or_404(Product, article=article, factory=factory)
@@ -498,7 +499,7 @@ def product_delete(request, article):
     if request.method == 'POST':
         product_name = product.name
         product.delete()
-        messages.success(request, f'Товар "{product_name}" успешно удалён!')
+        messages.success(request, _(f'Товар \"{product_name}\" успешно удалён!'))
         return redirect('catalog:factory_dashboard')
     
     return render(request, 'catalog/product_delete.html', {
@@ -513,7 +514,7 @@ def customer_register(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            messages.success(request, 'Регистрация прошла успешно! Добро пожаловать!')
+            messages.success(request, _('Регистрация прошла успешно! Добро пожаловать!'))
             return redirect('catalog:home')
     else:
         form = CustomerRegistrationForm()
@@ -624,14 +625,14 @@ def toggle_favorite(request, article):
         ).first()
 
         if favorite:
-            message = f'Товар уже в списке "{favorite_list.name}"'
+            message = _(f'Товар уже в списке "{favorite_list.name}"')
         else:
             Favorite.objects.create(
                 user=request.user,
                 product=product,
                 favorite_list=favorite_list
             )
-            message = f'Добавлено в список "{favorite_list.name}"'
+            message = _(f'Добавлено в список "{favorite_list.name}"')
 
         messages.success(request, message)
 
@@ -645,7 +646,7 @@ def favorites_list(request, list_id=None):
     default_list, _ = FavoriteList.objects.get_or_create(
         user=request.user,
         is_default=True,
-        defaults={'name': 'Мои избранные', 'description': 'Список по умолчанию'}
+        defaults={'name': _('Мои избранные'), 'description': _('Список по умолчанию')}
     )
 
     # Определяем текущий список
@@ -757,7 +758,7 @@ def favorite_list_rename(request, list_id):
 def logout_view(request):
     """Выход из системы"""
     logout(request)
-    messages.success(request, 'Вы успешно вышли из системы')
+    messages.success(request, _('Вы успешно вышли из системы'))
     return redirect('catalog:home')
 
 
@@ -767,7 +768,7 @@ def factory_category_add(request):
     try:
         factory = request.user.factory
     except Factory.DoesNotExist:
-        messages.error(request, 'У вас нет профиля завода')
+        messages.error(request, _('У вас нет профиля завода'))
         return redirect('catalog:home')
 
     from .forms import CategoryForm
@@ -777,7 +778,7 @@ def factory_category_add(request):
         if form.is_valid():
             category = form.save(commit=False, factory=factory)
             category.save()
-            messages.success(request, f'Категория "{category.name}" успешно добавлена!')
+            messages.success(request, _(f'Категория \"{category.name}\" успешно добавлена!'))
             return redirect('catalog:factory_dashboard')
     else:
         form = CategoryForm()
@@ -794,7 +795,7 @@ def factory_characteristic_add(request):
     try:
         factory = request.user.factory
     except Factory.DoesNotExist:
-        messages.error(request, 'У вас нет профиля завода')
+        messages.error(request, _('У вас нет профиля завода'))
         return redirect('catalog:home')
 
     from .forms import CharacteristicForm
@@ -842,10 +843,10 @@ def factory_characteristic_add(request):
                         description=description
                     )
 
-                messages.success(request, f'Характеристика "{name}" успешно добавлена!')
+                messages.success(request, _(f'Характеристика \"{name}\" успешно добавлена!'))
                 return redirect('catalog:factory_dashboard')
             except Exception as e:
-                messages.error(request, f'Ошибка при добавлении: {str(e)}')
+                messages.error(request, _(f'Ошибка при добавлении: {str(e)}'))
     else:
         form = CharacteristicForm()
 
@@ -859,7 +860,7 @@ def theme_editor(request):
     """Редактор цветовой схемы (только для superuser)"""
     # Проверяем, что пользователь - суперюзер
     if not request.user.is_superuser:
-        messages.error(request, 'Доступ запрещен. Только администратор может редактировать темы.')
+        messages.error(request, _('Доступ запрещен. Только администратор может редактировать темы.'))
         return redirect('catalog:home')
 
     # Получаем дефолтную тему для редактирования
@@ -876,7 +877,7 @@ def theme_save(request):
     """Сохранение темы (только для superuser)"""
     # Только superuser может сохранять темы
     if not request.user.is_superuser:
-        return JsonResponse({'success': False, 'error': 'Доступ запрещен. Только администратор может редактировать темы.'})
+        return JsonResponse({'success': False, 'error': _('Доступ запрещен. Только администратор может редактировать темы.')})
 
     if request.method == 'POST':
         import json
