@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: AuRoom 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-18 15:58+0500\n"
+"POT-Creation-Date: 2025-12-18 16:07+0500\n"
 "PO-Revision-Date: 2025-12-17 22:40+0500\n"
 "Last-Translator: Claude AI <noreply@anthropic.com>\n"
 "Language-Team: English <en@auroom.com>\n"
@@ -48,6 +48,7 @@ msgid "Завод"
 msgstr "Factory"
 
 #: catalog/templates/catalog/base.html:392
+#: catalog/templates/catalog/factory_dashboard.html:5
 msgid "Личный кабинет"
 msgstr "Dashboard"
 
@@ -141,6 +142,154 @@ msgstr "Sign In"
 msgid "На главную"
 msgstr "Back to Home"
 
+#: catalog/templates/catalog/factory_dashboard.html:14
+msgid "Личный кабинет завода"
+msgstr "Factory Dashboard"
+
+#: catalog/templates/catalog/factory_dashboard.html:21
+msgid "Всего товаров"
+msgstr "Total Products"
+
+#: catalog/templates/catalog/factory_dashboard.html:27
+msgid "Активных"
+msgstr "Active"
+
+#: catalog/templates/catalog/factory_dashboard.html:33
+#: catalog/templates/catalog/factory_detail.html:99
+#: catalog/templates/catalog/home.html:323
+msgid "В наличии"
+msgstr "In Stock"
+
+#: catalog/templates/catalog/factory_dashboard.html:39
+msgid "Просмотров"
+msgstr "Views"
+
+#: catalog/templates/catalog/factory_dashboard.html:50
+msgid "Мои товары"
+msgstr "My Products"
+
+#: catalog/templates/catalog/factory_dashboard.html:59
+msgid "Фото"
+msgstr "Photo"
+
+#: catalog/templates/catalog/factory_dashboard.html:60
+msgid "Артикул"
+msgstr "Article"
+
+#: catalog/templates/catalog/factory_dashboard.html:61
+msgid "Название"
+msgstr "Name"
+
+#: catalog/templates/catalog/factory_dashboard.html:62
+#: catalog/templates/catalog/product_detail.html:199
+msgid "Категория"
+msgstr "Category"
+
+#: catalog/templates/catalog/factory_dashboard.html:63
+msgid "Цена"
+msgstr "Price"
+
+#: catalog/templates/catalog/factory_dashboard.html:64
+msgid "Остаток"
+msgstr "Stock"
+
+#: catalog/templates/catalog/factory_dashboard.html:65
+msgid "Просмотры"
+msgstr "Views"
+
+#: catalog/templates/catalog/factory_dashboard.html:66
+msgid "Статус"
+msgstr "Status"
+
+#: catalog/templates/catalog/factory_dashboard.html:67
+msgid "Действия"
+msgstr "Actions"
+
+#: catalog/templates/catalog/factory_dashboard.html:92
+#, python-format
+msgid "%(quantity)s шт"
+msgstr "%(quantity)s pcs"
+
+#: catalog/templates/catalog/factory_dashboard.html:99
+msgid "Активен"
+msgstr "Active"
+
+#: catalog/templates/catalog/factory_dashboard.html:103
+msgid "Неактивен"
+msgstr "Inactive"
+
+#: catalog/templates/catalog/factory_dashboard.html:111
+msgid "Просмотр"
+msgstr "View"
+
+#: catalog/templates/catalog/factory_dashboard.html:116
+msgid "Редактировать"
+msgstr "Edit"
+
+#: catalog/templates/catalog/factory_dashboard.html:121
+#: catalog/templates/catalog/favorites_list.html:49
+msgid "Удалить"
+msgstr "Delete"
+
+#: catalog/templates/catalog/factory_dashboard.html:134
+msgid "У вас пока нет товаров"
+msgstr "You have no products yet"
+
+#: catalog/templates/catalog/factory_dashboard.html:135
+msgid "Начните добавлять товары в каталог, чтобы показывать их клиентам"
+msgstr "Start adding products to the catalog to show them to customers"
+
+#: catalog/templates/catalog/factory_dashboard.html:138
+msgid "Добавить первый товар"
+msgstr "Add First Product"
+
+#: catalog/templates/catalog/factory_detail.html:5
+msgid "Каталог товаров"
+msgstr "Product Catalog"
+
+#: catalog/templates/catalog/factory_detail.html:25
+#: catalog/templates/catalog/product_detail.html:219
+msgid "Проверенный производитель"
+msgstr "Verified Manufacturer"
+
+#: catalog/templates/catalog/factory_detail.html:55
+msgid "Товары производителя"
+msgstr "Factory Products"
+
+#: catalog/templates/catalog/factory_detail.html:63
+#, python-format
+msgid "Показано %(start)s–%(end)s из %(total)s товаров"
+msgstr "Showing %(start)s–%(end)s of %(total)s products"
+
+#: catalog/templates/catalog/factory_detail.html:92
+#: catalog/templates/catalog/home.html:317
+msgid "Арт:"
+msgstr "Art:"
+
+#: catalog/templates/catalog/factory_detail.html:93
+#, python-format
+msgid "%(weight)s г"
+msgstr "%(weight)s g"
+
+#: catalog/templates/catalog/factory_detail.html:104
+#: catalog/templates/catalog/home.html:327
+#: catalog/templates/catalog/product_detail.html:152
+msgid "Нет в наличии"
+msgstr "Out of Stock"
+
+#: catalog/templates/catalog/factory_detail.html:146
+#, python-format
+msgid "Страница %(current)s из %(total)s"
+msgstr "Page %(current)s of %(total)s"
+
+#: catalog/templates/catalog/factory_detail.html:179
+msgid "У производителя пока нет товаров в каталоге"
+msgstr "The factory has no products in the catalog yet"
+
+#: catalog/templates/catalog/factory_detail.html:180
+msgid "Заходите позже, товары скоро появятся"
+msgstr "Check back later, products coming soon"
+
 #: catalog/templates/catalog/favorites_list.html:13
 msgid "Управляйте своими списками избранных товаров"
 msgstr "Manage your favorite product lists"
@@ -158,10 +307,6 @@ msgstr "Create List"
 #: catalog/templates/catalog/favorites_list.html:44
 msgid "Переименовать"
 msgstr "Rename"
-
-#: catalog/templates/catalog/favorites_list.html:49
-msgid "Удалить"
-msgstr "Delete"
 
 #: catalog/templates/catalog/favorites_list.html:76
 msgid "Общая информация"
@@ -360,24 +505,11 @@ msgstr "Showing %(start)s–%(end)s of %(count)s products"
 msgid "Добавить в избранное"
 msgstr "Add to Favorites"
 
-#: catalog/templates/catalog/home.html:317
-msgid "Арт:"
-msgstr "Art:"
-
 #: catalog/templates/catalog/home.html:318
 #: catalog/templates/catalog/product_detail.html:172
 #: catalog/templates/catalog/product_detail.html:177
 msgid "г"
 msgstr "g"
-
-#: catalog/templates/catalog/home.html:323
-msgid "В наличии"
-msgstr "In Stock"
-
-#: catalog/templates/catalog/home.html:327
-#: catalog/templates/catalog/product_detail.html:152
-msgid "Нет в наличии"
-msgstr "Out of Stock"
 
 #: catalog/templates/catalog/home.html:338
 msgid "Подробнее"
@@ -562,14 +694,6 @@ msgstr "Dimensions"
 #: catalog/templates/catalog/product_detail.html:194
 msgid "Вставки"
 msgstr "Inserts"
-
-#: catalog/templates/catalog/product_detail.html:199
-msgid "Категория"
-msgstr "Category"
-
-#: catalog/templates/catalog/product_detail.html:219
-msgid "Проверенный производитель"
-msgstr "Verified Manufacturer"
 
 #: catalog/templates/catalog/product_detail.html:230
 msgid "Все товары завода"
