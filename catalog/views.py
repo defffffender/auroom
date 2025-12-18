@@ -5,7 +5,7 @@ from django.db.models import Q, F, Sum, Count
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext as _, gettext_lazy
 from django.forms import modelformset_factory
 from django.http import JsonResponse
 from django.core.cache import cache
@@ -646,7 +646,7 @@ def favorites_list(request, list_id=None):
     default_list, _ = FavoriteList.objects.get_or_create(
         user=request.user,
         is_default=True,
-        defaults={'name': _('Мои избранные'), 'description': _('Список по умолчанию')}
+        defaults={'name': gettext_lazy('Мои избранные'), 'description': gettext_lazy('Список по умолчанию')}
     )
 
     # Определяем текущий список
