@@ -1,7 +1,8 @@
 {% extends 'catalog/base.html' %}
 {% load static %}
+{% load i18n %}
 
-{% block title %}Вход - Ювелирный Каталог{% endblock %}
+{% block title %}{% trans "Вход" %} - {% trans "Ювелирный Каталог" %}{% endblock %}
 
 {% block content %}
 <div class="flex justify-center items-center min-h-[60vh]">
@@ -9,7 +10,7 @@
         <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-8">
             <div class="text-center mb-6">
                 <i class="bi bi-person-circle text-primary-600" style="font-size: 5rem;"></i>
-                <h2 class="mt-4 text-2xl font-bold text-gray-900 dark:text-white">Вход в аккаунт</h2>
+                <h2 class="mt-4 text-2xl font-bold text-gray-900 dark:text-white">{% trans "Вход в аккаунт" %}</h2>
             </div>
 
             <form method="post" class="space-y-6">
@@ -17,34 +18,34 @@
 
                 <div>
                     <label for="username" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                        <i class="bi bi-person mr-1"></i> Имя пользователя
+                        <i class="bi bi-person mr-1"></i> {% trans "Имя пользователя" %}
                     </label>
-                    <input type="text" name="username" id="username" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5" placeholder="Введите имя пользователя" required>
+                    <input type="text" name="username" id="username" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5" placeholder="{% trans 'Введите имя пользователя' %}" required>
                 </div>
 
                 <div>
                     <label for="password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                        <i class="bi bi-lock mr-1"></i> Пароль
+                        <i class="bi bi-lock mr-1"></i> {% trans "Пароль" %}
                     </label>
-                    <input type="password" name="password" id="password" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5" placeholder="Введите пароль" required>
+                    <input type="password" name="password" id="password" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5" placeholder="{% trans 'Введите пароль' %}" required>
                 </div>
 
                 <button type="submit" class="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
                     <i class="bi bi-box-arrow-in-right mr-2"></i>
-                    Войти
+                    {% trans "Войти" %}
                 </button>
 
                 <div class="text-center">
                     <a href="{% url 'catalog:home' %}" class="text-sm text-primary-600 dark:text-primary-400 hover:underline">
                         <i class="bi bi-arrow-left mr-1"></i>
-                        На главную
+                        {% trans "На главную" %}
                     </a>
                 </div>
 
                 <div class="text-sm text-center text-gray-500 dark:text-white">
-                    Нет аккаунта?
+                    {% trans "Нет аккаунта?" %}
                     <a href="{% url 'catalog:customer_register' %}" class="font-medium text-primary-600 dark:text-primary-400 hover:underline">
-                        Зарегистрироваться
+                        {% trans "Зарегистрироваться" %}
                     </a>
                 </div>
             </form>

@@ -1,7 +1,8 @@
 {% extends 'catalog/base.html' %}
 {% load static %}
+{% load i18n %}
 
-{% block title %}Регистрация - Ювелирный Каталог{% endblock %}
+{% block title %}{% trans "Регистрация" %} - {% trans "Ювелирный Каталог" %}{% endblock %}
 
 {% block content %}
 <div class="flex justify-center items-center min-h-[60vh]">
@@ -10,9 +11,9 @@
             <div class="bg-gradient-to-r from-primary-600 to-purple-600 text-white text-center p-6 rounded-t-lg">
                 <h2 class="text-2xl font-bold">
                     <i class="bi bi-person-plus mr-2"></i>
-                    Регистрация покупателя
+                    {% trans "Регистрация покупателя" %}
                 </h2>
-                <p class="mt-2 text-white/90">Создайте аккаунт, чтобы сохранять избранные товары</p>
+                <p class="mt-2 text-white/90">{% trans "Создайте аккаунт, чтобы сохранять избранные товары" %}</p>
             </div>
 
             <div class="p-8">
@@ -51,14 +52,14 @@
 
                     <button type="submit" class="w-full text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
                         <i class="bi bi-person-check mr-2"></i>
-                        Зарегистрироваться
+                        {% trans "Зарегистрироваться" %}
                     </button>
 
                     <div class="text-sm text-center text-gray-500 dark:text-white space-x-2">
-                        <span>Уже есть аккаунт?</span>
-                        <a href="{% url 'catalog:login' %}" class="font-medium text-primary-600 dark:text-primary-400 hover:underline">Войти</a>
+                        <span>{% trans "Уже есть аккаунт?" %}</span>
+                        <a href="{% url 'catalog:login' %}" class="font-medium text-primary-600 dark:text-primary-400 hover:underline">{% trans "Войти" %}</a>
                         <span>•</span>
-                        <a href="{% url 'catalog:home' %}" class="font-medium text-primary-600 dark:text-primary-400 hover:underline">На главную</a>
+                        <a href="{% url 'catalog:home' %}" class="font-medium text-primary-600 dark:text-primary-400 hover:underline">{% trans "На главную" %}</a>
                     </div>
                 </form>
             </div>
