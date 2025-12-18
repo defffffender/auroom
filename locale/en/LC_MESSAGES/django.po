@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: AuRoom 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-18 16:39+0500\n"
+"POT-Creation-Date: 2025-12-18 16:52+0500\n"
 "PO-Revision-Date: 2025-12-17 22:40+0500\n"
 "Last-Translator: Claude AI <noreply@anthropic.com>\n"
 "Language-Team: English <en@auroom.com>\n"
@@ -295,12 +295,10 @@ msgid "Заходите позже, товары скоро появятся"
 msgstr "Check back later, products coming soon"
 
 #: catalog/templates/catalog/factory_profile_edit.html:5
-#| msgid "Редактировать профиль"
 msgid "Редактирование профиля"
 msgstr "Edit Profile"
 
 #: catalog/templates/catalog/factory_profile_edit.html:12
-#| msgid "Редактировать профиль"
 msgid "Редактировать профиль завода"
 msgstr "Edit Factory Profile"
 
@@ -315,12 +313,10 @@ msgid "Назад в кабинет"
 msgstr "Back to Dashboard"
 
 #: catalog/templates/catalog/factory_register.html:5
-#| msgid "Ювелирный Каталог"
 msgid "Регистрация завода - Ювелирный Каталог"
 msgstr "Factory Registration - Jewelry Catalog"
 
 #: catalog/templates/catalog/factory_register.html:14
-#| msgid "Регистрация"
 msgid "Регистрация завода"
 msgstr "Factory Registration"
 
@@ -329,7 +325,6 @@ msgid "Создайте аккаунт для публикации ваших т
 msgstr "Create an account to publish your products"
 
 #: catalog/templates/catalog/factory_register.html:57
-#| msgid "Зарегистрироваться"
 msgid "Зарегистрировать завод"
 msgstr "Register Factory"
 
@@ -912,6 +907,91 @@ msgstr "Current Photo"
 #: catalog/templates/catalog/product_edit.html:69
 msgid "Сохранить изменения"
 msgstr "Save Changes"
+
+#: catalog/views.py:305 catalog/views.py:517
+#| msgid "Регистрация завода - Ювелирный Каталог"
+msgid "Регистрация прошла успешно! Добро пожаловать!"
+msgstr "Registration successful! Welcome!"
+
+#: catalog/views.py:319 catalog/views.py:360 catalog/views.py:381
+#: catalog/views.py:451 catalog/views.py:494 catalog/views.py:771
+#: catalog/views.py:798
+#| msgid "Редактировать профиль завода"
+msgid "У вас нет профиля завода"
+msgstr "You do not have a factory profile"
+
+#: catalog/views.py:367
+msgid "Профиль успешно обновлён!"
+msgstr "Profile successfully updated!"
+
+#: catalog/views.py:406
+#| msgid "Ошибка сохранения списка"
+msgid "Ошибка при сохранении изображения"
+msgstr "Error saving image"
+
+#: catalog/views.py:408 catalog/views.py:416
+#, python-brace-format
+msgid "Товар \"{product.name}\" успешно добавлен!"
+msgstr ""
+
+#: catalog/views.py:435
+msgid "Пожалуйста, исправьте ошибки в форме."
+msgstr "Please correct the errors in the form."
+
+#: catalog/views.py:474
+#, python-brace-format
+msgid "Товар \"{product.name}\" успешно обновлён!"
+msgstr ""
+
+#: catalog/views.py:502
+#, python-brace-format
+msgid "Товар \"{product_name}\" успешно удалён!"
+msgstr ""
+
+#: catalog/views.py:628
+#, python-brace-format
+msgid "Товар уже в списке \"{favorite_list.name}\""
+msgstr ""
+
+#: catalog/views.py:635
+#, fuzzy, python-brace-format
+#| msgid "Добавить в список"
+msgid "Добавлено в список \"{favorite_list.name}\""
+msgstr "Add to List"
+
+#: catalog/views.py:649
+#| msgid "Добавить в избранное"
+msgid "Мои избранные"
+msgstr "My Favorites"
+
+#: catalog/views.py:649
+#| msgid "Список создан!"
+msgid "Список по умолчанию"
+msgstr "Default list"
+
+#: catalog/views.py:761
+msgid "Вы успешно вышли из системы"
+msgstr "You have successfully logged out"
+
+#: catalog/views.py:781
+#, python-brace-format
+msgid "Категория \"{category.name}\" успешно добавлена!"
+msgstr ""
+
+#: catalog/views.py:846
+#, fuzzy, python-brace-format
+#| msgid "Характеристики металла"
+msgid "Характеристика \"{name}\" успешно добавлена!"
+msgstr "Metal Characteristics"
+
+#: catalog/views.py:849
+#| msgid "Ошибка удаления списка"
+msgid "Ошибка при добавлении: {str(e)}"
+msgstr "Error adding: {str(e)}"
+
+#: catalog/views.py:863 catalog/views.py:880
+msgid "Доступ запрещен. Только администратор может редактировать темы."
+msgstr "Access denied. Only administrators can edit themes."
 
 #: venv/lib/python3.10/site-packages/django/contrib/messages/apps.py:16
 msgid "Messages"
