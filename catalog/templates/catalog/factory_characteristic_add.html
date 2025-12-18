@@ -1,16 +1,17 @@
 {% extends 'catalog/base.html' %}
 {% load static %}
+{% load i18n %}
 
-{% block title %}Добавить характеристику - {{ factory.name }}{% endblock %}
+{% block title %}{% trans "Добавить характеристику" %} - {{ factory.name }}{% endblock %}
 
 {% block content %}
 <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm max-w-4xl mx-auto" x-data="characteristicForm()">
     <div class="bg-gradient-to-r from-primary-600 to-purple-600 text-white px-6 py-4 rounded-t-lg">
         <h2 class="text-xl font-semibold">
             <i class="bi bi-list-stars mr-2"></i>
-            Добавить характеристику
+            {% trans "Добавить характеристику" %}
         </h2>
-        <p class="text-white/90 text-sm mt-1">Создайте характеристику для использования в ваших товарах</p>
+        <p class="text-white/90 text-sm mt-1">{% trans "Создайте характеристику для использования в ваших товарах" %}</p>
     </div>
 
     <div class="p-8">
@@ -23,7 +24,7 @@
                     <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
                 </svg>
                 <div>
-                    <strong>Пожалуйста, исправьте ошибки:</strong>
+                    <strong>{% trans "Пожалуйста, исправьте ошибки:" %}</strong>
                     {{ form.errors }}
                 </div>
             </div>
@@ -34,7 +35,7 @@
                     {{ form.characteristic_type.label }}
                 </label>
                 {{ form.characteristic_type }}
-                <p class="mt-2 text-sm text-gray-500 dark:text-white">Выберите тип характеристики, которую хотите добавить</p>
+                <p class="mt-2 text-sm text-gray-500 dark:text-white">{% trans "Выберите тип характеристики, которую хотите добавить" %}</p>
             </div>
 
             <div>
@@ -42,7 +43,7 @@
                     {{ form.name.label }}
                 </label>
                 <input type="text" name="name" id="{{ form.name.id_for_label }}" value="{{ form.name.value|default:'' }}" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5" required>
-                <p class="mt-2 text-sm text-gray-500 dark:text-white">Например: "585", "Желтое", "Классический" и т.д.</p>
+                <p class="mt-2 text-sm text-gray-500 dark:text-white">{% trans "Например: \"585\", \"Желтое\", \"Классический\" и т.д." %}</p>
             </div>
 
             <div>
@@ -78,11 +79,11 @@
             <div class="flex gap-3">
                 <button type="submit" class="text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
                     <i class="bi bi-check-circle mr-2"></i>
-                    Создать характеристику
+                    {% trans "Создать характеристику" %}
                 </button>
                 <a href="{% url 'catalog:factory_dashboard' %}" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
                     <i class="bi bi-x-circle mr-2"></i>
-                    Отмена
+                    {% trans "Отмена" %}
                 </a>
             </div>
         </form>

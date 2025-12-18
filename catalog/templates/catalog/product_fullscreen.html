@@ -1,7 +1,8 @@
 {% extends 'catalog/base.html' %}
 {% load static %}
+{% load i18n %}
 
-{% block title %}{{ product.name }} - Полноэкранный просмотр{% endblock %}
+{% block title %}{{ product.name }} - {% trans "Полноэкранный просмотр" %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -194,7 +195,7 @@
         {% else %}
             <div class="text-white text-center">
                 <i class="bi bi-image" style="font-size: 8rem; opacity: 0.5;"></i>
-                <p class="mt-4 text-xl">Изображение отсутствует</p>
+                <p class="mt-4 text-xl">{% trans "Изображение отсутствует" %}</p>
             </div>
         {% endif %}
     </div>
@@ -216,34 +217,34 @@
     <div class="fullscreen-controls">
         <a href="{% url 'catalog:product_detail' product.article %}" class="control-btn primary">
             <i class="bi bi-arrow-left"></i>
-            Назад к товару
+            {% trans "Назад к товару" %}
         </a>
 
         <button onclick="toggleZoom()" class="control-btn" id="zoomBtn">
             <i class="bi bi-zoom-in"></i>
-            Увеличить
+            {% trans "Увеличить" %}
         </button>
 
         <button onclick="toggleRuler()" class="control-btn active" id="rulerBtn">
             <i class="bi bi-rulers"></i>
-            Скрыть линейку
+            {% trans "Скрыть линейку" %}
         </button>
 
         {% if product.images.all|length > 1 %}
         <button onclick="previousImage()" class="control-btn">
             <i class="bi bi-chevron-left"></i>
-            Предыдущее
+            {% trans "Предыдущее" %}
         </button>
 
         <button onclick="nextImage()" class="control-btn">
-            Следующее
+            {% trans "Следующее" %}
             <i class="bi bi-chevron-right"></i>
         </button>
         {% endif %}
 
         <button onclick="downloadImage()" class="control-btn">
             <i class="bi bi-download"></i>
-            Скачать
+            {% trans "Скачать" %}
         </button>
     </div>
 </div>
@@ -322,13 +323,13 @@ function toggleZoom() {
     if (isZoomed) {
         mainImage.style.transform = 'scale(1)';
         mainImage.style.cursor = 'default';
-        zoomBtn.innerHTML = '<i class="bi bi-zoom-in"></i> Увеличить';
+        zoomBtn.innerHTML = '<i class="bi bi-zoom-in"></i> {% trans "Увеличить" %}';
         isZoomed = false;
     } else {
         mainImage.style.transform = 'scale(2)';
         mainImage.style.cursor = 'move';
         mainImage.style.transition = 'transform 0.3s ease';
-        zoomBtn.innerHTML = '<i class="bi bi-zoom-out"></i> Уменьшить';
+        zoomBtn.innerHTML = '<i class="bi bi-zoom-out"></i> {% trans "Уменьшить" %}';
         isZoomed = true;
 
         // Enable dragging when zoomed
@@ -391,12 +392,12 @@ function toggleRuler() {
     if (isRulerActive) {
         rulerOverlay.style.display = 'block';
         rulerBtn.classList.add('active');
-        rulerBtn.innerHTML = '<i class="bi bi-rulers"></i> Скрыть линейку';
+        rulerBtn.innerHTML = '<i class="bi bi-rulers"></i> {% trans "Скрыть линейку" %}';
         initRulerDrag();
     } else {
         rulerOverlay.style.display = 'none';
         rulerBtn.classList.remove('active');
-        rulerBtn.innerHTML = '<i class="bi bi-rulers"></i> Линейка';
+        rulerBtn.innerHTML = '<i class="bi bi-rulers"></i> {% trans "Линейка" %}';
     }
 }
 
