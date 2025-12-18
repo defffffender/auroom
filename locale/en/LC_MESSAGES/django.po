@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: AuRoom 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-18 16:07+0500\n"
+"POT-Creation-Date: 2025-12-18 16:33+0500\n"
 "PO-Revision-Date: 2025-12-17 22:40+0500\n"
 "Last-Translator: Claude AI <noreply@anthropic.com>\n"
 "Language-Team: English <en@auroom.com>\n"
@@ -53,6 +53,7 @@ msgid "Личный кабинет"
 msgstr "Dashboard"
 
 #: catalog/templates/catalog/base.html:397
+#: catalog/templates/catalog/product_add.html:5
 msgid "Добавить товар"
 msgstr "Add Product"
 
@@ -376,6 +377,8 @@ msgstr "Save"
 
 #: catalog/templates/catalog/favorites_list.html:210
 #: catalog/templates/catalog/home.html:480
+#: catalog/templates/catalog/product_add.html:347
+#: catalog/templates/catalog/product_delete.html:37
 #: catalog/templates/catalog/product_detail.html:280
 msgid "Отмена"
 msgstr "Cancel"
@@ -486,6 +489,7 @@ msgid "Цена до ($)"
 msgstr "Price to ($)"
 
 #: catalog/templates/catalog/home.html:199
+#: catalog/templates/catalog/product_add.html:228
 msgid "Применить"
 msgstr "Apply"
 
@@ -636,6 +640,173 @@ msgstr "Enter your password"
 msgid "Нет аккаунта?"
 msgstr "Don't have an account?"
 
+#: catalog/templates/catalog/product_add.html:16
+#| msgid "Добавить первый товар"
+msgid "Добавить новый товар"
+msgstr "Add New Product"
+
+#: catalog/templates/catalog/product_add.html:28
+#| msgid "Общая информация"
+msgid "Основная информация"
+msgstr "Basic Information"
+
+#: catalog/templates/catalog/product_add.html:58
+#| msgid "Характеристики"
+msgid "Характеристики металла"
+msgstr "Metal Characteristics"
+
+#: catalog/templates/catalog/product_add.html:80
+#| msgid "Размеры"
+msgid "Вес и размеры"
+msgstr "Weight and Dimensions"
+
+#: catalog/templates/catalog/product_add.html:108
+msgid "Вставки и покрытия"
+msgstr "Inserts and Coatings"
+
+#: catalog/templates/catalog/product_add.html:147
+msgid "Тип изделия"
+msgstr "Product Type"
+
+#: catalog/templates/catalog/product_add.html:152
+msgid "Выберите тип для автоматического расчёта размеров"
+msgstr ""
+
+#: catalog/templates/catalog/product_add.html:160
+msgid "Подгонка изделия под эталон"
+msgstr "Fit Product to Reference"
+
+#: catalog/templates/catalog/product_add.html:171
+#| msgid "Каталог ювелирных изделий"
+msgid "Как подогнать изделие:"
+msgstr "How to fit product:"
+
+#: catalog/templates/catalog/product_add.html:173
+#| msgid "Загрузка товаров..."
+msgid "Загрузите фото вашего изделия"
+msgstr "Upload a photo of your product"
+
+#: catalog/templates/catalog/product_add.html:174
+msgid "Перетаскивайте и масштабируйте его мышкой"
+msgstr "Drag and scale it with your mouse"
+
+#: catalog/templates/catalog/product_add.html:175
+#| msgid "Эталонное фото для точных размеров"
+msgid "Подгоните под эталон для точных размеров"
+msgstr "Fit to the reference for precise dimensions"
+
+#: catalog/templates/catalog/product_add.html:176
+msgid "Размеры рассчитаются автоматически"
+msgstr "Dimensions will be calculated automatically"
+
+#: catalog/templates/catalog/product_add.html:182
+#| msgid "Эталонное фото"
+msgid "Эталон:"
+msgstr "Reference Photo"
+
+#: catalog/templates/catalog/product_add.html:183
+#| msgid "Размеры"
+msgid "Размеры эталона:"
+msgstr "Dimensions"
+
+#: catalog/templates/catalog/product_add.html:191
+msgid "Загрузить фото изделия"
+msgstr "Upload Product Photo"
+
+#: catalog/templates/catalog/product_add.html:197
+msgid "Прозрачность эталона:"
+msgstr "Reference Opacity:"
+
+#: catalog/templates/catalog/product_add.html:202
+msgid "Прозрачность изделия:"
+msgstr "Product Opacity:"
+
+#: catalog/templates/catalog/product_add.html:215
+#| msgid "Сбросить фильтры"
+msgid "Сбросить"
+msgstr "Reset"
+
+#: catalog/templates/catalog/product_add.html:219
+msgid "Магнит: ВКЛ"
+msgstr "Magnet: ON"
+
+#: catalog/templates/catalog/product_add.html:225
+#| msgid "Удалить из списка"
+msgid "Выделить область"
+msgstr "Select Area"
+
+#: catalog/templates/catalog/product_add.html:231
+#: catalog/templates/catalog/product_add.html:238
+#| msgid "Применить"
+msgid "Отменить"
+msgstr "Apply"
+
+#: catalog/templates/catalog/product_add.html:241
+msgid "Вернуть"
+msgstr ""
+
+#: catalog/templates/catalog/product_add.html:248
+#| msgid "Просмотр"
+msgid "Предпросмотр"
+msgstr "View"
+
+#: catalog/templates/catalog/product_add.html:259
+msgid "Координаты курсора:"
+msgstr ""
+
+#: catalog/templates/catalog/product_add.html:277
+#| msgid "Размеры"
+msgid "Размеры изделия"
+msgstr "Product Dimensions"
+
+#: catalog/templates/catalog/product_add.html:280
+msgid "Ширина (мм)"
+msgstr "Width (mm)"
+
+#: catalog/templates/catalog/product_add.html:284
+msgid "Высота (мм)"
+msgstr "Height (mm)"
+
+#: catalog/templates/catalog/product_add.html:289
+msgid "Укажите размеры изделия вручную в миллиметрах"
+msgstr ""
+
+#: catalog/templates/catalog/product_add.html:305
+#| msgid "Нет в наличии"
+msgid "Цена и наличие"
+msgstr "Price and Stock"
+
+#: catalog/templates/catalog/product_add.html:327
+#: catalog/templates/catalog/product_edit.html:51
+#| msgid "Похожие товары"
+msgid "Фотографии товара"
+msgstr "Product Photos"
+
+#: catalog/templates/catalog/product_add.html:343
+#| msgid "Добавить товар"
+msgid "Сохранить товар"
+msgstr "Save Product"
+
+#: catalog/templates/catalog/product_delete.html:5
+#: catalog/templates/catalog/product_delete.html:33
+#| msgid "Добавить товар"
+msgid "Удалить товар"
+msgstr "Add Product"
+
+#: catalog/templates/catalog/product_delete.html:15
+#| msgid "Добавить товар"
+msgid "Удалить товар?"
+msgstr "Delete Product?"
+
+#: catalog/templates/catalog/product_delete.html:18
+#: catalog/templates/catalog/product_detail.html:124
+msgid "Артикул:"
+msgstr "Art:"
+
+#: catalog/templates/catalog/product_delete.html:25
+msgid "Это действие нельзя отменить. Товар будет удалён навсегда."
+msgstr "This action cannot be undone. The product will be deleted permanently."
+
 #: catalog/templates/catalog/product_detail.html:54
 #: catalog/templates/catalog/product_detail.html:82
 msgid "Отдельная страница"
@@ -653,10 +824,6 @@ msgstr "Reference Photo for Exact Dimensions"
 #: catalog/templates/catalog/product_detail.html:105
 msgid "Эталонное фото"
 msgstr "Reference Photo"
-
-#: catalog/templates/catalog/product_detail.html:124
-msgid "Артикул:"
-msgstr "Art:"
 
 #: catalog/templates/catalog/product_detail.html:127
 msgid "Просмотров:"
@@ -706,6 +873,36 @@ msgstr "Similar Products"
 #: catalog/templates/catalog/product_detail.html:268
 msgid "Закрыть"
 msgstr "Close"
+
+#: catalog/templates/catalog/product_edit.html:5
+#| msgid "Редактировать профиль"
+msgid "Редактировать товар"
+msgstr "Edit Product"
+
+#: catalog/templates/catalog/product_edit.html:12
+#| msgid "Редактировать"
+msgid "Редактировать:"
+msgstr "Edit:"
+
+#: catalog/templates/catalog/product_edit.html:23
+#| msgid "Добавить товар"
+msgid "Информация о товаре"
+msgstr "Add Product"
+
+#: catalog/templates/catalog/product_edit.html:58
+#| msgid "Эталонное фото"
+msgid "Текущее фото"
+msgstr "Current Photo"
+
+#: catalog/templates/catalog/product_edit.html:69
+#| msgid "Сохранить"
+msgid "Сохранить изменения"
+msgstr "Save Changes"
+
+#: catalog/templates/catalog/product_edit.html:73
+#| msgid "Личный кабинет"
+msgid "Назад в кабинет"
+msgstr "Back to Dashboard"
 
 #: venv/lib/python3.10/site-packages/django/contrib/messages/apps.py:16
 msgid "Messages"
