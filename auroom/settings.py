@@ -81,8 +81,9 @@ DATABASES = {
         'PASSWORD': os.getenv('DB_PASSWORD', ''),
         'HOST': os.getenv('DB_HOST', ''),
         'PORT': os.getenv('DB_PORT', ''),
-        # Connection pooling: держим соединения открытыми 10 минут
+        # Persistent connections: держим соединения открытыми 10 минут
         # Это безопасно с gevent + psycogreen патчем
+        # Не используем pool=True т.к. он конфликтует с CONN_MAX_AGE
         'CONN_MAX_AGE': 600,
     }
 }
@@ -91,8 +92,6 @@ DATABASES = {
 if 'postgresql' in DB_ENGINE:
     DATABASES['default']['OPTIONS'] = {
         'connect_timeout': 10,
-        # Пул соединений на уровне приложения
-        'pool': True,
     }
 
 
