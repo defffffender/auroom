@@ -406,9 +406,20 @@ class Product(models.Model):
         verbose_name_plural = "Товары"
         ordering = ['-created_at']
         indexes = [
+            # Основные индексы
             models.Index(fields=['article']),
+            models.Index(fields=['is_active', '-created_at']),  # Для главной страницы
             models.Index(fields=['category', 'is_active']),
             models.Index(fields=['factory', 'is_active']),
+            # Индексы для фильтров
+            models.Index(fields=['material_id', 'is_active']),
+            models.Index(fields=['purity_id', 'is_active']),
+            models.Index(fields=['metal_color_id', 'is_active']),
+            models.Index(fields=['style_id', 'is_active']),
+            models.Index(fields=['price']),  # Для фильтра по цене
+            models.Index(fields=['-views_count']),  # Для сортировки по популярности
+            models.Index(fields=['has_inserts', 'is_active']),
+            models.Index(fields=['has_stamp', 'is_active']),
         ]
 
     def save(self, *args, **kwargs):

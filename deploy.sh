@@ -44,8 +44,12 @@ apt-get install -y python3 python3-pip python3-venv nginx postgresql postgresql-
 
 # 3. Настройка PostgreSQL
 info "Setting up PostgreSQL..."
+# Пароль БД берём из переменной окружения или генерируем
+DB_PASSWORD=${DB_PASSWORD:-$(openssl rand -base64 32 | tr -dc 'a-zA-Z0-9' | head -c 24)}
+echo "Database password: $DB_PASSWORD (save this!)"
+
 sudo -u postgres psql -c "CREATE DATABASE auroom_db;" 2>/dev/null || warning "Database already exists"
-sudo -u postgres psql -c "CREATE USER auroom_user WITH PASSWORD 'auroom_password_123';" 2>/dev/null || warning "User already exists"
+sudo -u postgres psql -c "CREATE USER auroom_user WITH PASSWORD '$DB_PASSWORD';" 2>/dev/null || warning "User already exists"
 sudo -u postgres psql -c "ALTER ROLE auroom_user SET client_encoding TO 'utf8';"
 sudo -u postgres psql -c "ALTER ROLE auroom_user SET default_transaction_isolation TO 'read committed';"
 sudo -u postgres psql -c "ALTER ROLE auroom_user SET timezone TO 'Asia/Tashkent';"
@@ -88,7 +92,7 @@ if [ ! -f ".env" ]; then
     # Генерация SECRET_KEY
     SECRET_KEY=$(python3 -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())')
     sed -i "s/your-secret-key-here-change-this-in-production/$SECRET_KEY/" .env
-    sed -i "s/your-db-password-here/auroom_password_123/" .env
+    sed -i "s/your-db-password-here/$DB_PASSWORD/" .env
 
     warning "Please review and update /root/auroom/.env file!"
 fi

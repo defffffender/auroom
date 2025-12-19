@@ -9,8 +9,6 @@ from django.utils.translation import gettext as _, gettext_lazy
 from django.forms import modelformset_factory
 from django.http import JsonResponse
 from django.core.cache import cache
-from django.views.decorators.cache import cache_page
-from django.views.decorators.vary import vary_on_cookie
 from django.core.paginator import Paginator
 
 from .models import Product, Category, Material, Factory, ProductImage, Favorite, FavoriteList, Theme
@@ -51,13 +49,16 @@ def get_cached_reference_data():
         cache.set('reference_data', ref_data, 60 * 60)  # Кэш на 1 час
     return ref_data
 
-@cache_page(60 * 5)  # Кэш на 5 минут
-@vary_on_cookie  # Отдельный кэш для каждого пользователя (по cookies)
+def _build_cache_key(params):
+    """Создаёт ключ кеша из параметров запроса"""
+    import hashlib
+    key_parts = sorted(f"{k}={v}" for k, v in params.items() if v)
+    key_string = "&".join(key_parts)
+    return f"products_query_{hashlib.md5(key_string.encode()).hexdigest()}"
+
+
 def home(request):
     """Главная страница с каталогом товаров с расширенными фильтрами"""
-    from django.core.paginator import Paginator
-    from .models import Purity, MetalColor, Style
-
     # Получаем параметры фильтрации из URL
     category_slug = request.GET.get('category')
     material_id = request.GET.get('material')
@@ -66,89 +67,132 @@ def home(request):
     style_id = request.GET.get('style')
     has_inserts = request.GET.get('has_inserts')
     has_stamp = request.GET.get('has_stamp')
-    search_query = request.GET.get('search')
-    sort_by = request.GET.get('sort', '-created_at')  # По умолчанию сортировка по новизне
+    search_query = request.GET.get('search', '').strip()
+    sort_by = request.GET.get('sort', '-created_at')
     min_price = request.GET.get('min_price')
     max_price = request.GET.get('max_price')
+    page_number = request.GET.get('page', '1')
 
-    # Базовый запрос - только активные товары
-    products = Product.objects.filter(is_active=True).select_related(
-        'factory', 'category', 'material', 'purity', 'metal_color', 'style'
-    ).prefetch_related('images', 'insert_types', 'coatings')
+    # Создаём ключ кеша для этого набора фильтров
+    cache_params = {
+        'category': category_slug,
+        'material': material_id,
+        'purity': purity_id,
+        'metal_color': metal_color_id,
+        'style': style_id,
+        'has_inserts': has_inserts,
+        'has_stamp': has_stamp,
+        'search': search_query,
+        'sort': sort_by,
+        'min_price': min_price,
+        'max_price': max_price,
+        'page': page_number,
+    }
+    cache_key = _build_cache_key(cache_params)
 
-    # Фильтр по категории (включая подкатегории)
-    if category_slug:
-        category = Category.objects.filter(slug=category_slug).first()
-        if category:
-            if category.parent is None:
-                # Если это главная категория, показываем товары из всех подкатегорий
-                subcategory_ids = category.subcategories.values_list('id', flat=True)
-                products = products.filter(Q(category=category) | Q(category_id__in=subcategory_ids))
+    # Пытаемся получить из кеша (кешируем на 2 минуты)
+    cached_result = cache.get(cache_key)
+
+    if cached_result is None:
+        # Базовый запрос - только активные товары
+        products = Product.objects.filter(is_active=True).select_related(
+            'factory', 'category', 'material', 'purity', 'metal_color', 'style'
+        ).prefetch_related('images', 'insert_types', 'coatings')
+
+        # Фильтр по категории (включая подкатегории)
+        if category_slug:
+            category = Category.objects.filter(slug=category_slug).first()
+            if category:
+                if category.parent is None:
+                    subcategory_ids = list(category.subcategories.values_list('id', flat=True))
+                    products = products.filter(Q(category=category) | Q(category_id__in=subcategory_ids))
+                else:
+                    products = products.filter(category=category)
+
+        # Фильтры
+        if material_id:
+            products = products.filter(material_id=material_id)
+        if purity_id:
+            products = products.filter(purity_id=purity_id)
+        if metal_color_id:
+            products = products.filter(metal_color_id=metal_color_id)
+        if style_id:
+            products = products.filter(style_id=style_id)
+        if has_inserts:
+            products = products.filter(has_inserts=(has_inserts == 'true'))
+        if has_stamp:
+            products = products.filter(has_stamp=(has_stamp == 'true'))
+        if min_price:
+            products = products.filter(price__gte=min_price)
+        if max_price:
+            products = products.filter(price__lte=max_price)
+
+        # Поиск - используем PostgreSQL Full-Text Search если доступен
+        if search_query:
+            from django.conf import settings
+            if 'postgresql' in settings.DATABASES['default']['ENGINE']:
+                # PostgreSQL Full-Text Search (быстрый)
+                from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
+                search_vector = SearchVector('name', weight='A') + \
+                               SearchVector('article', weight='A') + \
+                               SearchVector('description', weight='B') + \
+                               SearchVector('manufacturer_brand', weight='C')
+                search_query_obj = SearchQuery(search_query, config='russian')
+                products = products.annotate(
+                    search=search_vector,
+                    rank=SearchRank(search_vector, search_query_obj)
+                ).filter(search=search_query_obj).order_by('-rank')
             else:
-                # Если это подкатегория, показываем только её товары
-                products = products.filter(category=category)
+                # Fallback для SQLite (медленный)
+                products = products.filter(
+                    Q(name__icontains=search_query) |
+                    Q(article__icontains=search_query) |
+                    Q(description__icontains=search_query) |
+                    Q(manufacturer_brand__icontains=search_query)
+                )
 
-    # Фильтр по материалу
-    if material_id:
-        products = products.filter(material_id=material_id)
+        # Сортировка (только если не поисковый запрос с ранжированием)
+        if not search_query or 'postgresql' not in settings.DATABASES['default'].get('ENGINE', ''):
+            if sort_by == 'price_asc':
+                products = products.order_by('price')
+            elif sort_by == 'price_desc':
+                products = products.order_by('-price')
+            elif sort_by == 'popular':
+                products = products.order_by('-views_count')
+            elif sort_by == 'name':
+                products = products.order_by('name')
+            else:
+                products = products.order_by('-created_at')
 
-    # Новые фильтры
-    if purity_id:
-        products = products.filter(purity_id=purity_id)
+        # Пагинация
+        paginator = Paginator(products, PRODUCTS_PER_PAGE)
+        page_obj = paginator.get_page(page_number)
 
-    if metal_color_id:
-        products = products.filter(metal_color_id=metal_color_id)
+        # Кешируем результат (только ID товаров и метаданные пагинации)
+        cached_result = {
+            'product_ids': [p.id for p in page_obj],
+            'has_next': page_obj.has_next(),
+            'has_previous': page_obj.has_previous(),
+            'current_page': page_obj.number,
+            'total_pages': paginator.num_pages,
+            'total_count': paginator.count,
+        }
+        cache.set(cache_key, cached_result, 60 * 2)  # Кеш на 2 минуты
 
-    if style_id:
-        products = products.filter(style_id=style_id)
+    # Загружаем товары по ID (всегда свежие данные, но быстрый запрос по PK)
+    product_ids = cached_result['product_ids']
+    products_dict = Product.objects.filter(id__in=product_ids).select_related(
+        'factory', 'category', 'material', 'purity', 'metal_color', 'style'
+    ).prefetch_related('images').in_bulk()
 
-    if has_inserts:
-        products = products.filter(has_inserts=(has_inserts == 'true'))
-
-    if has_stamp:
-        products = products.filter(has_stamp=(has_stamp == 'true'))
-
-    # Фильтр по цене
-    if min_price:
-        products = products.filter(price__gte=min_price)
-    if max_price:
-        products = products.filter(price__lte=max_price)
-
-    # Поиск
-    if search_query:
-        products = products.filter(
-            Q(name__icontains=search_query) |
-            Q(article__icontains=search_query) |
-            Q(description__icontains=search_query) |
-            Q(manufacturer_brand__icontains=search_query)
-        )
-
-    # Сортировка
-    if sort_by == 'price_asc':
-        products = products.order_by('price')
-    elif sort_by == 'price_desc':
-        products = products.order_by('-price')
-    elif sort_by == 'popular':
-        products = products.order_by('-views_count')
-    elif sort_by == 'name':
-        products = products.order_by('name')
-    else:  # -created_at (по умолчанию - новые)
-        products = products.order_by('-created_at')
-
-    # Пагинация
-    paginator = Paginator(products, PRODUCTS_PER_PAGE)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    # Сохраняем порядок
+    products_list = [products_dict[pid] for pid in product_ids if pid in products_dict]
 
     # Данные для фильтров (используем кэш)
     categories = get_cached_categories()
     ref_data = get_cached_reference_data()
-    materials = ref_data['materials']
-    purities = ref_data['purities']
-    metal_colors = ref_data['metal_colors']
-    styles = ref_data['styles']
 
-    # Get selected filter objects for display
+    # Выбранные фильтры из кеша справочников
     selected_category = None
     selected_material = None
     selected_purity = None
@@ -156,23 +200,54 @@ def home(request):
     selected_style = None
 
     if category_slug:
-        selected_category = Category.objects.filter(slug=category_slug).first()
+        selected_category = next((c for c in categories if c.slug == category_slug), None)
+        if not selected_category:
+            # Проверяем подкатегории
+            for cat in categories:
+                sub = cat.subcategories.filter(slug=category_slug).first()
+                if sub:
+                    selected_category = sub
+                    break
     if material_id:
-        selected_material = Material.objects.filter(id=material_id).first()
+        selected_material = next((m for m in ref_data['materials'] if str(m.id) == material_id), None)
     if purity_id:
-        selected_purity = Purity.objects.filter(id=purity_id).first()
+        selected_purity = next((p for p in ref_data['purities'] if str(p.id) == purity_id), None)
     if metal_color_id:
-        selected_metal_color = MetalColor.objects.filter(id=metal_color_id).first()
+        selected_metal_color = next((c for c in ref_data['metal_colors'] if str(c.id) == metal_color_id), None)
     if style_id:
-        selected_style = Style.objects.filter(id=style_id).first()
+        selected_style = next((s for s in ref_data['styles'] if str(s.id) == style_id), None)
+
+    # Создаём объект-заглушку для пагинации в шаблоне
+    class CachedPage:
+        def __init__(self, items, cached_data):
+            self.object_list = items
+            self._cached = cached_data
+        def __iter__(self):
+            return iter(self.object_list)
+        def has_next(self):
+            return self._cached['has_next']
+        def has_previous(self):
+            return self._cached['has_previous']
+        @property
+        def number(self):
+            return self._cached['current_page']
+        @property
+        def paginator(self):
+            class FakePaginator:
+                def __init__(self, data):
+                    self.num_pages = data['total_pages']
+                    self.count = data['total_count']
+            return FakePaginator(self._cached)
+
+    page_obj = CachedPage(products_list, cached_result)
 
     context = {
         'page_obj': page_obj,
         'categories': categories,
-        'materials': materials,
-        'purities': purities,
-        'metal_colors': metal_colors,
-        'styles': styles,
+        'materials': ref_data['materials'],
+        'purities': ref_data['purities'],
+        'metal_colors': ref_data['metal_colors'],
+        'styles': ref_data['styles'],
         'current_category': category_slug,
         'current_material': material_id,
         'current_purity': purity_id,
@@ -191,17 +266,12 @@ def home(request):
         'max_price': max_price,
     }
 
-    # Проверяем, это AJAX запрос для бесконечного скролла?
-    # Используем URL параметр для определения формата ответа
-    is_ajax = request.GET.get('format') == 'json'
-
-    if is_ajax:
-        from django.http import JsonResponse
-
-        # Формируем JSON ответ с товарами
+    # AJAX запрос для бесконечного скролла
+    if request.GET.get('format') == 'json':
         products_data = []
-        for product in page_obj:
-            image_url = product.images.all()[0].image.url if product.images.exists() else None
+        for product in products_list:
+            images = list(product.images.all())
+            image_url = images[0].image.url if images else None
             products_data.append({
                 'article': product.article,
                 'name': product.name,
@@ -218,11 +288,11 @@ def home(request):
 
         return JsonResponse({
             'products': products_data,
-            'has_next': page_obj.has_next(),
-            'has_previous': page_obj.has_previous(),
-            'current_page': page_obj.number,
-            'total_pages': page_obj.paginator.num_pages,
-            'total_count': page_obj.paginator.count,
+            'has_next': cached_result['has_next'],
+            'has_previous': cached_result['has_previous'],
+            'current_page': cached_result['current_page'],
+            'total_pages': cached_result['total_pages'],
+            'total_count': cached_result['total_count'],
         })
 
     return render(request, 'catalog/home.html', context)

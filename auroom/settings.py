@@ -29,9 +29,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.postgres',  # PostgreSQL Full-Text Search
 
     'catalog',
-
 ]
 
 MIDDLEWARE = [
@@ -81,7 +81,9 @@ DATABASES = {
         'PASSWORD': os.getenv('DB_PASSWORD', ''),
         'HOST': os.getenv('DB_HOST', ''),
         'PORT': os.getenv('DB_PORT', ''),
-        'CONN_MAX_AGE': 0,  # Отключаем persistent connections для gevent
+        # Connection pooling: держим соединения открытыми 10 минут
+        # Это безопасно с gevent + psycogreen патчем
+        'CONN_MAX_AGE': 600,
     }
 }
 
@@ -89,6 +91,8 @@ DATABASES = {
 if 'postgresql' in DB_ENGINE:
     DATABASES['default']['OPTIONS'] = {
         'connect_timeout': 10,
+        # Пул соединений на уровне приложения
+        'pool': True,
     }
 
 
