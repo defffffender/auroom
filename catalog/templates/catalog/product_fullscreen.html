@@ -5,6 +5,7 @@
 {% block title %}{{ product.name }} - {% trans "Полноэкранный просмотр" %}{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/ruler.css' %}">
 <style>
     /* Убираем отступы для полноэкранного режима */
     main {
@@ -17,8 +18,13 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: #f9fafb;
         position: relative;
+    }
+
+    /* Dark mode для fullscreen контейнера */
+    .dark .fullscreen-container {
+        background: #111827;
     }
 
     .fullscreen-image-wrapper {
@@ -42,14 +48,21 @@
         bottom: 30px;
         left: 50%;
         transform: translateX(-50%);
-        background: rgba(0, 0, 0, 0.8);
-        backdrop-filter: blur(10px);
-        border-radius: 50px;
-        padding: 15px 30px;
-        display: flex;
-        gap: 15px;
-        align-items: center;
+        background: white;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        border-radius: 16px;
+        padding: 12px;
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 8px;
         z-index: 100;
+        width: auto;
+    }
+
+    /* Dark mode для контролов */
+    .dark .fullscreen-controls {
+        background: rgb(31 41 55);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
     }
 
     .fullscreen-info {
@@ -57,43 +70,62 @@
         top: 20px;
         left: 50%;
         transform: translateX(-50%);
-        background: rgba(0, 0, 0, 0.8);
-        backdrop-filter: blur(10px);
-        color: white;
+        background: white;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        color: #111827;
         padding: 15px 30px;
-        border-radius: 30px;
+        border-radius: 16px;
         z-index: 100;
         text-align: center;
     }
 
-    .control-btn {
-        background: rgba(255, 255, 255, 0.2);
+    /* Dark mode для инфо блока */
+    .dark .fullscreen-info {
+        background: rgb(31 41 55);
         color: white;
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        padding: 10px 20px;
-        border-radius: 25px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+    }
+
+    .control-btn {
+        background: #f3f4f6;
+        color: #374151;
+        border: none;
+        padding: 0;
+        width: 56px;
+        height: 56px;
+        border-radius: 12px;
         cursor: pointer;
-        transition: all 0.3s ease;
-        font-size: 14px;
-        font-weight: 600;
-        display: inline-flex;
+        transition: all 0.2s ease;
+        font-size: 24px;
+        display: flex;
         align-items: center;
-        gap: 8px;
+        justify-content: center;
+        position: relative;
+    }
+
+    /* Dark mode для кнопок */
+    .dark .control-btn {
+        background: rgb(55 65 81);
+        color: rgb(209 213 219);
     }
 
     .control-btn:hover {
-        background: rgba(255, 255, 255, 0.3);
-        border-color: rgba(255, 255, 255, 0.5);
+        background: #e5e7eb;
         transform: translateY(-2px);
     }
 
-    .control-btn.primary {
-        background: rgba(99, 102, 241, 0.8);
-        border-color: rgba(99, 102, 241, 1);
+    /* Dark mode для hover кнопок */
+    .dark .control-btn:hover {
+        background: rgb(75 85 99);
     }
 
-    .control-btn.primary:hover {
-        background: rgba(99, 102, 241, 1);
+    .control-btn i {
+        font-size: 24px;
+    }
+
+    /* Стиль для ссылки как кнопки */
+    a.control-btn {
+        text-decoration: none;
     }
 
     .thumbnail-gallery {
@@ -157,8 +189,36 @@
     }
 
     .control-btn.active {
-        background: rgba(99, 102, 241, 0.9);
-        border-color: rgba(99, 102, 241, 1);
+        background: #6366f1;
+        color: white;
+    }
+
+    /* Dark mode для активных кнопок */
+    .dark .control-btn.active {
+        background: #818cf8;
+        color: white;
+    }
+
+    /* Адаптация стилей ruler для fullscreen */
+    .ruler-image-wrapper {
+        position: relative;
+        display: inline-block;
+        max-width: 100%;
+    }
+
+    #rulerCanvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+        z-index: 10;
+    }
+
+    /* Скрываем встроенные контролы JewelryRuler на fullscreen странице */
+    #jewelryRulerContainer .ruler-controls,
+    #jewelryRulerContainer .ruler-info,
+    #jewelryRulerContainer .reference-info-ruler {
+        display: none !important;
     }
 </style>
 {% endblock %}
@@ -178,19 +238,49 @@
     <!-- Main Image -->
     <div class="fullscreen-image-wrapper" id="imageWrapper" style="position: relative;">
         {% if product.images.all %}
-            <img src="{{ product.images.all.0.image.url }}"
-                 alt="{{ product.name }}"
-                 class="fullscreen-image"
-                 id="mainFullscreenImage"
-                 loading="eager">
+            <div id="jewelryRulerContainer"
+                 data-width-mm="{{ product.width_mm }}"
+                 data-height-mm="{{ product.height_mm }}"
+                 data-diameter-mm="{{ product.diameter_mm }}"
+                 data-reference-type="{{ product.reference_photo_type }}"
+                 data-editor-data="{{ product.editor_data|escapejs }}"
+                 style="position: relative; display: flex; align-items: center; justify-content: center;">
 
-            <!-- Ruler Overlay -->
-            <div class="ruler-overlay" id="rulerOverlay">
-                <img src="{% static 'images/ruler.svg' %}"
-                     alt="Линейка"
-                     class="ruler-tool"
-                     id="rulerTool"
-                     style="width: 450px; top: 10%; left: 10%;">
+                <!-- Скрытые placeholder элементы для JewelryRuler -->
+                <div style="display: none;">
+                    <div id="toggleDrawModeBtn"></div>
+                    <div id="toggleGridModeBtn"></div>
+                    <div id="togglePerpendicularBtn"></div>
+                    <div id="clearRulerBtn"></div>
+                    <div id="drawModeInfo"></div>
+                    <div id="drawStatus"></div>
+                    <div id="gridModeInfo"></div>
+                    <div id="gridDrawStatus"></div>
+                    <div id="perpendicularInfo"></div>
+                    <div id="coordinatesDisplay">
+                        <span>X: <strong id="coordX">0</strong></span>
+                        <span>Y: <strong id="coordY">0</strong></span>
+                    </div>
+                    <div id="perpendicularUp">0</div>
+                    <div id="perpendicularRight">0</div>
+                </div>
+
+                <div class="ruler-image-wrapper">
+                    <img src="{{ product.images.all.0.image.url }}"
+                         alt="{{ product.name }}"
+                         class="fullscreen-image ruler-image"
+                         id="mainFullscreenImage"
+                         loading="eager">
+
+                    <!-- SVG Ruler Overlay -->
+                    <div class="ruler-overlay" id="rulerOverlay">
+                        <img src="{% static 'images/ruler.svg' %}"
+                             alt="Линейка"
+                             class="ruler-tool"
+                             id="rulerTool"
+                             style="width: 450px; top: 10%; left: 10%;">
+                    </div>
+                </div>
             </div>
         {% else %}
             <div class="text-white text-center">
@@ -215,42 +305,35 @@
 
     <!-- Control Panel -->
     <div class="fullscreen-controls">
-        <a href="{% url 'catalog:product_detail' product.article %}" class="control-btn primary">
-            <i class="bi bi-arrow-left"></i>
-            {% trans "Назад к товару" %}
-        </a>
-
-        <button onclick="toggleZoom()" class="control-btn" id="zoomBtn">
-            <i class="bi bi-zoom-in"></i>
-            {% trans "Увеличить" %}
+        <button onclick="toggleDrawMode()" class="control-btn" id="drawModeBtn" title="{% trans 'Рисование линий' %}">
+            <i class="bi bi-pencil"></i>
         </button>
 
-        <button onclick="toggleRuler()" class="control-btn active" id="rulerBtn">
+        <button onclick="toggleGridMode()" class="control-btn" id="gridModeBtn" title="{% trans 'Координаты' %}">
+            <i class="bi bi-grid"></i>
+        </button>
+
+        <button onclick="togglePerpendicularMode()" class="control-btn" id="perpendicularModeBtn" title="{% trans 'Перпендикуляр' %}">
             <i class="bi bi-rulers"></i>
-            {% trans "Скрыть линейку" %}
         </button>
 
-        {% if product.images.all|length > 1 %}
-        <button onclick="previousImage()" class="control-btn">
-            <i class="bi bi-chevron-left"></i>
-            {% trans "Предыдущее" %}
+        <button onclick="toggleRuler()" class="control-btn active" id="rulerBtn" title="{% trans 'Скрыть линейку' %}">
+            <i class="bi bi-arrows-move"></i>
         </button>
 
-        <button onclick="nextImage()" class="control-btn">
-            {% trans "Следующее" %}
-            <i class="bi bi-chevron-right"></i>
+        <button onclick="clearAllLines()" class="control-btn" id="clearBtn" style="opacity: 0.3; pointer-events: none;" title="{% trans 'Очистить' %}">
+            <i class="bi bi-trash"></i>
         </button>
-        {% endif %}
 
-        <button onclick="downloadImage()" class="control-btn">
-            <i class="bi bi-download"></i>
-            {% trans "Скачать" %}
-        </button>
+        <a href="{% url 'catalog:product_detail' product.article %}" class="control-btn" title="{% trans 'Назад к товару' %}">
+            <i class="bi bi-x-lg"></i>
+        </a>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/ruler.js' %}"></script>
 <script>
 let currentImageIndex = 0;
 const images = [
@@ -258,8 +341,7 @@ const images = [
     '{{ image.image.url }}'{% if not forloop.last %},{% endif %}
     {% endfor %}
 ];
-let isZoomed = false;
-let isRulerActive = true;
+let rulerInstance = null;
 
 function changeFullscreenImage(url, thumbnail) {
     const mainImage = document.getElementById('mainFullscreenImage');
@@ -290,11 +372,6 @@ function previousImage() {
     thumbnails.forEach((t, i) => {
         t.classList.toggle('active', i === currentImageIndex);
     });
-
-    // Reset zoom
-    if (isZoomed) {
-        toggleZoom();
-    }
 }
 
 function nextImage() {
@@ -309,66 +386,51 @@ function nextImage() {
     thumbnails.forEach((t, i) => {
         t.classList.toggle('active', i === currentImageIndex);
     });
+}
 
-    // Reset zoom
-    if (isZoomed) {
-        toggleZoom();
+// Drawing tools functions
+function toggleDrawMode() {
+    if (!rulerInstance) return;
+    rulerInstance.toggleDrawMode();
+    updateButtonState('drawModeBtn', rulerInstance.drawMode);
+    updateClearButton();
+}
+
+function toggleGridMode() {
+    if (!rulerInstance) return;
+    rulerInstance.toggleGridMode();
+    updateButtonState('gridModeBtn', rulerInstance.gridMode);
+    updateClearButton();
+}
+
+function togglePerpendicularMode() {
+    if (!rulerInstance) return;
+    rulerInstance.togglePerpendicularMode();
+    updateButtonState('perpendicularModeBtn', rulerInstance.perpendicularMode);
+}
+
+function clearAllLines() {
+    if (!rulerInstance) return;
+    rulerInstance.clearLines();
+}
+
+function updateButtonState(btnId, isActive) {
+    const btn = document.getElementById(btnId);
+    if (btn) {
+        if (isActive) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
     }
 }
 
-function toggleZoom() {
-    const mainImage = document.getElementById('mainFullscreenImage');
-    const zoomBtn = document.getElementById('zoomBtn');
-
-    if (isZoomed) {
-        mainImage.style.transform = 'scale(1)';
-        mainImage.style.cursor = 'default';
-        zoomBtn.innerHTML = '<i class="bi bi-zoom-in"></i> {% trans "Увеличить" %}';
-        isZoomed = false;
-    } else {
-        mainImage.style.transform = 'scale(2)';
-        mainImage.style.cursor = 'move';
-        mainImage.style.transition = 'transform 0.3s ease';
-        zoomBtn.innerHTML = '<i class="bi bi-zoom-out"></i> {% trans "Уменьшить" %}';
-        isZoomed = true;
-
-        // Enable dragging when zoomed
-        enableImageDrag(mainImage);
-    }
-}
-
-function enableImageDrag(element) {
-    let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-
-    element.onmousedown = dragMouseDown;
-
-    function dragMouseDown(e) {
-        if (!isZoomed) return;
-        e.preventDefault();
-        pos3 = e.clientX;
-        pos4 = e.clientY;
-        document.onmouseup = closeDragElement;
-        document.onmousemove = elementDrag;
-    }
-
-    function elementDrag(e) {
-        e.preventDefault();
-        pos1 = pos3 - e.clientX;
-        pos2 = pos4 - e.clientY;
-        pos3 = e.clientX;
-        pos4 = e.clientY;
-
-        const newLeft = element.offsetLeft - pos1;
-        const newTop = element.offsetTop - pos2;
-
-        element.style.left = newLeft + "px";
-        element.style.top = newTop + "px";
-        element.style.position = "relative";
-    }
-
-    function closeDragElement() {
-        document.onmouseup = null;
-        document.onmousemove = null;
+function updateClearButton() {
+    const clearBtn = document.getElementById('clearBtn');
+    if (clearBtn && rulerInstance) {
+        const shouldShow = rulerInstance.drawMode || rulerInstance.gridMode;
+        clearBtn.style.opacity = shouldShow ? '1' : '0.3';
+        clearBtn.style.pointerEvents = shouldShow ? 'auto' : 'none';
     }
 }
 
@@ -382,7 +444,9 @@ function downloadImage() {
     document.body.removeChild(link);
 }
 
-// Toggle Ruler
+// Toggle SVG Ruler
+let isRulerActive = true;
+
 function toggleRuler() {
     const rulerOverlay = document.getElementById('rulerOverlay');
     const rulerBtn = document.getElementById('rulerBtn');
@@ -392,12 +456,12 @@ function toggleRuler() {
     if (isRulerActive) {
         rulerOverlay.style.display = 'block';
         rulerBtn.classList.add('active');
-        rulerBtn.innerHTML = '<i class="bi bi-rulers"></i> {% trans "Скрыть линейку" %}';
+        rulerBtn.title = '{% trans "Скрыть линейку" %}';
         initRulerDrag();
     } else {
         rulerOverlay.style.display = 'none';
         rulerBtn.classList.remove('active');
-        rulerBtn.innerHTML = '<i class="bi bi-rulers"></i> {% trans "Линейка" %}';
+        rulerBtn.title = '{% trans "Показать линейку" %}';
     }
 }
 
@@ -414,14 +478,12 @@ let rulerState = {
 };
 
 function initRulerDrag() {
-    if (rulerDragInitialized) return; // Prevent multiple initializations
+    if (rulerDragInitialized) return;
 
     const ruler = document.getElementById('rulerTool');
-    const rulerOverlay = document.getElementById('rulerOverlay');
 
     function dragStart(e) {
         if (e.target !== ruler) return;
-
         e.preventDefault();
 
         if (e.type === 'touchstart') {
@@ -438,7 +500,6 @@ function initRulerDrag() {
 
     function drag(e) {
         if (!rulerState.isDragging) return;
-
         e.preventDefault();
 
         if (e.type === 'touchmove') {
@@ -479,6 +540,7 @@ function initRulerDrag() {
     rulerDragInitialized = true;
 }
 
+
 // Keyboard shortcuts
 document.addEventListener('keydown', function(e) {
     if (e.key === 'ArrowLeft') {
@@ -487,15 +549,36 @@ document.addEventListener('keydown', function(e) {
         nextImage();
     } else if (e.key === 'Escape') {
         window.location.href = '{% url "catalog:product_detail" product.article %}';
-    } else if (e.key === 'z' || e.key === 'Z') {
-        toggleZoom();
+    } else if (e.key === 'd' || e.key === 'D') {
+        toggleDrawMode();
+    } else if (e.key === 'g' || e.key === 'G') {
+        toggleGridMode();
+    } else if (e.key === 'p' || e.key === 'P') {
+        togglePerpendicularMode();
     } else if (e.key === 'r' || e.key === 'R') {
         toggleRuler();
+    } else if (e.key === 'c' || e.key === 'C') {
+        clearAllLines();
     }
 });
 
-// Initialize ruler drag on page load
+// Initialize JewelryRuler on page load
 document.addEventListener('DOMContentLoaded', function() {
+    const rulerContainer = document.getElementById('jewelryRulerContainer');
+
+    if (rulerContainer) {
+        rulerInstance = new JewelryRuler('jewelryRulerContainer', {
+            widthMm: parseFloat(rulerContainer.dataset.widthMm) || null,
+            heightMm: parseFloat(rulerContainer.dataset.heightMm) || null,
+            diameterMm: parseFloat(rulerContainer.dataset.diameterMm) || null,
+            referenceType: rulerContainer.dataset.referenceType || 'none',
+            editorData: rulerContainer.dataset.editorData || null
+        });
+
+        console.log('JewelryRuler initialized:', rulerInstance);
+    }
+
+    // Initialize SVG ruler drag
     initRulerDrag();
 });
 </script>

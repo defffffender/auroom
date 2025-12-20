@@ -1,10 +1,56 @@
 /* Infinite Scroll Styles */
 
+/* Кнопка-переключатель пагинации */
+#paginationToggle {
+    position: fixed;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    z-index: 41;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-right: none;
+    border-radius: 12px 0 0 12px;
+    padding: 12px 8px;
+    cursor: pointer;
+    box-shadow: -2px 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 50px;
+}
+
+.dark #paginationToggle {
+    background: rgb(31 41 55);
+    border-color: rgb(75 85 99);
+    color: white;
+}
+
+#paginationToggle:hover {
+    background: #f3f4f6;
+    width: 45px;
+}
+
+.dark #paginationToggle:hover {
+    background: rgb(55 65 81);
+}
+
+#paginationToggle i {
+    font-size: 1.25rem;
+    transition: transform 0.3s ease;
+}
+
+#paginationToggle.open i {
+    transform: rotate(180deg);
+}
+
 /* Липкая пагинация справа */
 #stickyPagination {
     position: fixed;
     top: 50%;
-    right: 20px;
+    right: -160px; /* Скрыта по умолчанию */
     transform: translateY(-50%);
     z-index: 40;
     background: white;
@@ -13,7 +59,18 @@
     padding: 1rem;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     min-width: 120px;
-    transition: all 0.3s ease;
+    transition: right 0.3s ease, opacity 0.3s ease;
+    opacity: 0;
+}
+
+#stickyPagination.visible {
+    right: 20px;
+    opacity: 1;
+}
+
+#stickyPagination.auto-visible {
+    right: 20px;
+    opacity: 1;
 }
 
 .dark #stickyPagination {
@@ -152,11 +209,21 @@
 /* Адаптивность */
 @media (max-width: 768px) {
     /* На планшетах - уменьшаем размеры */
+    #paginationToggle {
+        width: 36px;
+        height: 48px;
+    }
+
     #stickyPagination {
-        right: 10px;
+        right: -140px;
         padding: 0.75rem;
         min-width: 100px;
         font-size: 0.875rem;
+    }
+
+    #stickyPagination.visible,
+    #stickyPagination.auto-visible {
+        right: 10px;
     }
 
     #stickyPagination .nav-btn {
@@ -179,12 +246,27 @@
 
 @media (max-width: 480px) {
     /* На мобильных - уменьшаем размеры, но оставляем справа */
+    #paginationToggle {
+        width: 32px;
+        height: 44px;
+        padding: 8px 6px;
+    }
+
+    #paginationToggle i {
+        font-size: 1rem;
+    }
+
     #stickyPagination {
-        right: 5px;
+        right: -100px;
         padding: 0.5rem;
         min-width: 80px;
         font-size: 0.75rem;
         max-width: 90px;
+    }
+
+    #stickyPagination.visible,
+    #stickyPagination.auto-visible {
+        right: 5px;
     }
 
     #stickyPagination .pagination-header {

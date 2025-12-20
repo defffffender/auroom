@@ -57,7 +57,13 @@
       "Bash(ssh root@185.217.131.179 \"ls -lh /root/images/*.png | wc -l && du -sh /root/images/\")",
       "Bash(ssh root@185.217.131.179 \"cd /root/auroom && source venv/bin/activate && python manage.py generate_test_products --count 100000 --delete-old 2>&1\")",
       "Bash(ssh root@185.217.131.179 \"cd /root/auroom && source venv/bin/activate && python manage.py shell -c \"\"from catalog.models import Product, ProductImage; print(f''Товаров: {Product.objects.count()}''); print(f''Изображений: {ProductImage.objects.count()}'')\"\"\")",
-      "Bash(ssh root@185.217.131.179 \"cd /root/auroom && tail -100 /var/log/auroom/gunicorn-error.log | grep -i error || echo ''No errors in gunicorn log''\")"
+      "Bash(ssh root@185.217.131.179 \"cd /root/auroom && tail -100 /var/log/auroom/gunicorn-error.log | grep -i error || echo ''No errors in gunicorn log''\")",
+      "Bash(pip install:*)",
+      "Bash(venv\\\\Scripts\\\\pip.exe install:*)",
+      "Bash(.\\\\venv\\\\Scripts\\\\pip.exe install:*)",
+      "Bash(python -m pip install:*)",
+      "Bash(python manage.py migrate:*)",
+      "Bash(python manage.py:*)"
     ],
     "deny": [],
     "ask": []

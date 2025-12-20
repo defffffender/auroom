@@ -5,7 +5,19 @@
 {% block title %}{{ product.name }} - {{ product.article }}{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ruler.css' %}">
+<style>
+    /* Полностью отключаем все элементы JewelryRuler на обычной странице */
+    .ruler-controls,
+    .reference-info-ruler,
+    #rulerCanvas {
+        display: none !important;
+    }
+
+    /* Скрываем блок "Эталонное фото для точных размеров" */
+    div[role="alert"].bg-blue-50 {
+        display: none !important;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -261,7 +273,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/ruler.js' %}"></script>
 <script>
 // Translations object
 const translations = {

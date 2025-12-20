@@ -28,6 +28,9 @@ class InfiniteScroll {
 
         // Кнопка "Вернуться к началу"
         this.setupScrollToTop();
+
+        // Настройка выдвижной пагинации
+        this.setupPaginationToggle();
     }
 
     setupPaginationButtons() {
@@ -448,6 +451,119 @@ class InfiniteScroll {
                 behavior: 'smooth'
             });
         });
+    }
+
+    setupPaginationToggle() {
+        const toggleBtn = document.getElementById('paginationToggle');
+        const pagination = document.getElementById('stickyPagination');
+        if (!toggleBtn || !pagination) return;
+
+        let isManuallyOpen = false;
+        let hideTimeout;
+        let inactivityTimeout;
+        let isScrolling = false;
+
+        // Функция для скрытия кнопки переключателя
+        const updateToggleButtonVisibility = () => {
+            const isPaginationVisible = pagination.classList.contains('visible') ||
+                                       pagination.classList.contains('auto-visible');
+
+            if (isPaginationVisible) {
+                toggleBtn.style.opacity = '0';
+                toggleBtn.style.pointerEvents = 'none';
+            } else {
+                toggleBtn.style.opacity = '1';
+                toggleBtn.style.pointerEvents = 'auto';
+            }
+        };
+
+        // Функция для закрытия панели
+        const closePagination = () => {
+            isManuallyOpen = false;
+            pagination.classList.remove('visible');
+            pagination.classList.remove('auto-visible');
+            toggleBtn.classList.remove('open');
+            updateToggleButtonVisibility();
+        };
+
+        // Функция для перезапуска таймера неактивности
+        const resetInactivityTimer = () => {
+            clearTimeout(inactivityTimeout);
+
+            // Если панель открыта (вручную или при скролле), запускаем таймер
+            if (isManuallyOpen || isScrolling) {
+                inactivityTimeout = setTimeout(() => {
+                    closePagination();
+                }, 3000); // 3 секунды неактивности
+            }
+        };
+
+        // Клик по кнопке переключателя
+        toggleBtn.addEventListener('click', () => {
+            isManuallyOpen = !isManuallyOpen;
+
+            if (isManuallyOpen) {
+                pagination.classList.add('visible');
+                toggleBtn.classList.add('open');
+                resetInactivityTimer();
+            } else {
+                closePagination();
+            }
+
+            updateToggleButtonVisibility();
+        });
+
+        // Отслеживание активности на панели пагинации
+        pagination.addEventListener('mouseenter', () => {
+            clearTimeout(inactivityTimeout);
+        });
+
+        pagination.addEventListener('mouseleave', () => {
+            if (isManuallyOpen || isScrolling) {
+                resetInactivityTimer();
+            }
+        });
+
+        // Клики по кнопкам пагинации перезапускают таймер
+        pagination.addEventListener('click', () => {
+            if (isManuallyOpen) {
+                resetInactivityTimer();
+            }
+        });
+
+        // Автоматический показ при скролле
+        window.addEventListener('scroll', () => {
+            // Очищаем предыдущий таймаут
+            clearTimeout(hideTimeout);
+
+            // Если панель открыта вручную, только перезапускаем таймер неактивности
+            if (isManuallyOpen) {
+                resetInactivityTimer();
+                return;
+            }
+
+            // Показываем панель при скролле
+            if (!isScrolling) {
+                isScrolling = true;
+                pagination.classList.add('auto-visible');
+                updateToggleButtonVisibility();
+            }
+
+            // Скрываем через 1.5 секунды после остановки скролла
+            hideTimeout = setTimeout(() => {
+                if (!isManuallyOpen) {
+                    isScrolling = false;
+                    pagination.classList.remove('auto-visible');
+                    updateToggleButtonVisibility();
+                }
+            }, 1500);
+
+            // Запускаем таймер неактивности
+            resetInactivityTimer();
+        });
+
+        // Инициализация видимости кнопки
+        updateToggleButtonVisibility();
     }
 }
 
