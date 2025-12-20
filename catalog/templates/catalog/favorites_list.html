@@ -132,7 +132,7 @@
                         {% endif %}
                     </a>
 
-                    <button onclick="removeFavorite({{ favorite.product.id }}, {{ current_list.id }}, event)"
+                    <button onclick="removeFavorite({{ favorite.product.id }}, {{ current_list.id }})"
                             class="absolute top-2 right-2 text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm p-2 shadow-lg"
                             title="{% trans 'Удалить из списка' %}">
                         <i class="bi bi-x-lg"></i>
@@ -318,8 +318,8 @@ function getCookie(name) {
     return cookieValue;
 }
 
-function removeFavorite(productId, listId, event) {
-    // ИСПРАВЛЕНО: добавлен параметр event
+function removeFavorite(productId, listId) {
+    // Найдём article товара по ID через DOM (можно улучшить через data-атрибут)
     const productCard = event.target.closest('.relative');
     const productLink = productCard.querySelector('a[href*="/product/"]');
     const article = productLink.href.split('/product/')[1].split('/')[0];
@@ -338,12 +338,10 @@ function removeFavorite(productId, listId, event) {
     .then(response => response.json())
     .then(data => {
         console.log('Response:', data);
-        // ИСПРАВЛЕНО: проверяем is_favorite вместо success
-        if (!data.is_favorite) {
-            // Товар удалён из списка
+        if (data.success) {
             window.location.reload();
         } else {
-            alert(data.message || '{% trans "Произошла ошибка" %}');
+            alert(data.error || '{% trans "Произошла ошибка" %}');
         }
     })
     .catch(error => {
