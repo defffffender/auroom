@@ -646,9 +646,11 @@ def toggle_favorite(request, article):
             ).first()
 
             if favorite:
-                # Если уже есть в этом списке - сообщаем
-                is_favorite = True
-                message = f'Товар уже в списке "{favorite_list.name}"'
+                # Если уже есть в этом списке - УДАЛЯЕМ (toggle)
+                favorite.delete()
+                is_favorite = False
+                message = f'Товар удалён из списка "{favorite_list.name}"'
+                success = True
             else:
                 # Добавляем в выбранный список
                 Favorite.objects.create(
@@ -658,6 +660,7 @@ def toggle_favorite(request, article):
                 )
                 is_favorite = True
                 message = f'Добавлено в список "{favorite_list.name}"'
+                success = True
 
             # Получаем все списки пользователя для popup
             user_lists = FavoriteList.objects.filter(user=request.user).order_by('-is_default', 'name')
@@ -669,6 +672,7 @@ def toggle_favorite(request, article):
             } for lst in user_lists]
 
             return JsonResponse({
+                'success': success,
                 'is_favorite': is_favorite,
                 'message': message,
                 'lists': lists_data,

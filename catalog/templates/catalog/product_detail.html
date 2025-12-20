@@ -414,7 +414,7 @@ function loadUserFavoriteLists() {
         method: 'GET',
         headers: {
             'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRFToken': '{{ csrf_token }}'
+            'X-CSRFToken': getCookie('csrftoken')
         }
     })
     .then(response => response.json())
@@ -467,7 +467,7 @@ function addToFavoriteList(listId) {
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
             'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRFToken': '{{ csrf_token }}'
+            'X-CSRFToken': getCookie('csrftoken')
         },
         body: `list_id=${listId}`
     })
@@ -531,7 +531,7 @@ function createNewList() {
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
             'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRFToken': '{{ csrf_token }}'
+            'X-CSRFToken': getCookie('csrftoken')
         },
         body: `name=${encodeURIComponent(name)}&description=${encodeURIComponent(description)}`
     })
