@@ -319,12 +319,17 @@ function getCookie(name) {
 }
 
 function removeFavorite(productId, listId) {
+    console.log('=== REMOVE FROM FAVORITE ===');
+    console.log('Product ID:', productId);
+    console.log('List ID:', listId);
+
     // Найдём article товара по ID через DOM (можно улучшить через data-атрибут)
     const productCard = event.target.closest('.relative');
     const productLink = productCard.querySelector('a[href*="/product/"]');
     const article = productLink.href.split('/product/')[1].split('/')[0];
 
-    console.log('Removing from favorites:', article, 'from list:', listId);
+    console.log('Article:', article);
+    console.log('CSRF Token:', getCookie('csrftoken'));
 
     fetch(`/favorites/toggle/${article}/`, {
         method: 'POST',
@@ -335,17 +340,22 @@ function removeFavorite(productId, listId) {
         },
         body: `list_id=${listId}`
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('Response status:', response.status);
+        return response.json();
+    })
     .then(data => {
-        console.log('Response:', data);
+        console.log('Response data:', data);
         if (data.success) {
+            console.log('Success! Reloading page...');
             window.location.reload();
         } else {
-            alert(data.error || '{% trans "Произошла ошибка" %}');
+            console.error('No success field in response!');
+            alert(data.error || data.message || '{% trans "Произошла ошибка" %}');
         }
     })
     .catch(error => {
-        console.error('Error:', error);
+        console.error('ERROR:', error);
         alert('{% trans "Произошла ошибка" %}');
     });
 }
