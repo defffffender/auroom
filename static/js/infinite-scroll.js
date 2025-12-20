@@ -194,7 +194,9 @@ class InfiniteScroll {
 
     createProductCard(product) {
         const card = document.createElement('div');
-        card.className = 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow hover:shadow-lg transition-shadow';
+        card.className = 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow hover:shadow-lg transition-shadow relative';
+
+        const isAuthenticated = typeof userIsAuthenticated !== 'undefined' ? userIsAuthenticated : false;
 
         card.innerHTML = `
             ${product.image_url ? `
@@ -205,6 +207,20 @@ class InfiniteScroll {
                 <div class="rounded-t-lg h-64 bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
                     <i class="bi bi-image text-gray-400 dark:text-gray-500" style="font-size: 3rem;"></i>
                 </div>
+            `}
+
+            ${isAuthenticated ? `
+            <button onclick="showFavoriteModalFromCard('${product.article}')"
+                    class="absolute top-3 right-3 text-white bg-red-500/80 hover:bg-red-600 backdrop-blur-sm focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-full text-sm p-2 shadow-lg transition"
+                    title="Добавить в избранное">
+                <i class="bi bi-heart text-lg"></i>
+            </button>
+            ` : `
+            <button onclick="addToLocalStorageFavorites('${product.article}')"
+                    class="absolute top-3 right-3 text-white bg-red-500/80 hover:bg-red-600 backdrop-blur-sm focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-full text-sm p-2 shadow-lg transition"
+                    title="Добавить в избранное">
+                <i class="bi bi-heart text-lg"></i>
+            </button>
             `}
 
             <div class="p-5">

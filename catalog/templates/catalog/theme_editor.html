@@ -296,12 +296,12 @@
                     </div>
                     <!-- Preview Mode Toggle -->
                     <div class="flex gap-2">
-                        <button @click="previewMode = 'light'; console.log('Preview mode:', previewMode)"
+                        <button @click="previewMode = 'light'"
                                 :class="previewMode === 'light' ? 'bg-primary-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'"
                                 class="px-3 py-2 rounded-lg font-medium text-sm transition-all hover:shadow-md">
                             <i class="bi bi-sun"></i>
                         </button>
-                        <button @click="previewMode = 'dark'; console.log('Preview mode:', previewMode)"
+                        <button @click="previewMode = 'dark'"
                                 :class="previewMode === 'dark' ? 'bg-primary-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'"
                                 class="px-3 py-2 rounded-lg font-medium text-sm transition-all hover:shadow-md">
                             <i class="bi bi-moon"></i>
@@ -581,29 +581,23 @@ function themeEditor() {
             // Watch font changes to trigger preview update
             this.$watch('headingFont', () => {
                 // Alpine will automatically re-render preview when this changes
-                this.$nextTick(() => {
-                    console.log('Heading font changed:', this.headingFont);
-                });
+                this.$nextTick(() => {});
             });
 
             this.$watch('bodyFont', () => {
                 // Alpine will automatically re-render preview when this changes
-                this.$nextTick(() => {
-                    console.log('Body font changed:', this.bodyFont);
-                });
+                this.$nextTick(() => {});
             });
 
             // Watch font weight changes to trigger preview update
             this.$watch('headingFontWeight', () => {
                 this.$nextTick(() => {
-                    console.log('Heading font weight changed:', this.headingFontWeight);
                     this.updatePreviewFontStyles();
                 });
             });
 
             this.$watch('bodyFontWeight', () => {
                 this.$nextTick(() => {
-                    console.log('Body font weight changed:', this.bodyFontWeight);
                     this.updatePreviewFontStyles();
                 });
             });
@@ -751,7 +745,6 @@ function themeEditor() {
 
         updateFonts() {
             // This method is called when fonts change to trigger Alpine reactivity
-            console.log('Fonts updated:', this.headingFont, this.bodyFont);
         },
 
         async saveTheme() {
