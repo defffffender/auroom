@@ -598,6 +598,17 @@ from django.views.decorators.csrf import csrf_exempt
 @csrf_exempt
 def toggle_favorite(request, article):
     """Добавить/удалить товар из избранного (AJAX)"""
+
+    # DEBUG: Print request info
+    print(f"\n{'='*50}")
+    print(f"TOGGLE FAVORITE DEBUG")
+    print(f"Article: {article}")
+    print(f"Method: {request.method}")
+    print(f"Is AJAX: {request.headers.get('X-Requested-With')}")
+    print(f"POST data: {request.POST.dict()}")
+    print(f"GET data: {request.GET.dict()}")
+    print(f"{'='*50}\n")
+
     product = get_object_or_404(Product, article=article, is_active=True)
 
     # Для AJAX запросов
