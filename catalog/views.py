@@ -493,10 +493,6 @@ def product_add(request):
             # 🔧 ФИКС: Для AJAX возвращаем ошибки
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 from django.http import JsonResponse
-                # 🔧 НОВОЕ: Логируем ошибки на сервере
-                print("❌ Ошибки валидации формы:")
-                for field, errors in form.errors.items():
-                    print(f"  - {field}: {errors}")
                 return JsonResponse({
                     'success': False,
                     'errors': form.errors
@@ -592,23 +588,9 @@ def customer_register(request):
     return render(request, 'catalog/customer_register.html', {'form': form})
 
 
-from django.views.decorators.csrf import csrf_exempt
-
 @login_required
-@csrf_exempt
 def toggle_favorite(request, article):
     """Добавить/удалить товар из избранного (AJAX)"""
-
-    # DEBUG: Print request info
-    print(f"\n{'='*50}")
-    print(f"TOGGLE FAVORITE DEBUG")
-    print(f"Article: {article}")
-    print(f"Method: {request.method}")
-    print(f"Is AJAX: {request.headers.get('X-Requested-With')}")
-    print(f"POST data: {request.POST.dict()}")
-    print(f"GET data: {request.GET.dict()}")
-    print(f"{'='*50}\n")
-
     product = get_object_or_404(Product, article=article, is_active=True)
 
     # Для AJAX запросов

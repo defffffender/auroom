@@ -602,11 +602,6 @@ function loadUserFavoriteLists() {
 }
 
 function addToFavoriteList(listId) {
-    console.log('=== ADD TO FAVORITE LIST ===');
-    console.log('Article:', currentArticle);
-    console.log('List ID:', listId);
-    console.log('CSRF Token:', getCookie('csrftoken'));
-
     fetch(`/ru/favorites/toggle/${currentArticle}/`, {
         method: 'POST',
         headers: {
@@ -616,13 +611,8 @@ function addToFavoriteList(listId) {
         },
         body: `list_id=${listId}`
     })
-    .then(response => {
-        console.log('Response status:', response.status);
-        console.log('Response headers:', response.headers);
-        return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
-        console.log('Response data:', data);
         if (data.is_favorite) {
             showNotification(data.message, 'success');
         } else {
@@ -631,7 +621,6 @@ function addToFavoriteList(listId) {
         closeFavoriteListsModal();
     })
     .catch(error => {
-        console.error('ERROR:', error);
         showNotification(translations.errorOccurred, 'error');
     });
 }
