@@ -303,24 +303,46 @@ function deleteList(listId) {
     });
 }
 
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
 function removeFavorite(productId, listId) {
     // Найдём article товара по ID через DOM (можно улучшить через data-атрибут)
     const productCard = event.target.closest('.relative');
     const productLink = productCard.querySelector('a[href*="/product/"]');
     const article = productLink.href.split('/product/')[1].split('/')[0];
 
+    console.log('Removing from favorites:', article, 'from list:', listId);
+
     fetch(`/favorites/toggle/${article}/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
             'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRFToken': '{{ csrf_token }}'
+            'X-CSRFToken': getCookie('csrftoken')
         },
         body: `list_id=${listId}`
     })
     .then(response => response.json())
     .then(data => {
-        window.location.reload();
+        console.log('Response:', data);
+        if (data.success) {
+            window.location.reload();
+        } else {
+            alert(data.error || '{% trans "Произошла ошибка" %}');
+        }
     })
     .catch(error => {
         console.error('Error:', error);
