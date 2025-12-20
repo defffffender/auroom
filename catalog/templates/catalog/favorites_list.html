@@ -331,7 +331,7 @@ function removeFavorite(productId, listId) {
     console.log('Article:', article);
     console.log('CSRF Token:', getCookie('csrftoken'));
 
-    fetch(`/favorites/toggle/${article}/`, {
+    fetch(`/ru/favorites/toggle/${article}/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
