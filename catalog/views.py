@@ -592,7 +592,10 @@ def customer_register(request):
     return render(request, 'catalog/customer_register.html', {'form': form})
 
 
+from django.views.decorators.csrf import csrf_exempt
+
 @login_required
+@csrf_exempt
 def toggle_favorite(request, article):
     """Добавить/удалить товар из избранного (AJAX)"""
     product = get_object_or_404(Product, article=article, is_active=True)
