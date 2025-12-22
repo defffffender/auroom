@@ -183,7 +183,16 @@ class InfiniteScroll {
         this.showLoading();
 
         try {
-            const nextPage = this.currentPage + 1;
+            // Вычисляем какую страницу реально нужно загрузить
+            // Основываемся на количестве товаров в гриде, а не на currentPage
+            const itemsPerPage = 12;
+            const loadedItemsCount = this.productsGrid.children.length;
+            const actualLoadedPages = Math.ceil(loadedItemsCount / itemsPerPage);
+            const nextPage = actualLoadedPages + 1;
+
+            // Проверка: не пытаемся ли загрузить больше чем есть
+            if (nextPage > this.totalPages) return;
+
             const url = new URL(window.location.href);
             url.searchParams.set('page', nextPage);
             url.searchParams.set('format', 'json');
@@ -445,6 +454,9 @@ class InfiniteScroll {
                         this.appendProducts(data.products);
                         this.currentPage = data.current_page;
                         this.totalPages = data.total_pages;
+
+                        // ВАЖНО: Обновляем dataset чтобы другие функции знали текущую страницу
+                        this.productsGrid.dataset.currentPage = this.currentPage;
 
                         // Скроллим наверх
                         window.scrollTo({ top: 0, behavior: 'smooth' });
