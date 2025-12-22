@@ -129,8 +129,54 @@ class InfiniteScroll {
 
         sentinelObserver.observe(sentinel);
 
+        // Observer для автозагрузки при скролле вверх
+        this.setupTopSentinel();
+
         // Observer для отслеживания видимых карточек и определения текущей страницы
         this.setupPageTracker();
+    }
+
+    setupTopSentinel() {
+        // Создаём sentinel для верхней части грида
+        const topSentinel = document.createElement('div');
+        topSentinel.id = 'topScrollSentinel';
+        topSentinel.style.height = '1px';
+
+        // Вставляем в начало грида
+        if (this.productsGrid.firstChild) {
+            this.productsGrid.insertBefore(topSentinel, this.productsGrid.firstChild);
+        } else {
+            this.productsGrid.appendChild(topSentinel);
+        }
+
+        // Observer для автозагрузки при скролле вверх
+        const topSentinelObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting && !this.isLoading) {
+                    // Загружаем предыдущую страницу если она есть
+                    const itemsPerPage = 12;
+                    const loadedItemsCount = this.productsGrid.children.length - 1; // -1 для topSentinel
+
+                    let firstLoadedPage;
+                    if (this.bigJumpStartPage !== null) {
+                        // Если был большой прыжок, первая загруженная страница это bigJumpStartPage
+                        firstLoadedPage = this.bigJumpStartPage;
+                    } else {
+                        // Иначе первая страница это 1
+                        firstLoadedPage = 1;
+                    }
+
+                    if (firstLoadedPage > 1) {
+                        this.loadPrevious();
+                    }
+                }
+            });
+        }, {
+            rootMargin: '200px'
+        });
+
+        topSentinelObserver.observe(topSentinel);
+        this.topSentinel = topSentinel;
     }
 
     setupPageTracker() {
@@ -208,7 +254,7 @@ class InfiniteScroll {
         try {
             // Вычисляем какую страницу реально нужно загрузить
             const itemsPerPage = 12;
-            const loadedItemsCount = this.productsGrid.children.length;
+            const loadedItemsCount = this.productsGrid.children.length - 1; // -1 для topSentinel
 
             // Если был большой прыжок, следующая страница = bigJumpStartPage + количество загруженных страниц
             let nextPage;
@@ -253,6 +299,70 @@ class InfiniteScroll {
         }
     }
 
+    async loadPrevious() {
+        if (this.isLoading) return;
+
+        this.isLoading = true;
+        this.showLoading();
+
+        try {
+            const itemsPerPage = 12;
+            const loadedItemsCount = this.productsGrid.children.length - 1; // -1 для topSentinel
+
+            // Вычисляем какую предыдущую страницу загрузить
+            let prevPage;
+            if (this.bigJumpStartPage !== null) {
+                // Если был большой прыжок, предыдущая страница = bigJumpStartPage - 1
+                prevPage = this.bigJumpStartPage - 1;
+            } else {
+                // Иначе это просто предыдущая страница
+                prevPage = Math.floor(loadedItemsCount / itemsPerPage);
+            }
+
+            // Проверка: не пытаемся ли загрузить страницу меньше 1
+            if (prevPage < 1) return;
+
+            const url = new URL(window.location.href);
+            url.searchParams.set('page', prevPage);
+            url.searchParams.set('format', 'json');
+
+            const response = await fetch(url);
+
+            if (!response.ok) throw new Error('Network response was not ok');
+
+            const data = await response.json();
+
+            if (data.products && data.products.length > 0) {
+                // Сохраняем текущую позицию скролла относительно первого элемента
+                const firstProduct = this.productsGrid.children[1]; // [0] это topSentinel
+                const scrollOffset = firstProduct ? firstProduct.getBoundingClientRect().top : 0;
+
+                // Добавляем товары в начало (после topSentinel)
+                this.prependProducts(data.products);
+
+                // Обновляем bigJumpStartPage - сдвигаем на одну страницу назад
+                if (this.bigJumpStartPage !== null) {
+                    this.bigJumpStartPage = prevPage;
+                }
+
+                this.currentPage = data.current_page;
+                this.updatePagination();
+
+                // Восстанавливаем позицию скролла
+                if (firstProduct) {
+                    const newTop = firstProduct.getBoundingClientRect().top;
+                    window.scrollBy(0, newTop - scrollOffset);
+                }
+            }
+
+        } catch (error) {
+            console.error('Error loading previous products:', error);
+        } finally {
+            this.isLoading = false;
+            this.hideLoading();
+        }
+    }
+
     appendProducts(products) {
         products.forEach(product => {
             const productCard = this.createProductCard(product);
@@ -263,6 +373,28 @@ class InfiniteScroll {
                 this.pageTrackObserver.observe(productCard);
             }
         });
+    }
+
+    prependProducts(products) {
+        // Вставляем товары в начало (после topSentinel)
+        const topSentinel = this.topSentinel || this.productsGrid.firstChild;
+
+        // Добавляем в обратном порядке чтобы порядок был правильный
+        for (let i = products.length - 1; i >= 0; i--) {
+            const productCard = this.createProductCard(products[i]);
+
+            // Вставляем после topSentinel
+            if (topSentinel && topSentinel.nextSibling) {
+                this.productsGrid.insertBefore(productCard, topSentinel.nextSibling);
+            } else {
+                this.productsGrid.appendChild(productCard);
+            }
+
+            // Добавляем наблюдение за новой карточкой для отслеживания страницы
+            if (this.pageTrackObserver) {
+                this.pageTrackObserver.observe(productCard);
+            }
+        }
     }
 
     createProductCard(product) {
@@ -470,6 +602,37 @@ class InfiniteScroll {
                 if (pageDifference > 5) {
                     // БОЛЬШОЙ ПРЫЖОК - очищаем грид и загружаем только целевую страницу
                     this.productsGrid.innerHTML = '';
+
+                    // Пересоздаём top sentinel после очистки
+                    const topSentinel = document.createElement('div');
+                    topSentinel.id = 'topScrollSentinel';
+                    topSentinel.style.height = '1px';
+                    this.productsGrid.appendChild(topSentinel);
+                    this.topSentinel = topSentinel;
+
+                    // Re-attach observer к новому sentinel
+                    const topSentinelObserver = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting && !this.isLoading) {
+                                const itemsPerPage = 12;
+                                const loadedItemsCount = this.productsGrid.children.length - 1;
+
+                                let firstLoadedPage;
+                                if (this.bigJumpStartPage !== null) {
+                                    firstLoadedPage = this.bigJumpStartPage;
+                                } else {
+                                    firstLoadedPage = 1;
+                                }
+
+                                if (firstLoadedPage > 1) {
+                                    this.loadPrevious();
+                                }
+                            }
+                        });
+                    }, {
+                        rootMargin: '200px'
+                    });
+                    topSentinelObserver.observe(topSentinel);
 
                     const url = new URL(window.location.href);
                     url.searchParams.set('page', targetPage);
