@@ -424,10 +424,16 @@ class InfiniteScroll {
                 this.updatePagination();
 
             } else {
-                // Целевая страница НЕ загружена - нужно загрузить недостающие страницы
-                for (let page = loadedPagesCount + 1; page <= targetPage; page++) {
+                // Целевая страница НЕ загружена
+                // Если разница больше 5 страниц - очищаем грид и загружаем только целевую
+                const pageDifference = targetPage - loadedPagesCount;
+
+                if (pageDifference > 5) {
+                    // БОЛЬШОЙ ПРЫЖОК - очищаем грид и загружаем только целевую страницу
+                    this.productsGrid.innerHTML = '';
+
                     const url = new URL(window.location.href);
-                    url.searchParams.set('page', page);
+                    url.searchParams.set('page', targetPage);
                     url.searchParams.set('format', 'json');
 
                     const response = await fetch(url);
@@ -436,33 +442,54 @@ class InfiniteScroll {
                     const data = await response.json();
 
                     if (data.products && data.products.length > 0) {
-                        // Запоминаем количество товаров перед добавлением
-                        const beforeCount = this.productsGrid.children.length;
-
                         this.appendProducts(data.products);
-
-                        // Если это целевая страница, запоминаем первую карточку
-                        if (page === targetPage && !firstCardOfTargetPage) {
-                            firstCardOfTargetPage = this.productsGrid.children[beforeCount];
-                            if (firstCardOfTargetPage) {
-                                firstCardOfTargetPage.id = `page-${page}-start`;
-                                firstCardOfTargetPage.style.scrollMarginTop = '100px';
-                            }
-                        }
-
                         this.currentPage = data.current_page;
                         this.totalPages = data.total_pages;
+
+                        // Скроллим наверх
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
                     }
+                } else {
+                    // МАЛЕНЬКИЙ ПРЫЖОК - загружаем промежуточные страницы
+                    for (let page = loadedPagesCount + 1; page <= targetPage; page++) {
+                        const url = new URL(window.location.href);
+                        url.searchParams.set('page', page);
+                        url.searchParams.set('format', 'json');
+
+                        const response = await fetch(url);
+                        if (!response.ok) throw new Error('Network response was not ok');
+
+                        const data = await response.json();
+
+                        if (data.products && data.products.length > 0) {
+                            // Запоминаем количество товаров перед добавлением
+                            const beforeCount = this.productsGrid.children.length;
+
+                            this.appendProducts(data.products);
+
+                            // Если это целевая страница, запоминаем первую карточку
+                            if (page === targetPage && !firstCardOfTargetPage) {
+                                firstCardOfTargetPage = this.productsGrid.children[beforeCount];
+                                if (firstCardOfTargetPage) {
+                                    firstCardOfTargetPage.id = `page-${page}-start`;
+                                    firstCardOfTargetPage.style.scrollMarginTop = '100px';
+                                }
+                            }
+
+                            this.currentPage = data.current_page;
+                            this.totalPages = data.total_pages;
+                        }
+                    }
+
+                    // Скроллим к началу целевой страницы
+                    setTimeout(() => {
+                        if (firstCardOfTargetPage) {
+                            firstCardOfTargetPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }, 100);
                 }
 
                 this.updatePagination();
-
-                // Скроллим к началу целевой страницы
-                setTimeout(() => {
-                    if (firstCardOfTargetPage) {
-                        firstCardOfTargetPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
-                }, 100);
             }
 
             // Обновляем URL без перезагрузки (убираем format=json из URL)
