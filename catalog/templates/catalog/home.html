@@ -356,31 +356,47 @@
     <div id="stickyPagination">
         <div class="pagination-header">{% trans "СТРАНИЦЫ" %}</div>
 
-        <!-- Кнопка к первой видимой странице -->
-        <button class="nav-btn" id="firstVisiblePageBtn">
+        <!-- Кнопка к первой странице -->
+        <button class="nav-btn" id="firstPageBtn" title="{% trans 'Перейти на первую страницу' %}">
             <i class="bi bi-chevron-double-up"></i>
         </button>
 
         <!-- Кнопка предыдущей страницы -->
-        <button class="nav-btn" id="prevPageBtn">
+        <button class="nav-btn" id="prevPageBtn" title="{% trans 'Предыдущая страница' %}">
             <i class="bi bi-chevron-up"></i>
         </button>
 
         <!-- Текущая страница -->
         <div class="current-page text-gray-900 dark:text-white">
-            <span id="currentPageNumber">{{ page_obj.number }}</span> / {{ page_obj.paginator.num_pages }}
+            <span id="currentPageNumber">{{ page_obj.number }}</span> / <span id="totalPageNumber">{{ page_obj.paginator.num_pages }}</span>
+        </div>
+
+        <!-- Быстрый переход на страницу -->
+        <div class="flex items-center gap-1 px-2 py-1">
+            <input type="number"
+                   id="pageJumpInput"
+                   min="1"
+                   max="{{ page_obj.paginator.num_pages }}"
+                   placeholder="№"
+                   class="w-12 px-1 py-1 text-xs text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                   title="{% trans 'Введите номер страницы' %}">
+            <button id="pageJumpBtn"
+                    class="px-2 py-1 text-xs font-medium text-white bg-primary-600 rounded hover:bg-primary-700 focus:ring-2 focus:ring-primary-500"
+                    title="{% trans 'Перейти' %}">
+                <i class="bi bi-arrow-right"></i>
+            </button>
         </div>
 
         <!-- Кнопки номеров страниц -->
         <div id="paginationNumbers"></div>
 
         <!-- Кнопка следующей страницы -->
-        <button class="nav-btn" id="nextPageBtn">
+        <button class="nav-btn" id="nextPageBtn" title="{% trans 'Следующая страница' %}">
             <i class="bi bi-chevron-down"></i>
         </button>
 
-        <!-- Кнопка к последней видимой странице -->
-        <button class="nav-btn" id="lastVisiblePageBtn">
+        <!-- Кнопка к последней странице -->
+        <button class="nav-btn" id="lastPageBtn" title="{% trans 'Перейти на последнюю страницу' %}">
             <i class="bi bi-chevron-double-down"></i>
         </button>
     </div>
@@ -469,7 +485,7 @@
 // User authentication status
 const userIsAuthenticated = {{ user.is_authenticated|yesno:"true,false" }};
 </script>
-<script src="{% static 'js/infinite-scroll.js' %}?v=9"></script>
+<script src="{% static 'js/infinite-scroll.js' %}?v=10"></script>
 
 <script>
 // Переводы для JavaScript

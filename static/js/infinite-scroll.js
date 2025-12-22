@@ -51,22 +51,59 @@ class InfiniteScroll {
             });
         }
 
-        // Кнопка "первая видимая страница" (две стрелки вверх)
-        const firstVisibleBtn = document.getElementById('firstVisiblePageBtn');
-        if (firstVisibleBtn) {
-            firstVisibleBtn.addEventListener('click', () => {
-                const startPage = Math.max(1, this.currentPage - 2);
-                this.goToPage(startPage);
+        // Кнопка "к первой странице" (две стрелки вверх)
+        const firstPageBtn = document.getElementById('firstPageBtn');
+        if (firstPageBtn) {
+            firstPageBtn.addEventListener('click', () => {
+                this.goToPage(1);
             });
         }
 
-        // Кнопка "последняя видимая страница" (две стрелки вниз)
-        const lastVisibleBtn = document.getElementById('lastVisiblePageBtn');
-        if (lastVisibleBtn) {
-            lastVisibleBtn.addEventListener('click', () => {
-                const endPage = Math.min(this.totalPages, this.currentPage + 2);
-                this.goToPage(endPage);
+        // Кнопка "к последней странице" (две стрелки вниз)
+        const lastPageBtn = document.getElementById('lastPageBtn');
+        if (lastPageBtn) {
+            lastPageBtn.addEventListener('click', () => {
+                this.goToPage(this.totalPages);
             });
+        }
+
+        // Быстрый переход на страницу по номеру
+        const pageJumpInput = document.getElementById('pageJumpInput');
+        const pageJumpBtn = document.getElementById('pageJumpBtn');
+
+        if (pageJumpBtn && pageJumpInput) {
+            // Обработчик кнопки "Go"
+            pageJumpBtn.addEventListener('click', () => {
+                this.jumpToPage(pageJumpInput);
+            });
+
+            // Обработчик Enter в input
+            pageJumpInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    this.jumpToPage(pageJumpInput);
+                }
+            });
+
+            // Ограничение ввода только цифрами
+            pageJumpInput.addEventListener('input', (e) => {
+                let value = parseInt(e.target.value);
+                if (value < 1) e.target.value = '';
+                if (value > this.totalPages) e.target.value = this.totalPages;
+            });
+        }
+    }
+
+    jumpToPage(input) {
+        const pageNumber = parseInt(input.value);
+        if (pageNumber && pageNumber >= 1 && pageNumber <= this.totalPages) {
+            this.goToPage(pageNumber);
+            input.value = ''; // Очищаем поле после перехода
+        } else {
+            // Показываем ошибку если номер некорректный
+            input.classList.add('border-red-500', 'ring-2', 'ring-red-500');
+            setTimeout(() => {
+                input.classList.remove('border-red-500', 'ring-2', 'ring-red-500');
+            }, 1000);
         }
     }
 
@@ -275,12 +312,8 @@ class InfiniteScroll {
     updateNavigationButtons() {
         const prevBtn = document.getElementById('prevPageBtn');
         const nextBtn = document.getElementById('nextPageBtn');
-        const firstVisibleBtn = document.getElementById('firstVisiblePageBtn');
-        const lastVisibleBtn = document.getElementById('lastVisiblePageBtn');
-
-        // Определяем диапазон видимых страниц
-        const startPage = Math.max(1, this.currentPage - 2);
-        const endPage = Math.min(this.totalPages, this.currentPage + 2);
+        const firstPageBtn = document.getElementById('firstPageBtn');
+        const lastPageBtn = document.getElementById('lastPageBtn');
 
         // Кнопка "предыдущая страница"
         if (prevBtn) {
@@ -292,14 +325,26 @@ class InfiniteScroll {
             nextBtn.disabled = this.currentPage >= this.totalPages;
         }
 
-        // Кнопка "первая видимая"
-        if (firstVisibleBtn) {
-            firstVisibleBtn.disabled = this.currentPage === startPage;
+        // Кнопка "к первой странице"
+        if (firstPageBtn) {
+            firstPageBtn.disabled = this.currentPage === 1;
         }
 
-        // Кнопка "последняя видимая"
-        if (lastVisibleBtn) {
-            lastVisibleBtn.disabled = this.currentPage === endPage;
+        // Кнопка "к последней странице"
+        if (lastPageBtn) {
+            lastPageBtn.disabled = this.currentPage === this.totalPages;
+        }
+
+        // Обновляем max значение для input (на случай если totalPages изменился)
+        const pageJumpInput = document.getElementById('pageJumpInput');
+        if (pageJumpInput) {
+            pageJumpInput.max = this.totalPages;
+        }
+
+        // Обновляем отображение общего количества страниц
+        const totalPageSpan = document.getElementById('totalPageNumber');
+        if (totalPageSpan) {
+            totalPageSpan.textContent = this.totalPages;
         }
     }
 
