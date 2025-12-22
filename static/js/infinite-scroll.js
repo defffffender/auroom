@@ -11,6 +11,11 @@ class InfiniteScroll {
         this.loadingIndicator = document.getElementById('loadingIndicator');
         this.paginationButtons = document.querySelectorAll('.pagination-btn');
 
+        // Флаг для отслеживания режима "большого прыжка"
+        this.isAfterBigJump = false;
+        // Запоминаем стартовую страницу для больших прыжков
+        this.bigJumpStartPage = null;
+
         this.init();
     }
 
@@ -131,6 +136,11 @@ class InfiniteScroll {
     setupPageTracker() {
         // Наблюдатель за видимыми карточками для определения текущей страницы
         const trackObserver = new IntersectionObserver((entries) => {
+            // Если мы после большого прыжка, не пересчитываем страницу по индексу
+            if (this.isAfterBigJump) {
+                return;
+            }
+
             // Находим все видимые карточки
             const visibleCards = entries
                 .filter(entry => entry.isIntersecting)
@@ -143,18 +153,31 @@ class InfiniteScroll {
 
                 if (cardIndex >= 0) {
                     // Вычисляем номер страницы по индексу карточки (12 товаров на страницу)
-                    const pageNumber = Math.floor(cardIndex / 12) + 1;
+                    let pageNumber;
+
+                    // Если был большой прыжок, считаем страницы от bigJumpStartPage
+                    if (this.bigJumpStartPage !== null) {
+                        pageNumber = this.bigJumpStartPage + Math.floor(cardIndex / 12);
+                    } else {
+                        pageNumber = Math.floor(cardIndex / 12) + 1;
+                    }
 
                     // Обновляем currentPage только если изменилась
                     if (pageNumber !== this.currentPage && pageNumber <= this.totalPages) {
                         this.currentPage = pageNumber;
                         this.updatePagination();
 
-                        // Обновляем URL без перезагрузки
-                        const displayUrl = new URL(window.location.href);
-                        displayUrl.searchParams.set('page', this.currentPage);
-                        displayUrl.searchParams.delete('format');
-                        window.history.replaceState({}, '', displayUrl);
+                        // Обновляем URL без перезагрузки (с debounce)
+                        if (this.urlUpdateTimeout) {
+                            clearTimeout(this.urlUpdateTimeout);
+                        }
+
+                        this.urlUpdateTimeout = setTimeout(() => {
+                            const displayUrl = new URL(window.location.href);
+                            displayUrl.searchParams.set('page', this.currentPage);
+                            displayUrl.searchParams.delete('format');
+                            window.history.replaceState({}, '', displayUrl);
+                        }, 300); // Обновляем URL раз в 300мс, а не при каждом скролле
                     }
                 }
             }
@@ -184,11 +207,18 @@ class InfiniteScroll {
 
         try {
             // Вычисляем какую страницу реально нужно загрузить
-            // Основываемся на количестве товаров в гриде, а не на currentPage
             const itemsPerPage = 12;
             const loadedItemsCount = this.productsGrid.children.length;
-            const actualLoadedPages = Math.ceil(loadedItemsCount / itemsPerPage);
-            const nextPage = actualLoadedPages + 1;
+
+            // Если был большой прыжок, следующая страница = bigJumpStartPage + количество загруженных страниц
+            let nextPage;
+            if (this.bigJumpStartPage !== null) {
+                const loadedPagesCount = Math.ceil(loadedItemsCount / itemsPerPage);
+                nextPage = this.bigJumpStartPage + loadedPagesCount;
+            } else {
+                const actualLoadedPages = Math.ceil(loadedItemsCount / itemsPerPage);
+                nextPage = actualLoadedPages + 1;
+            }
 
             // Проверка: не пытаемся ли загрузить больше чем есть
             if (nextPage > this.totalPages) return;
@@ -455,11 +485,20 @@ class InfiniteScroll {
                         this.currentPage = data.current_page;
                         this.totalPages = data.total_pages;
 
+                        // ВАЖНО: Устанавливаем флаги для режима "большого прыжка"
+                        this.isAfterBigJump = true;
+                        this.bigJumpStartPage = targetPage;
+
                         // ВАЖНО: Обновляем dataset чтобы другие функции знали текущую страницу
                         this.productsGrid.dataset.currentPage = this.currentPage;
 
                         // Скроллим наверх
                         window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                        // Через 1 секунду включаем обратно отслеживание
+                        setTimeout(() => {
+                            this.isAfterBigJump = false;
+                        }, 1000);
                     }
                 } else {
                     // МАЛЕНЬКИЙ ПРЫЖОК - загружаем промежуточные страницы
