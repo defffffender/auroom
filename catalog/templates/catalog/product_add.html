@@ -678,8 +678,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Update form index in all fields
             newForm.querySelectorAll('input, select, textarea').forEach(input => {
                 if (input.name) {
-                    input.name = input.name.replace(/-(\\d+)-/, `-${newIndex}-`);
-                    input.id = input.id ? input.id.replace(/-(\\d+)-/, `-${newIndex}-`) : '';
+                    input.name = input.name.replace(/-(\d+)-/, `-${newIndex}-`);
+                    input.id = input.id ? input.id.replace(/-(\d+)-/, `-${newIndex}-`) : '';
 
                     // Clear values
                     if (input.type === 'checkbox') {
