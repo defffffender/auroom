@@ -40,10 +40,6 @@
                         <label for="{{ form.name.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ form.name.label }}</label>
                         <input type="text" name="name" id="{{ form.name.id_for_label }}" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5" required>
                     </div>
-                    <div>
-                        <label for="{{ form.article.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ form.article.label }}</label>
-                        <input type="text" name="article" id="{{ form.article.id_for_label }}" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5" required>
-                    </div>
                     <div class="md:col-span-2">
                         <label for="{{ form.description.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ form.description.label }}</label>
                         <textarea name="description" id="{{ form.description.id_for_label }}" rows="4" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5"></textarea>
@@ -326,14 +322,70 @@
                     <i class="bi bi-images mr-2"></i>
                     {% trans "Фотографии товара" %}
                 </h3>
+
+                <div class="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
+                    <p class="text-sm text-gray-700 dark:text-white">
+                        <i class="bi bi-info-circle mr-1"></i>
+                        {% trans "Добавьте несколько фотографий товара. Вы можете отметить главное и эталонное фото, а также изменить порядок перетаскиванием." %}
+                    </p>
+                </div>
+
                 {{ formset.management_form }}
-                <div class="space-y-4">
+
+                <div id="imagesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
                     {% for form in formset %}
-                    <div class="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-4">
-                        {{ form.as_p }}
+                    <div class="image-form-item bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg p-4 cursor-move hover:border-primary-500 transition-colors" draggable="true" data-form-index="{{ forloop.counter0 }}">
+                        <div class="image-preview-container mb-3 relative">
+                            <div class="image-preview w-full h-48 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center overflow-hidden">
+                                <i class="bi bi-image text-gray-400 dark:text-white text-5xl preview-placeholder"></i>
+                                <img src="" alt="Preview" class="preview-image hidden w-full h-full object-cover">
+                            </div>
+                            <button type="button" class="remove-image-btn absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white rounded-full w-8 h-8 flex items-center justify-center shadow-lg transition-all hover:scale-110" style="display:none;">
+                                <i class="bi bi-trash text-sm"></i>
+                            </button>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div class="file-input-wrapper">
+                                <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                                    <i class="bi bi-upload mr-1"></i> {% trans "Выберите файл" %}
+                                </label>
+                                {{ form.image }}
+                            </div>
+
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4">
+                                    <label class="flex items-center cursor-pointer">
+                                        {{ form.is_main }}
+                                        <span class="ml-2 text-sm font-medium text-gray-900 dark:text-white">
+                                            <i class="bi bi-star-fill text-yellow-500 mr-1"></i> {% trans "Главное" %}
+                                        </span>
+                                    </label>
+
+                                    <label class="flex items-center cursor-pointer">
+                                        {{ form.is_reference }}
+                                        <span class="ml-2 text-sm font-medium text-gray-900 dark:text-white">
+                                            <i class="bi bi-rulers text-blue-500 mr-1"></i> {% trans "Эталон" %}
+                                        </span>
+                                    </label>
+                                </div>
+
+                                <div class="drag-handle text-gray-400 dark:text-white cursor-move">
+                                    <i class="bi bi-grip-vertical text-xl"></i>
+                                </div>
+                            </div>
+
+                            {{ form.order }}
+                            {% if form.instance.pk %}{{ form.id }}{% endif %}
+                        </div>
                     </div>
                     {% endfor %}
                 </div>
+
+                <button type="button" id="addMoreImagesBtn" class="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center justify-center">
+                    <i class="bi bi-plus-circle mr-2"></i>
+                    {% trans "Добавить ещё фото" %}
+                </button>
             </div>
 
             <!-- Submit Buttons -->
@@ -498,6 +550,191 @@ document.addEventListener('DOMContentLoaded', function() {
             hiddenHeightInput.value = this.value;
         });
     }
+
+    // ============================================
+    // MULTI-PHOTO UPLOAD WITH PREVIEW & DRAG & DROP
+    // ============================================
+
+    const imagesContainer = document.getElementById('imagesContainer');
+    const addMoreBtn = document.getElementById('addMoreImagesBtn');
+    let draggedElement = null;
+
+    // Preview images when selected
+    function setupImagePreviews() {
+        document.querySelectorAll('.image-form-item').forEach(item => {
+            const fileInput = item.querySelector('input[type="file"]');
+            const previewContainer = item.querySelector('.image-preview');
+            const previewImage = item.querySelector('.preview-image');
+            const placeholder = item.querySelector('.preview-placeholder');
+            const removeBtn = item.querySelector('.remove-image-btn');
+
+            if (fileInput) {
+                fileInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file && file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = function(event) {
+                            previewImage.src = event.target.result;
+                            previewImage.classList.remove('hidden');
+                            placeholder.classList.add('hidden');
+                            removeBtn.style.display = 'flex';
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+
+            // Remove image functionality
+            if (removeBtn) {
+                removeBtn.addEventListener('click', function() {
+                    if (fileInput) fileInput.value = '';
+                    previewImage.src = '';
+                    previewImage.classList.add('hidden');
+                    placeholder.classList.remove('hidden');
+                    removeBtn.style.display = 'none';
+                });
+            }
+        });
+    }
+
+    // Drag and Drop functionality
+    function setupDragAndDrop() {
+        document.querySelectorAll('.image-form-item').forEach(item => {
+            item.addEventListener('dragstart', function(e) {
+                draggedElement = this;
+                this.style.opacity = '0.5';
+                e.dataTransfer.effectAllowed = 'move';
+            });
+
+            item.addEventListener('dragend', function() {
+                this.style.opacity = '1';
+            });
+
+            item.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+
+                if (draggedElement !== this) {
+                    this.style.borderColor = '#667eea';
+                    this.style.transform = 'scale(1.02)';
+                }
+            });
+
+            item.addEventListener('dragleave', function() {
+                this.style.borderColor = '';
+                this.style.transform = '';
+            });
+
+            item.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.style.borderColor = '';
+                this.style.transform = '';
+
+                if (draggedElement !== this) {
+                    // Swap elements
+                    const allItems = [...imagesContainer.children];
+                    const draggedIndex = allItems.indexOf(draggedElement);
+                    const targetIndex = allItems.indexOf(this);
+
+                    if (draggedIndex < targetIndex) {
+                        this.parentNode.insertBefore(draggedElement, this.nextSibling);
+                    } else {
+                        this.parentNode.insertBefore(draggedElement, this);
+                    }
+
+                    // Update order fields
+                    updateOrderFields();
+                }
+            });
+        });
+    }
+
+    // Update order fields after drag & drop
+    function updateOrderFields() {
+        document.querySelectorAll('.image-form-item').forEach((item, index) => {
+            const orderInput = item.querySelector('input[name*="order"]');
+            if (orderInput) {
+                orderInput.value = index;
+            }
+            item.dataset.formIndex = index;
+        });
+    }
+
+    // Add more images functionality
+    if (addMoreBtn) {
+        addMoreBtn.addEventListener('click', function() {
+            const totalFormsInput = document.querySelector('input[name$="-TOTAL_FORMS"]');
+            if (!totalFormsInput) return;
+
+            const currentTotal = parseInt(totalFormsInput.value);
+            const newIndex = currentTotal;
+
+            // Clone the first form template
+            const templateForm = document.querySelector('.image-form-item');
+            if (!templateForm) return;
+
+            const newForm = templateForm.cloneNode(true);
+
+            // Update form index in all fields
+            newForm.querySelectorAll('input, select, textarea').forEach(input => {
+                if (input.name) {
+                    input.name = input.name.replace(/-(\\d+)-/, `-${newIndex}-`);
+                    input.id = input.id ? input.id.replace(/-(\\d+)-/, `-${newIndex}-`) : '';
+
+                    // Clear values
+                    if (input.type === 'checkbox') {
+                        input.checked = false;
+                    } else if (input.type !== 'hidden' || input.name.includes('order')) {
+                        input.value = input.name.includes('order') ? newIndex : '';
+                    }
+                }
+            });
+
+            // Reset preview
+            const previewImage = newForm.querySelector('.preview-image');
+            const placeholder = newForm.querySelector('.preview-placeholder');
+            const removeBtn = newForm.querySelector('.remove-image-btn');
+
+            if (previewImage) {
+                previewImage.src = '';
+                previewImage.classList.add('hidden');
+            }
+            if (placeholder) {
+                placeholder.classList.remove('hidden');
+            }
+            if (removeBtn) {
+                removeBtn.style.display = 'none';
+            }
+
+            newForm.dataset.formIndex = newIndex;
+
+            // Append to container
+            imagesContainer.appendChild(newForm);
+
+            // Update total forms count
+            totalFormsInput.value = newIndex + 1;
+
+            // Re-setup functionality for new form
+            setupImagePreviews();
+            setupDragAndDrop();
+        });
+    }
+
+    // Ensure only one "Main" checkbox is checked
+    document.addEventListener('change', function(e) {
+        if (e.target.matches('input[name*="is_main"]') && e.target.checked) {
+            document.querySelectorAll('input[name*="is_main"]').forEach(checkbox => {
+                if (checkbox !== e.target) {
+                    checkbox.checked = false;
+                }
+            });
+        }
+    });
+
+    // Initialize
+    setupImagePreviews();
+    setupDragAndDrop();
+    updateOrderFields();
 });
 </script>
 {% endblock %}
