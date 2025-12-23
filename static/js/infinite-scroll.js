@@ -141,6 +141,10 @@ class InfiniteScroll {
         const topSentinel = document.createElement('div');
         topSentinel.id = 'topScrollSentinel';
         topSentinel.style.height = '1px';
+        topSentinel.style.width = '100%';
+        topSentinel.style.opacity = '0';
+        topSentinel.style.pointerEvents = 'none';
+        topSentinel.style.position = 'absolute';
 
         // Вставляем в начало грида
         if (this.productsGrid.firstChild) {
@@ -607,6 +611,10 @@ class InfiniteScroll {
                     const topSentinel = document.createElement('div');
                     topSentinel.id = 'topScrollSentinel';
                     topSentinel.style.height = '1px';
+                    topSentinel.style.width = '100%';
+                    topSentinel.style.opacity = '0';
+                    topSentinel.style.pointerEvents = 'none';
+                    topSentinel.style.position = 'absolute';
                     this.productsGrid.appendChild(topSentinel);
                     this.topSentinel = topSentinel;
 
