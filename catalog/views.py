@@ -450,31 +450,47 @@ def product_add(request):
     except Factory.DoesNotExist:
         messages.error(request, _('У вас нет профиля завода'))
         return redirect('catalog:home')
-    
+
     if request.method == 'POST':
         form = ProductForm(request.POST)
-        
+
         if form.is_valid():
             product = form.save(commit=False)
             product.factory = factory
             product.save()
-            
-            # Обрабатываем изображение из canvas (если есть)
+
+            # Обрабатываем эталонное изображение из canvas (если есть)
             canvas_image = request.FILES.get('canvas_image')
-            
+
             if canvas_image:
                 try:
                     ProductImage.objects.create(
                         product=product,
                         image=canvas_image,
                         is_main=True,
+                        is_reference=True,
                         order=0
                     )
                     logger.info(f"Canvas image saved for product {product.article}: {canvas_image.name}")
                 except Exception as e:
                     logger.error(f"Failed to save canvas image for product {product.article}: {e}")
                     messages.error(request, _('Ошибка при сохранении изображения'))
-            
+
+            # Обрабатываем дополнительные фото
+            additional_images = request.FILES.getlist('additional_images')
+            for index, img_file in enumerate(additional_images, start=1):
+                try:
+                    ProductImage.objects.create(
+                        product=product,
+                        image=img_file,
+                        is_main=False,
+                        is_reference=False,
+                        order=index
+                    )
+                    logger.info(f"Additional image {index} saved for product {product.article}")
+                except Exception as e:
+                    logger.error(f"Failed to save additional image {index} for product {product.article}: {e}")
+
             messages.success(request, _(f'Товар \"{product.name}\" успешно добавлен!'))
             
             # 🔧 ФИКС: Проверяем тип запроса

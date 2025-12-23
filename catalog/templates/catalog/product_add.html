@@ -316,76 +316,42 @@
                 </div>
             </div>
 
-            <!-- Product Images -->
+            <!-- Additional Gallery Photos -->
             <div>
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
                     <i class="bi bi-images mr-2"></i>
-                    {% trans "Фотографии товара" %}
+                    {% trans "Дополнительные фото товара" %}
                 </h3>
 
                 <div class="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
                     <p class="text-sm text-gray-700 dark:text-white">
                         <i class="bi bi-info-circle mr-1"></i>
-                        {% trans "Добавьте несколько фотографий товара. Вы можете отметить главное и эталонное фото, а также изменить порядок перетаскиванием." %}
+                        {% trans "Загрузите дополнительные фотографии товара для галереи (можно выбрать несколько файлов сразу)" %}
                     </p>
                 </div>
 
-                {{ formset.management_form }}
-
-                <div id="imagesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                    {% for form in formset %}
-                    <div class="image-form-item bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg p-4 cursor-move hover:border-primary-500 transition-colors" draggable="true" data-form-index="{{ forloop.counter0 }}">
-                        <div class="image-preview-container mb-3 relative">
-                            <div class="image-preview w-full h-48 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center overflow-hidden">
-                                <i class="bi bi-image text-gray-400 dark:text-white text-5xl preview-placeholder"></i>
-                                <img src="" alt="Preview" class="preview-image hidden w-full h-full object-cover">
-                            </div>
-                            <button type="button" class="remove-image-btn absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white rounded-full w-8 h-8 flex items-center justify-center shadow-lg transition-all hover:scale-110" style="display:none;">
-                                <i class="bi bi-trash text-sm"></i>
-                            </button>
-                        </div>
-
-                        <div class="space-y-3">
-                            <div class="file-input-wrapper">
-                                <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-                                    <i class="bi bi-upload mr-1"></i> {% trans "Выберите файл" %}
-                                </label>
-                                {{ form.image }}
-                            </div>
-
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-4">
-                                    <label class="flex items-center cursor-pointer">
-                                        {{ form.is_main }}
-                                        <span class="ml-2 text-sm font-medium text-gray-900 dark:text-white">
-                                            <i class="bi bi-star-fill text-yellow-500 mr-1"></i> {% trans "Главное" %}
-                                        </span>
-                                    </label>
-
-                                    <label class="flex items-center cursor-pointer">
-                                        {{ form.is_reference }}
-                                        <span class="ml-2 text-sm font-medium text-gray-900 dark:text-white">
-                                            <i class="bi bi-rulers text-blue-500 mr-1"></i> {% trans "Эталон" %}
-                                        </span>
-                                    </label>
-                                </div>
-
-                                <div class="drag-handle text-gray-400 dark:text-white cursor-move">
-                                    <i class="bi bi-grip-vertical text-xl"></i>
-                                </div>
-                            </div>
-
-                            {{ form.order }}
-                            {% if form.instance.pk %}{{ form.id }}{% endif %}
-                        </div>
-                    </div>
-                    {% endfor %}
+                <div class="bg-white dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center hover:border-primary-500 transition-colors">
+                    <i class="bi bi-cloud-upload text-6xl text-gray-400 dark:text-white mb-4"></i>
+                    <label for="additional_images" class="cursor-pointer">
+                        <span class="text-sm font-medium text-gray-900 dark:text-white">
+                            {% trans "Нажмите для выбора файлов" %}
+                        </span>
+                        <input
+                            type="file"
+                            name="additional_images"
+                            id="additional_images"
+                            multiple
+                            accept="image/*"
+                            class="hidden"
+                        >
+                    </label>
+                    <p class="text-xs text-gray-500 dark:text-white mt-2">
+                        {% trans "Можно выбрать несколько фотографий одновременно" %}
+                    </p>
                 </div>
 
-                <button type="button" id="addMoreImagesBtn" class="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center justify-center">
-                    <i class="bi bi-plus-circle mr-2"></i>
-                    {% trans "Добавить ещё фото" %}
-                </button>
+                <!-- Preview for additional images -->
+                <div id="additionalImagesPreview" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4"></div>
             </div>
 
             <!-- Submit Buttons -->
@@ -552,189 +518,53 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ============================================
-    // MULTI-PHOTO UPLOAD WITH PREVIEW & DRAG & DROP
+    // ADDITIONAL IMAGES PREVIEW
     // ============================================
 
-    const imagesContainer = document.getElementById('imagesContainer');
-    const addMoreBtn = document.getElementById('addMoreImagesBtn');
-    let draggedElement = null;
+    const additionalImagesInput = document.getElementById('additional_images');
+    const additionalImagesPreview = document.getElementById('additionalImagesPreview');
 
-    // Preview images when selected
-    function setupImagePreviews() {
-        document.querySelectorAll('.image-form-item').forEach(item => {
-            const fileInput = item.querySelector('input[type="file"]');
-            const previewContainer = item.querySelector('.image-preview');
-            const previewImage = item.querySelector('.preview-image');
-            const placeholder = item.querySelector('.preview-placeholder');
-            const removeBtn = item.querySelector('.remove-image-btn');
+    if (additionalImagesInput) {
+        additionalImagesInput.addEventListener('change', function(e) {
+            additionalImagesPreview.innerHTML = ''; // Clear previous previews
 
-            if (fileInput) {
-                fileInput.addEventListener('change', function(e) {
-                    const file = e.target.files[0];
-                    if (file && file.type.startsWith('image/')) {
-                        const reader = new FileReader();
-                        reader.onload = function(event) {
-                            previewImage.src = event.target.result;
-                            previewImage.classList.remove('hidden');
-                            placeholder.classList.add('hidden');
-                            removeBtn.style.display = 'flex';
-                        };
-                        reader.readAsDataURL(file);
-                    }
-                });
-            }
+            const files = Array.from(e.target.files);
 
-            // Remove image functionality
-            if (removeBtn) {
-                removeBtn.addEventListener('click', function() {
-                    if (fileInput) fileInput.value = '';
-                    previewImage.src = '';
-                    previewImage.classList.add('hidden');
-                    placeholder.classList.remove('hidden');
-                    removeBtn.style.display = 'none';
-                });
-            }
-        });
-    }
+            files.forEach((file, index) => {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
 
-    // Drag and Drop functionality
-    function setupDragAndDrop() {
-        document.querySelectorAll('.image-form-item').forEach(item => {
-            item.addEventListener('dragstart', function(e) {
-                draggedElement = this;
-                this.style.opacity = '0.5';
-                e.dataTransfer.effectAllowed = 'move';
-            });
+                    reader.onload = function(event) {
+                        const previewCard = document.createElement('div');
+                        previewCard.className = 'relative bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden group hover:border-primary-500 transition-all';
 
-            item.addEventListener('dragend', function() {
-                this.style.opacity = '1';
-            });
+                        previewCard.innerHTML = `
+                            <img src="${event.target.result}" alt="Preview ${index + 1}" class="w-full h-32 object-cover">
+                            <div class="absolute top-2 right-2 bg-primary-600 text-white text-xs px-2 py-1 rounded-full">
+                                ${index + 1}
+                            </div>
+                            <div class="p-2">
+                                <p class="text-xs text-gray-600 dark:text-white truncate">${file.name}</p>
+                                <p class="text-xs text-gray-400 dark:text-white">${(file.size / 1024).toFixed(1)} KB</p>
+                            </div>
+                        `;
 
-            item.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = 'move';
+                        additionalImagesPreview.appendChild(previewCard);
+                    };
 
-                if (draggedElement !== this) {
-                    this.style.borderColor = '#667eea';
-                    this.style.transform = 'scale(1.02)';
+                    reader.readAsDataURL(file);
                 }
             });
 
-            item.addEventListener('dragleave', function() {
-                this.style.borderColor = '';
-                this.style.transform = '';
-            });
-
-            item.addEventListener('drop', function(e) {
-                e.preventDefault();
-                this.style.borderColor = '';
-                this.style.transform = '';
-
-                if (draggedElement !== this) {
-                    // Swap elements
-                    const allItems = [...imagesContainer.children];
-                    const draggedIndex = allItems.indexOf(draggedElement);
-                    const targetIndex = allItems.indexOf(this);
-
-                    if (draggedIndex < targetIndex) {
-                        this.parentNode.insertBefore(draggedElement, this.nextSibling);
-                    } else {
-                        this.parentNode.insertBefore(draggedElement, this);
-                    }
-
-                    // Update order fields
-                    updateOrderFields();
-                }
-            });
+            // Show count
+            if (files.length > 0) {
+                const countBadge = document.createElement('div');
+                countBadge.className = 'col-span-full text-center text-sm text-gray-600 dark:text-white font-medium mt-2';
+                countBadge.textContent = `Выбрано файлов: ${files.length}`;
+                additionalImagesPreview.appendChild(countBadge);
+            }
         });
     }
-
-    // Update order fields after drag & drop
-    function updateOrderFields() {
-        document.querySelectorAll('.image-form-item').forEach((item, index) => {
-            const orderInput = item.querySelector('input[name*="order"]');
-            if (orderInput) {
-                orderInput.value = index;
-            }
-            item.dataset.formIndex = index;
-        });
-    }
-
-    // Add more images functionality
-    if (addMoreBtn) {
-        addMoreBtn.addEventListener('click', function() {
-            const totalFormsInput = document.querySelector('input[name$="-TOTAL_FORMS"]');
-            if (!totalFormsInput) return;
-
-            const currentTotal = parseInt(totalFormsInput.value);
-            const newIndex = currentTotal;
-
-            // Clone the first form template
-            const templateForm = document.querySelector('.image-form-item');
-            if (!templateForm) return;
-
-            const newForm = templateForm.cloneNode(true);
-
-            // Update form index in all fields
-            newForm.querySelectorAll('input, select, textarea').forEach(input => {
-                if (input.name) {
-                    input.name = input.name.replace(/-(\d+)-/, `-${newIndex}-`);
-                    input.id = input.id ? input.id.replace(/-(\d+)-/, `-${newIndex}-`) : '';
-
-                    // Clear values
-                    if (input.type === 'checkbox') {
-                        input.checked = false;
-                    } else if (input.type !== 'hidden' || input.name.includes('order')) {
-                        input.value = input.name.includes('order') ? newIndex : '';
-                    }
-                }
-            });
-
-            // Reset preview
-            const previewImage = newForm.querySelector('.preview-image');
-            const placeholder = newForm.querySelector('.preview-placeholder');
-            const removeBtn = newForm.querySelector('.remove-image-btn');
-
-            if (previewImage) {
-                previewImage.src = '';
-                previewImage.classList.add('hidden');
-            }
-            if (placeholder) {
-                placeholder.classList.remove('hidden');
-            }
-            if (removeBtn) {
-                removeBtn.style.display = 'none';
-            }
-
-            newForm.dataset.formIndex = newIndex;
-
-            // Append to container
-            imagesContainer.appendChild(newForm);
-
-            // Update total forms count
-            totalFormsInput.value = newIndex + 1;
-
-            // Re-setup functionality for new form
-            setupImagePreviews();
-            setupDragAndDrop();
-        });
-    }
-
-    // Ensure only one "Main" checkbox is checked
-    document.addEventListener('change', function(e) {
-        if (e.target.matches('input[name*="is_main"]') && e.target.checked) {
-            document.querySelectorAll('input[name*="is_main"]').forEach(checkbox => {
-                if (checkbox !== e.target) {
-                    checkbox.checked = false;
-                }
-            });
-        }
-    });
-
-    // Initialize
-    setupImagePreviews();
-    setupDragAndDrop();
-    updateOrderFields();
 });
 </script>
 {% endblock %}
