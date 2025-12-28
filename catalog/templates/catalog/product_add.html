@@ -40,10 +40,6 @@
                         <label for="{{ form.name.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ form.name.label }}</label>
                         <input type="text" name="name" id="{{ form.name.id_for_label }}" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5" required>
                     </div>
-                    <div>
-                        <label for="{{ form.article.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ form.article.label }}</label>
-                        <input type="text" name="article" id="{{ form.article.id_for_label }}" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5" required>
-                    </div>
                     <div class="md:col-span-2">
                         <label for="{{ form.description.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ form.description.label }}</label>
                         <textarea name="description" id="{{ form.description.id_for_label }}" rows="4" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5"></textarea>
@@ -320,20 +316,42 @@
                 </div>
             </div>
 
-            <!-- Product Images -->
+            <!-- Additional Gallery Photos -->
             <div>
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
                     <i class="bi bi-images mr-2"></i>
-                    {% trans "Фотографии товара" %}
+                    {% trans "Дополнительные фото товара" %}
                 </h3>
-                {{ formset.management_form }}
-                <div class="space-y-4">
-                    {% for form in formset %}
-                    <div class="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-4">
-                        {{ form.as_p }}
-                    </div>
-                    {% endfor %}
+
+                <div class="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
+                    <p class="text-sm text-gray-700 dark:text-white">
+                        <i class="bi bi-info-circle mr-1"></i>
+                        {% trans "Загрузите дополнительные фотографии товара для галереи (можно выбрать несколько файлов сразу)" %}
+                    </p>
                 </div>
+
+                <div class="bg-white dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center hover:border-primary-500 transition-colors">
+                    <i class="bi bi-cloud-upload text-6xl text-gray-400 dark:text-white mb-4"></i>
+                    <label for="additional_images" class="cursor-pointer">
+                        <span class="text-sm font-medium text-gray-900 dark:text-white">
+                            {% trans "Нажмите для выбора файлов" %}
+                        </span>
+                        <input
+                            type="file"
+                            name="additional_images"
+                            id="additional_images"
+                            multiple
+                            accept="image/*"
+                            class="hidden"
+                        >
+                    </label>
+                    <p class="text-xs text-gray-500 dark:text-white mt-2">
+                        {% trans "Можно выбрать несколько фотографий одновременно" %}
+                    </p>
+                </div>
+
+                <!-- Preview for additional images -->
+                <div id="additionalImagesPreview" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4"></div>
             </div>
 
             <!-- Submit Buttons -->
@@ -496,6 +514,55 @@ document.addEventListener('DOMContentLoaded', function() {
     if (manualHeightInput && hiddenHeightInput) {
         manualHeightInput.addEventListener('input', function() {
             hiddenHeightInput.value = this.value;
+        });
+    }
+
+    // ============================================
+    // ADDITIONAL IMAGES PREVIEW
+    // ============================================
+
+    const additionalImagesInput = document.getElementById('additional_images');
+    const additionalImagesPreview = document.getElementById('additionalImagesPreview');
+
+    if (additionalImagesInput) {
+        additionalImagesInput.addEventListener('change', function(e) {
+            additionalImagesPreview.innerHTML = ''; // Clear previous previews
+
+            const files = Array.from(e.target.files);
+
+            files.forEach((file, index) => {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+
+                    reader.onload = function(event) {
+                        const previewCard = document.createElement('div');
+                        previewCard.className = 'relative bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden group hover:border-primary-500 transition-all';
+
+                        previewCard.innerHTML = `
+                            <img src="${event.target.result}" alt="Preview ${index + 1}" class="w-full h-32 object-cover">
+                            <div class="absolute top-2 right-2 bg-primary-600 text-white text-xs px-2 py-1 rounded-full">
+                                ${index + 1}
+                            </div>
+                            <div class="p-2">
+                                <p class="text-xs text-gray-600 dark:text-white truncate">${file.name}</p>
+                                <p class="text-xs text-gray-400 dark:text-white">${(file.size / 1024).toFixed(1)} KB</p>
+                            </div>
+                        `;
+
+                        additionalImagesPreview.appendChild(previewCard);
+                    };
+
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Show count
+            if (files.length > 0) {
+                const countBadge = document.createElement('div');
+                countBadge.className = 'col-span-full text-center text-sm text-gray-600 dark:text-white font-medium mt-2';
+                countBadge.textContent = `Выбрано файлов: ${files.length}`;
+                additionalImagesPreview.appendChild(countBadge);
+            }
         });
     }
 });

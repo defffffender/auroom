@@ -329,3 +329,179 @@ canvas#fabricCanvas {
 .image-editor-container .hidden {
     display: none !important;
 }
+
+/* Multi-Photo Upload Styles */
+.image-form-item {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+.image-form-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.image-form-item.dragging {
+    opacity: 0.5;
+    transform: scale(0.95);
+    border-color: #8b5cf6;
+    box-shadow: 0 20px 40px rgba(139, 92, 246, 0.3);
+}
+
+.image-form-item.drag-over {
+    border-color: #10b981;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1));
+    transform: scale(1.02);
+}
+
+.image-preview-container {
+    overflow: hidden;
+}
+
+.image-preview {
+    transition: all 0.3s ease;
+    border-radius: 0.5rem;
+}
+
+.image-preview:hover .preview-image {
+    transform: scale(1.05);
+}
+
+.remove-image-btn {
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.image-form-item:hover .remove-image-btn {
+    opacity: 1;
+}
+
+.remove-image-btn:hover {
+    background: #dc2626 !important;
+}
+
+.file-input-wrapper input[type="file"] {
+    width: 100%;
+    padding: 0.5rem;
+    border: 2px dashed #d1d5db;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #f9fafb;
+}
+
+.dark .file-input-wrapper input[type="file"] {
+    background: rgb(55, 65, 81);
+    border-color: rgb(75, 85, 99);
+    color: white;
+}
+
+.file-input-wrapper input[type="file"]:hover {
+    border-color: #8b5cf6;
+    background: #f3e8ff;
+}
+
+.dark .file-input-wrapper input[type="file"]:hover {
+    background: rgba(139, 92, 246, 0.2);
+    border-color: #a78bfa;
+}
+
+.file-input-wrapper input[type="file"]:focus {
+    outline: none;
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+}
+
+/* Checkbox styling for main/reference photos */
+input[type="checkbox"][name*="is_main"],
+input[type="checkbox"][name*="is_reference"] {
+    width: 1.25rem;
+    height: 1.25rem;
+    cursor: pointer;
+    accent-color: #8b5cf6;
+}
+
+input[type="checkbox"][name*="is_main"]:checked {
+    accent-color: #eab308;
+}
+
+input[type="checkbox"][name*="is_reference"]:checked {
+    accent-color: #3b82f6;
+}
+
+/* Order field - hidden */
+input[name*="order"] {
+    display: none;
+}
+
+/* Drag handle animation */
+.drag-handle {
+    transition: all 0.3s ease;
+}
+
+.image-form-item:hover .drag-handle {
+    color: #8b5cf6 !important;
+    transform: scale(1.1);
+}
+
+/* Add more photos button hover effect */
+#addMoreImagesBtn {
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+#addMoreImagesBtn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+#addMoreImagesBtn:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+#addMoreImagesBtn:active {
+    transform: scale(0.98);
+}
+
+/* Responsive adjustments for multi-photo grid */
+@media (max-width: 768px) {
+    .image-form-item {
+        margin-bottom: 1rem;
+    }
+
+    .image-preview {
+        height: 200px !important;
+    }
+}
+
+@media (max-width: 1024px) {
+    .image-preview {
+        height: 180px !important;
+    }
+}
+
+/* Smooth animations for adding/removing items */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.image-form-item {
+    animation: fadeIn 0.4s ease;
+}

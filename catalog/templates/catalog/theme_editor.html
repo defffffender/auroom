@@ -711,7 +711,7 @@ function themeEditor() {
 
         async loadTheme(themeId) {
             try {
-                const response = await fetch(`/theme/${themeId}/load/`);
+                const response = await fetch(`/ru/theme/${themeId}/load/`);
                 const data = await response.json();
 
                 if (data.success) {
@@ -772,7 +772,7 @@ function themeEditor() {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}'
+                        'X-CSRFToken': getCookie('csrftoken')
                     },
                     body: JSON.stringify(themeData)
                 });
@@ -843,11 +843,11 @@ function themeEditor() {
             if (!this.currentThemeId) return;
 
             try {
-                const response = await fetch(`/theme/${this.currentThemeId}/activate/`, {
+                const response = await fetch(`/ru/theme/${this.currentThemeId}/activate/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}'
+                        'X-CSRFToken': getCookie('csrftoken')
                     }
                 });
 
@@ -879,11 +879,11 @@ function themeEditor() {
             }
 
             try {
-                const response = await fetch(`/theme/${this.currentThemeId}/delete/`, {
+                const response = await fetch(`/ru/theme/${this.currentThemeId}/delete/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token}}'
+                        'X-CSRFToken': getCookie('csrftoken')
                     }
                 });
 
@@ -978,6 +978,22 @@ function themeEditor() {
             }, 5000);
         }
     };
+}
+
+// Helper function to get CSRF token from cookies
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
 }
 </script>
 {% endblock %}
