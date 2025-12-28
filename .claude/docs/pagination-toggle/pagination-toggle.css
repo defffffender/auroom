@@ -1,0 +1,284 @@
+/*
+ * CSS СТИЛИ ДЛЯ ВЫДВИЖНОЙ ПАГИНАЦИИ
+ *
+ * Особенности:
+ * - Поддержка светлой и темной темы (.dark класс)
+ * - Адаптивность для мобильных устройств
+ * - Плавные анимации появления/скрытия
+ * - Touch-friendly размеры кнопок на мобильных
+ */
+
+/* ==========================================
+   КНОПКА-ПЕРЕКЛЮЧАТЕЛЬ ПАГИНАЦИИ
+   ========================================== */
+
+#paginationToggle {
+    /* Позиционирование - прижата к правому краю, по центру вертикально */
+    position: fixed;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    z-index: 41;  /* Выше панели пагинации (z-index: 40) */
+
+    /* Оформление */
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-right: none;  /* Убираем правую границу - кнопка прижата к краю */
+    border-radius: 12px 0 0 12px;  /* Скругление только слева */
+    padding: 12px 8px;
+    cursor: pointer;
+    box-shadow: -2px 2px 8px rgba(0, 0, 0, 0.1);
+
+    /* Анимация для плавных переходов */
+    transition: all 0.3s ease;
+
+    /* Размеры */
+    width: 40px;
+    height: 50px;
+
+    /* Flexbox для центрирования иконки */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Темная тема для кнопки */
+.dark #paginationToggle {
+    background: rgb(31 41 55);
+    border-color: rgb(75 85 99);
+    color: white;
+}
+
+/* Hover эффект - кнопка немного расширяется */
+#paginationToggle:hover {
+    background: #f3f4f6;
+    width: 45px;
+}
+
+.dark #paginationToggle:hover {
+    background: rgb(55 65 81);
+}
+
+/* Иконка внутри кнопки */
+#paginationToggle i {
+    font-size: 1.25rem;
+    transition: transform 0.3s ease;
+}
+
+/* Поворот иконки на 180° когда панель открыта */
+#paginationToggle.open i {
+    transform: rotate(180deg);
+}
+
+/* ==========================================
+   ПАНЕЛЬ ПАГИНАЦИИ
+   ========================================== */
+
+#stickyPagination {
+    /* Позиционирование */
+    position: fixed;
+    top: 50%;
+    right: -160px;  /* СКРЫТА ПО УМОЛЧАНИЮ (за правым краем экрана) */
+    transform: translateY(-50%);
+    z-index: 40;  /* Ниже кнопки переключателя */
+
+    /* Оформление */
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    min-width: 120px;
+
+    /* Анимация появления/скрытия */
+    transition: right 0.3s ease, opacity 0.3s ease;
+    opacity: 0;  /* Невидима по умолчанию */
+}
+
+/* ВИДИМОЕ СОСТОЯНИЕ */
+/* Применяется когда панель должна быть видна (вручную или автоматически) */
+#stickyPagination.visible,
+#stickyPagination.auto-visible {
+    right: 20px;  /* Сдвигается на экран */
+    opacity: 1;   /* Становится видимой */
+}
+
+/* Темная тема для панели */
+.dark #stickyPagination {
+    background: rgb(31 41 55);
+    border-color: rgb(75 85 99);
+}
+
+/* Hover эффект - усиление тени */
+#stickyPagination:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* ==========================================
+   ВНУТРЕННИЕ ЭЛЕМЕНТЫ ПАНЕЛИ
+   ========================================== */
+
+/* Заголовок "Страница" */
+#stickyPagination .pagination-header {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6b7280;
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.dark #stickyPagination .pagination-header {
+    color: rgb(156 163 175);
+}
+
+/* Кнопки навигации (Предыдущая/Следующая страница) */
+#stickyPagination .nav-btn {
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+}
+
+.dark #stickyPagination .nav-btn {
+    background: rgb(55 65 81);
+    border-color: rgb(75 85 99);
+    color: white;
+}
+
+/* Hover для кнопок - поднимается вверх */
+#stickyPagination .nav-btn:hover:not(:disabled) {
+    background: #e5e7eb;
+    transform: translateY(-1px);
+}
+
+.dark #stickyPagination .nav-btn:hover:not(:disabled) {
+    background: rgb(75 85 99);
+}
+
+/* Заблокированные кнопки (когда нет предыдущей/следующей страницы) */
+#stickyPagination .nav-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Индикатор текущей страницы (например: "5 / 20") */
+#stickyPagination .current-page {
+    font-size: 1rem;
+    font-weight: 700;
+    text-align: center;
+    padding: 0.5rem;
+    margin: 0.5rem 0;
+}
+
+/* Контейнер для номеров страниц (если используется) */
+#paginationNumbers {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin: 0.5rem 0;
+}
+
+/* ==========================================
+   АДАПТИВНОСТЬ
+   ========================================== */
+
+/* Планшеты (ширина до 768px) */
+@media (max-width: 768px) {
+    /* Уменьшаем кнопку переключения */
+    #paginationToggle {
+        width: 36px;
+        height: 48px;
+    }
+
+    /* Настраиваем панель для планшетов */
+    #stickyPagination {
+        right: -140px;  /* Скрыта немного меньше */
+        padding: 0.75rem;
+        min-width: 100px;
+        font-size: 0.875rem;
+    }
+
+    #stickyPagination.visible,
+    #stickyPagination.auto-visible {
+        right: 10px;  /* Ближе к краю экрана */
+    }
+
+    /* Touch-friendly размеры для кнопок */
+    #stickyPagination .nav-btn {
+        min-height: 44px;  /* Apple HIG рекомендует минимум 44px для touch */
+        font-size: 1rem;
+    }
+
+    #paginationNumbers button {
+        min-height: 44px;
+        min-width: 44px;
+    }
+}
+
+/* Мобильные устройства (ширина до 480px) */
+@media (max-width: 480px) {
+    /* Еще больше уменьшаем кнопку */
+    #paginationToggle {
+        width: 32px;
+        height: 44px;
+        padding: 8px 6px;
+    }
+
+    #paginationToggle i {
+        font-size: 1rem;
+    }
+
+    /* Компактная панель для мобильных */
+    #stickyPagination {
+        right: -100px;
+        padding: 0.5rem;
+        min-width: 80px;
+        font-size: 0.75rem;
+        max-width: 90px;
+    }
+
+    #stickyPagination.visible,
+    #stickyPagination.auto-visible {
+        right: 5px;  /* Очень близко к краю */
+    }
+
+    /* Уменьшаем размеры текста */
+    #stickyPagination .pagination-header {
+        font-size: 0.65rem;
+        margin-bottom: 0.25rem;
+    }
+
+    #stickyPagination .current-page {
+        font-size: 0.75rem;
+        padding: 0.25rem;
+        margin: 0.25rem 0;
+    }
+
+    /* Touch-friendly, но компактные кнопки */
+    #stickyPagination .nav-btn {
+        min-height: 40px;
+        padding: 0.4rem;
+        margin-bottom: 0.25rem;
+        font-size: 0.875rem;
+    }
+
+    #paginationNumbers {
+        gap: 0.25rem;
+        margin: 0.25rem 0;
+    }
+
+    #paginationNumbers button {
+        min-height: 40px;
+        min-width: 40px;
+        padding: 0.4rem;
+        font-size: 0.75rem;
+    }
+}

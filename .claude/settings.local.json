@@ -63,7 +63,12 @@
       "Bash(.\\\\venv\\\\Scripts\\\\pip.exe install:*)",
       "Bash(python -m pip install:*)",
       "Bash(python manage.py migrate:*)",
-      "Bash(python manage.py:*)"
+      "Bash(python manage.py:*)",
+      "Bash(python add_products.py:*)",
+      "Bash(python:*)",
+      "Bash(dir)",
+      "Bash(tree:*)",
+      "Bash(dir:*)"
     ],
     "deny": [],
     "ask": []

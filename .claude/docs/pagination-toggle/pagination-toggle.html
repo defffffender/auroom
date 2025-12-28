@@ -1,0 +1,48 @@
+<!--
+    HTML РАЗМЕТКА ДЛЯ ВЫДВИЖНОЙ ПАГИНАЦИИ
+
+    Использование:
+    1. Скопируйте этот код в ваш шаблон (обычно перед закрывающим </body>)
+    2. Замените {{ page_obj.* }} на ваши переменные пагинации
+    3. Настройте функцию goToPage() под вашу систему роутинга
+-->
+
+<!-- Кнопка-переключатель пагинации (у правого края экрана) -->
+<button id="paginationToggle" title="Показать/скрыть страницы">
+    <i class="bi bi-chevron-left"></i>
+</button>
+
+<!-- Липкая панель пагинации (скрыта по умолчанию) -->
+<div id="stickyPagination">
+    <div class="pagination-header">Страница</div>
+
+    <!-- Кнопка "Предыдущая" -->
+    <button class="nav-btn" id="prevPageBtn" onclick="goToPage({{ page_obj.previous_page_number }})"
+            {% if not page_obj.has_previous %}disabled{% endif %}>
+        <i class="bi bi-chevron-up"></i>
+    </button>
+
+    <!-- Текущая страница -->
+    <div class="current-page">
+        {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+    </div>
+
+    <!-- Кнопка "Следующая" -->
+    <button class="nav-btn" id="nextPageBtn" onclick="goToPage({{ page_obj.next_page_number }})"
+            {% if not page_obj.has_next %}disabled{% endif %}>
+        <i class="bi bi-chevron-down"></i>
+    </button>
+</div>
+
+<!-- Функция перехода на страницу -->
+<script>
+/**
+ * Переход на указанную страницу
+ * @param {number} pageNum - номер страницы
+ */
+function goToPage(pageNum) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('page', pageNum);
+    window.location.href = url.toString();
+}
+</script>

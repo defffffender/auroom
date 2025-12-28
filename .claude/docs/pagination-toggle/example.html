@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Пример выдвижной пагинации</title>
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    <!-- CSS пагинации -->
+    <link rel="stylesheet" href="pagination-toggle.css">
+
+    <!-- Базовые стили для демо -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f9fafb;
+        }
+
+        /* Темная тема */
+        body.dark {
+            background: #111827;
+            color: #f9fafb;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        body.dark .header {
+            background: rgb(31 41 55);
+        }
+
+        .content-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            min-height: 400px;
+        }
+
+        body.dark .content-section {
+            background: rgb(31 41 55);
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 8px 16px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            z-index: 50;
+        }
+
+        body.dark .theme-toggle {
+            background: rgb(31 41 55);
+            border-color: rgb(75 85 99);
+            color: white;
+        }
+
+        h1 {
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        body.dark h1 {
+            color: white;
+        }
+
+        p {
+            color: #6b7280;
+            margin-bottom: 1rem;
+        }
+
+        body.dark p {
+            color: rgb(156 163 175);
+        }
+
+        .instructions {
+            background: #f3f4f6;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid #6366f1;
+            margin: 2rem 0;
+        }
+
+        body.dark .instructions {
+            background: rgb(55 65 81);
+        }
+
+        .instructions h3 {
+            margin-bottom: 1rem;
+            color: #6366f1;
+        }
+
+        .instructions ul {
+            margin-left: 1.5rem;
+        }
+
+        .instructions li {
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Переключатель темы -->
+    <button class="theme-toggle" onclick="toggleTheme()">
+        <i class="bi bi-moon-fill"></i> Тема
+    </button>
+
+    <div class="container">
+        <!-- Заголовок -->
+        <div class="header">
+            <h1>Пример выдвижной пагинации</h1>
+            <p>Демонстрация функционала автоматического появления/скрытия панели пагинации</p>
+        </div>
+
+        <!-- Инструкция -->
+        <div class="instructions">
+            <h3>📋 Как протестировать:</h3>
+            <ul>
+                <li><strong>Скролл:</strong> Начните скроллить страницу вниз → панель пагинации появится справа</li>
+                <li><strong>Автоскрытие:</strong> Остановите скролл → панель исчезнет через 1.5 секунды</li>
+                <li><strong>Ручное открытие:</strong> Нажмите на кнопку у правого края → панель откроется</li>
+                <li><strong>Неактивность:</strong> Не трогайте панель 3 секунды → она закроется автоматически</li>
+                <li><strong>Наведение:</strong> Наведите курсор на панель → автозакрытие приостановится</li>
+                <li><strong>Темная тема:</strong> Нажмите кнопку "Тема" вверху слева</li>
+            </ul>
+        </div>
+
+        <!-- Контент для скролла -->
+        <div class="content-section">
+            <h2>Секция 1</h2>
+            <p>Это демонстрационная страница. Скроллите вниз чтобы увидеть работу пагинации.</p>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Секция 2</h2>
+            <p>Продолжайте скроллить...</p>
+            <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Секция 3</h2>
+            <p>Панель пагинации должна появиться справа.</p>
+            <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Секция 4</h2>
+            <p>Остановите скролл и подождите 1.5 секунды.</p>
+            <p>Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Секция 5</h2>
+            <p>Панель должна автоматически исчезнуть.</p>
+            <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Секция 6</h2>
+            <p>Теперь попробуйте нажать на кнопку у правого края.</p>
+            <p>Totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Секция 7</h2>
+            <p>Панель откроется вручную.</p>
+            <p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit.</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Секция 8</h2>
+            <p>Не трогайте панель 3 секунды - она закроется.</p>
+            <p>Sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Секция 9</h2>
+            <p>Наведите курсор на панель - автозакрытие остановится.</p>
+            <p>Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit.</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Секция 10 (конец)</h2>
+            <p>Вы дошли до конца! Теперь вы знаете как работает пагинация.</p>
+            <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.</p>
+        </div>
+    </div>
+
+    <!-- ========================================
+         ВЫДВИЖНАЯ ПАГИНАЦИЯ
+         ======================================== -->
+
+    <!-- Кнопка-переключатель пагинации -->
+    <button id="paginationToggle" title="Показать/скрыть страницы">
+        <i class="bi bi-chevron-left"></i>
+    </button>
+
+    <!-- Панель пагинации -->
+    <div id="stickyPagination">
+        <div class="pagination-header">Страница</div>
+
+        <!-- Кнопка "Предыдущая" -->
+        <button class="nav-btn" id="prevPageBtn" onclick="goToPage(currentPage - 1)" disabled>
+            <i class="bi bi-chevron-up"></i>
+        </button>
+
+        <!-- Текущая страница -->
+        <div class="current-page">
+            <span id="currentPageNum">1</span> / <span id="totalPages">10</span>
+        </div>
+
+        <!-- Кнопка "Следующая" -->
+        <button class="nav-btn" id="nextPageBtn" onclick="goToPage(currentPage + 1)">
+            <i class="bi bi-chevron-down"></i>
+        </button>
+    </div>
+
+    <!-- JavaScript пагинации -->
+    <script src="pagination-toggle.js"></script>
+
+    <!-- Демо-скрипт для симуляции пагинации -->
+    <script>
+        // Симуляция пагинации для демо
+        let currentPage = 1;
+        const totalPages = 10;
+
+        function goToPage(pageNum) {
+            // Проверка границ
+            if (pageNum < 1 || pageNum > totalPages) {
+                return;
+            }
+
+            // Обновляем текущую страницу
+            currentPage = pageNum;
+
+            // Обновляем UI
+            document.getElementById('currentPageNum').textContent = currentPage;
+
+            // Управляем кнопками
+            const prevBtn = document.getElementById('prevPageBtn');
+            const nextBtn = document.getElementById('nextPageBtn');
+
+            prevBtn.disabled = currentPage === 1;
+            nextBtn.disabled = currentPage === totalPages;
+
+            // Симуляция загрузки новой страницы (прокрутка вверх)
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+
+            console.log(`Переход на страницу ${currentPage}`);
+        }
+
+        // Переключение темы
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+            const icon = document.querySelector('.theme-toggle i');
+
+            if (document.body.classList.contains('dark')) {
+                icon.className = 'bi bi-sun-fill';
+            } else {
+                icon.className = 'bi bi-moon-fill';
+            }
+        }
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('totalPages').textContent = totalPages;
+        });
+    </script>
+</body>
+</html>
